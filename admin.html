@@ -31,28 +31,100 @@
   </div>
 </header>
 
-<main class="wrap page-section">
+<main class="wrap page-section page-section--wide">
   <p class="section-eyebrow">Réservé au bureau</p>
-  <h1>Administration des utilisateurs</h1>
+  <h1>Administration</h1>
 
   <div id="deniedPanel" class="status-panel" hidden>
     <h2>Accès refusé</h2>
-    <p>Cette page est réservée aux comptes administrateur.</p>
+    <p>Cette page est réservée aux profils ayant accès à la page "administration".</p>
   </div>
 
   <div id="adminPanel" hidden>
-    <p class="section-lead">Changez le rôle d'un utilisateur puis cliquez sur « Enregistrer » sur sa ligne.</p>
-    <div class="table-wrap">
-      <table class="schedule" id="usersTable">
-        <thead>
-          <tr><th>Email</th><th>Nom affiché</th><th>Rôle</th><th>Inscrit le</th><th></th></tr>
-        </thead>
-        <tbody id="usersTableBody">
-          <tr><td colspan="5">Chargement…</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="form-hint" id="adminHint"></p>
+
+    <!-- ===== Profils (rôles) ===== -->
+    <section class="admin-section">
+      <h2>Profils</h2>
+      <p class="section-lead">Un profil définit à quelles pages du site il donne accès. Cochez les pages, puis enregistrez.</p>
+
+      <div class="table-wrap">
+        <table class="schedule" id="rolesTable">
+          <thead>
+            <tr><th>Clé</th><th>Nom affiché</th><th>Pages autorisées</th><th></th></tr>
+          </thead>
+          <tbody id="rolesTableBody">
+            <tr><td colspan="4">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="form-hint" id="rolesHint"></p>
+
+      <h3 class="admin-subheading">Créer un nouveau profil</h3>
+      <form id="newRoleForm" class="inline-form">
+        <label>Clé (identifiant technique, ex. "bureau")
+          <input type="text" name="key" pattern="[a-z0-9_]+" title="Lettres minuscules, chiffres et underscore uniquement" required>
+        </label>
+        <label>Nom affiché
+          <input type="text" name="label" required>
+        </label>
+        <fieldset class="checkbox-group" id="newRolePagesGroup">
+          <legend>Pages autorisées</legend>
+        </fieldset>
+        <button type="submit" class="btn btn-primary btn-small">Créer le profil</button>
+        <p class="form-hint" id="newRoleHint"></p>
+      </form>
+    </section>
+
+    <!-- ===== Utilisateurs ===== -->
+    <section class="admin-section">
+      <h2>Utilisateurs</h2>
+      <p class="section-lead">Changez le profil d'un utilisateur puis cliquez sur « Enregistrer » sur sa ligne.</p>
+      <div class="table-wrap">
+        <table class="schedule" id="usersTable">
+          <thead>
+            <tr><th>Email</th><th>Nom affiché</th><th>Profil</th><th>Inscrit le</th><th></th></tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="5">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="form-hint" id="usersHint"></p>
+    </section>
+
+    <!-- ===== Invitations ===== -->
+    <section class="admin-section">
+      <h2>Inviter un utilisateur</h2>
+      <p class="section-lead">
+        Le site étant en inscription libre, vous ne pouvez pas créer un compte avec mot de passe à la place de quelqu'un.
+        En revanche, vous pouvez réserver à l'avance le profil d'un email : dès que cette personne créera son compte
+        elle-même sur <a href="membres.html">l'espace membres</a>, le profil choisi ici lui sera attribué automatiquement
+        (au lieu de "Visiteur" par défaut).
+      </p>
+      <form id="inviteForm" class="inline-form">
+        <label>Email à inviter
+          <input type="email" name="email" required>
+        </label>
+        <label>Profil à attribuer
+          <select name="role" id="inviteRoleSelect" required></select>
+        </label>
+        <button type="submit" class="btn btn-primary btn-small">Enregistrer l'invitation</button>
+        <p class="form-hint" id="inviteHint"></p>
+      </form>
+
+      <h3 class="admin-subheading">Invitations en attente</h3>
+      <div class="table-wrap">
+        <table class="schedule" id="invitationsTable">
+          <thead>
+            <tr><th>Email</th><th>Profil prévu</th><th>Créée le</th><th></th></tr>
+          </thead>
+          <tbody id="invitationsTableBody">
+            <tr><td colspan="4">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
 </main>
 

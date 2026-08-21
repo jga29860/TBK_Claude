@@ -3,7 +3,7 @@
 // ============================================================
 
 async function initMembresPage() {
-  const profile = await getCurrentProfile();
+  const access = await getCurrentAccess();
 
   const authForms = document.getElementById('authForms');
   const pendingPanel = document.getElementById('pendingPanel');
@@ -13,17 +13,16 @@ async function initMembresPage() {
   pendingPanel.hidden = true;
   memberContent.hidden = true;
 
-  if (!profile) {
+  if (!access) {
     authForms.hidden = false;
     return;
   }
 
-  if (profile.role === 'visiteur') {
+  if (!access.pages.includes('espace_membres')) {
     pendingPanel.hidden = false;
     return;
   }
 
-  // role === 'membre' ou 'admin'
   memberContent.hidden = false;
   await loadAnnonces();
 }

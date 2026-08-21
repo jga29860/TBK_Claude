@@ -91,11 +91,22 @@ Il n'existe aucun admin au départ — c'est volontaire, pour la sécurité. Pou
 Par défaut, Supabase envoie un email de confirmation à l'inscription. Vous pouvez désactiver cette étape dans **Authentication → Providers → Email → "Confirm email"** si vous préférez que les comptes soient actifs immédiatement (déconseillé si le site est public).
 
 ### Pages ajoutées
-- `membres.html` — connexion / inscription, puis contenu réservé aux `membre`/`admin`.
-- `admin.html` — réservée aux `admin`, liste des utilisateurs et changement de rôle.
+- `membres.html` — connexion / inscription, puis contenu réservé aux profils ayant accès à la page `espace_membres`.
+- `admin.html` — réservée aux profils ayant accès à la page `administration`. Trois sections :
+  - **Profils** : créer des profils personnalisés (ex. "Bureau", "Compétiteur") et cocher les pages du site que chacun débloque.
+  - **Utilisateurs** : voir tous les comptes et changer le profil de chacun.
+  - **Invitations** : le site étant en inscription libre, vous ne pouvez pas créer un compte avec mot de passe à la place de quelqu'un (cela nécessiterait d'exposer une clé secrète Supabase dans le site public, ce qui n'est jamais fait). À la place, vous pré-attribuez un profil à un email : dès que cette personne s'inscrit elle-même, ce profil lui est attribué automatiquement au lieu de "Visiteur".
+
+### Si votre projet Supabase existait déjà avant cette mise à jour
+Exécutez en plus `supabase/migration_roles.sql` dans le SQL Editor (une seule fois). Il ajoute les profils configurables et les invitations sans toucher aux comptes déjà créés.
+
+### Ajouter une nouvelle page protégée
+1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
+2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
+3. Côté front, vérifiez `access.pages.includes('resultats_tournoi')` avant d'afficher le contenu (voir `membres.js` comme modèle).
 
 ### Aller plus loin
-Pour réserver d'autres contenus (résultats de tournoi, documents internes…), créez de nouvelles tables sur le même modèle que `annonces_membres` dans Supabase, avec une policy RLS `role in ('membre','admin')`, puis interrogez-les depuis une page comme `membres.js` le fait pour les annonces.
+Pour réserver d'autres contenus (résultats de tournoi, documents internes…), créez de nouvelles tables sur le même modèle que `annonces_membres` dans Supabase, avec une policy RLS `current_user_has_access('votre_page')`, puis interrogez-les depuis la page correspondante comme `membres.js` le fait pour les annonces.
 
 ## Tester en local avant publication
 
