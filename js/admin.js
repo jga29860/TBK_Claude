@@ -11,6 +11,7 @@ const PAGE_CATALOG = [
   { key: 'inscriptions', label: 'Inscriptions saison' },
   { key: 'tournois_admin', label: 'Tournois - Administration' },
   { key: 'tournois_gestion', label: 'Tournois - Gestion' },
+  { key: 'tournois_emargement', label: 'Tournois - Émargement' },
   { key: 'administration', label: 'Administration' },
 ];
 

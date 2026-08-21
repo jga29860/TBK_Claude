@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Émargement tournoi — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="28" height="28">
+          <circle cx="20" cy="9" r="7" fill="currentColor"/>
+          <path d="M20 16 L11 33 L29 33 Z" fill="currentColor" opacity="0.85"/>
+        </svg>
+      </span>
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+      <a href="tournois.html">Tournois</a>
+      <a href="emargement.html">Émargement</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'organisation des tournois</p>
+  <h1>Émargement</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée aux profils Tournois (Administration, Gestion ou Émargement).</p>
+  </div>
+
+  <div id="mainPanel" hidden>
+
+    <section class="admin-section">
+      <label class="tournoi-select-label">Tournoi
+        <select id="tournoiSelect"><option value="">— Choisir un tournoi —</option></select>
+      </label>
+    </section>
+
+    <div id="emargementContent" hidden>
+
+      <!-- ===== Bandeau d'informations (haut de page) ===== -->
+      <section class="admin-section emargement-header">
+        <div class="kpi-row">
+          <div class="kpi"><span class="small">Cotisation</span><br><strong id="kpiCotisation">0 €</strong></div>
+          <div class="kpi"><span class="small">Présents</span><br><strong id="kpiPresents">0 / 0</strong></div>
+          <div class="kpi"><span class="small">Total réglé</span><br><strong id="kpiRegle">0 €</strong></div>
+        </div>
+        <label class="search-label">Rechercher un joueur (nom ou club)
+          <input type="text" id="searchInput" class="search-input" placeholder="Tapez un nom ou un club…">
+        </label>
+      </section>
+
+      <!-- ===== Listes par compétition ===== -->
+      <div id="competitionsContainer"></div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/emargement.js"></script>
+</body>
+</html>

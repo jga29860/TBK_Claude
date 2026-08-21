@@ -99,6 +99,9 @@ const EXTRA_NAV_PAGES = [
   { pageKey: 'tournois_gestion', href: 'tournois.html', label: 'Tournois' },
   { pageKey: 'tournois_admin', href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi' },
   { pageKey: 'tournois_gestion', href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi' },
+  { pageKey: 'tournois_admin', href: 'emargement.html', label: 'Émargement' },
+  { pageKey: 'tournois_gestion', href: 'emargement.html', label: 'Émargement' },
+  { pageKey: 'tournois_emargement', href: 'emargement.html', label: 'Émargement' },
   { pageKey: 'administration', href: 'admin.html', label: 'Administration' },
 ];
 
