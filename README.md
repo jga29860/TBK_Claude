@@ -107,6 +107,8 @@ Le site reprend la charte du portail de gestion de tournoi (vert `#00b050` / `#0
 ### Si votre projet Supabase existait déjà avant cette mise à jour
 Exécutez en plus `supabase/migration_roles.sql` dans le SQL Editor (une seule fois). Il ajoute les profils configurables et les invitations sans toucher aux comptes déjà créés.
 
+Pour activer la gestion des inscriptions saison, exécutez aussi `supabase/migration_inscriptions.sql` (une seule fois, après les deux précédents).
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -114,6 +116,15 @@ Exécutez en plus `supabase/migration_roles.sql` dans le SQL Editor (une seule f
 
 ### Aller plus loin
 Pour réserver d'autres contenus (résultats de tournoi, documents internes…), créez de nouvelles tables sur le même modèle que `annonces_membres` dans Supabase, avec une policy RLS `current_user_has_access('votre_page')`, puis interrogez-les depuis la page correspondante comme `membres.js` le fait pour les annonces.
+
+## Inscriptions saison (page `inscriptions.html`)
+
+Page réservée aux profils ayant accès à la page `inscriptions` (créez un profil "Bureau" depuis `admin.html` → Profils, et cochez "Inscriptions saison"). Elle permet d'enregistrer les adhérents de la saison 2026/2027 :
+
+- **Champs fixes** (Nom, Prénom, Catégorie, Bad/Ping, UFOLEP/FSGT, Membre Bureau, Cotisation) : nécessaires au calcul automatique de la cotisation, non supprimables.
+- **Champs personnalisés** (WhatsApp, Cotisation payée, Santé, Date certificat, Téléphone, Adresse, Email, Date de naissance, Commentaire, préconfigurés par défaut) : entièrement paramétrables depuis la section "Configuration" (visible uniquement par le profil admin) — ajout, suppression, changement de type (texte, nombre, date, oui/non, liste de choix) et de valeur par défaut. Techniquement, ces champs sont stockés de façon flexible (colonne `jsonb`) plutôt que par de vraies colonnes SQL ajoutées à la volée — cela évite de faire exécuter des modifications de schéma de base de données depuis le site, ce qui serait fragile et risqué depuis un navigateur.
+- **Cotisation** : calculée automatiquement à partir du barème (Catégorie, Bad+Ping, UFOLEP/FSGT, Membre Bureau) dès que l'un de ces champs change, mais reste modifiable à la main avant enregistrement (bouton "Recalculer" disponible pour revenir au calcul automatique).
+- **Barème des cotisations** (section Configuration, admin uniquement) : les 5 montants sont modifiables à tout moment ; ils ne s'appliquent qu'aux futurs calculs, pas rétroactivement aux inscriptions déjà enregistrées.
 
 ## Tester en local avant publication
 

@@ -329,5 +329,30 @@ table.schedule .role-label-input{
   width: 140px;
 }
 
+/* ===== Inscriptions saison ===== */
+.field-grid{
+  display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px; margin-top: 20px;
+}
+.field-grid label{
+  display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:700; color: var(--dark);
+}
+.field-grid input, .field-grid select{
+  font-family: var(--font-body); font-size:0.95rem; padding: 10px 12px;
+  border-radius:8px; border:1px solid #a9d18e; background: var(--white); color: var(--ink);
+}
+.field-grid input:focus, .field-grid select:focus{ outline: 3px solid var(--green); background: #fff2cc; }
+
+.cotisation-row{ display:flex; gap:8px; align-items:center; }
+.cotisation-row input{ flex:1; }
+
+.form-actions{ display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
+.form-actions button{ border:none; cursor:pointer; }
+
+.btn-danger{ background: #c00000 !important; color: var(--white) !important; border-color:#c00000 !important; }
+.btn-danger:hover{ background:#900000 !important; }
+
+.count-badge{ font-family: var(--font-mono); font-size:0.85rem; color: var(--ink-soft); font-weight:400; }
+
 /* Focus visibility */
-a:focus-visible, button:focus-visible{ outline: 2px solid var(--shuttle); outline-offset: 2px; }
+a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-offset: 2px; }

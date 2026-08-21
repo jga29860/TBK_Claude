@@ -8,6 +8,7 @@
 // et/ou côté front (access.pages.includes('votre_cle')) sur la page concernée.
 const PAGE_CATALOG = [
   { key: 'espace_membres', label: 'Espace membres' },
+  { key: 'inscriptions', label: 'Inscriptions saison' },
   { key: 'administration', label: 'Administration' },
 ];
 

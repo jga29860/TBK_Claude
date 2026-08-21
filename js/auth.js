@@ -64,7 +64,7 @@ async function renderAuthState() {
   const el = document.getElementById('authState');
   const access = await getCurrentAccess();
 
-  ensureAdminNavLink(access);
+  ensurePageNavLinks(access);
 
   if (!el) return;
 
@@ -88,20 +88,29 @@ async function renderAuthState() {
 }
 
 /**
- * Ajoute un bouton "Administration" dans la navigation (desktop + mobile)
- * si le profil connecté a accès à la page "administration", sauf si un
- * lien vers admin.html existe déjà dans le menu (page admin.html elle-même).
+ * Ajoute des boutons dans la navigation (desktop + mobile) pour les pages
+ * auxquelles le profil connecté a accès (ex. "Inscriptions", "Administration"),
+ * sauf si un lien vers cette page existe déjà dans le menu (cas de la page
+ * elle-même, dont le lien statique est présent dans le HTML).
  */
-function ensureAdminNavLink(access) {
-  if (!access || !access.pages || !access.pages.includes('administration')) return;
+const EXTRA_NAV_PAGES = [
+  { pageKey: 'inscriptions', href: 'inscriptions.html', label: 'Inscriptions' },
+  { pageKey: 'administration', href: 'admin.html', label: 'Administration' },
+];
+
+function ensurePageNavLinks(access) {
+  if (!access || !access.pages) return;
   document.querySelectorAll('.main-nav').forEach(nav => {
-    const already = Array.from(nav.querySelectorAll('a')).some(a => a.getAttribute('href') === 'admin.html');
-    if (already) return;
-    const a = document.createElement('a');
-    a.href = 'admin.html';
-    a.textContent = 'Administration';
-    a.className = 'nav-admin-btn';
-    nav.appendChild(a);
+    EXTRA_NAV_PAGES.forEach(({ pageKey, href, label }) => {
+      if (!access.pages.includes(pageKey)) return;
+      const already = Array.from(nav.querySelectorAll('a')).some(a => a.getAttribute('href') === href);
+      if (already) return;
+      const a = document.createElement('a');
+      a.href = href;
+      a.textContent = label;
+      a.className = 'nav-admin-btn';
+      nav.appendChild(a);
+    });
   });
 }
 
