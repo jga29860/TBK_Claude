@@ -142,53 +142,120 @@ function renderKpis() {
   document.getElementById('kpiPlaces').textContent = selectedCompetition.nb_poules * selectedCompetition.taille_poule;
 }
 function renderEquipesTable() {
+  const container = document.getElementById('poulesContainer');
   const isDouble = selectedCompetition.format === 'double';
-  const thead = document.getElementById('equipesTableHead');
-  const tbody = document.getElementById('equipesTableBody');
-
-  thead.innerHTML = isDouble
-    ? '<tr><th>Joueur 1</th><th>Club 1</th><th>Joueur 2</th><th>Club 2</th><th>Poule</th><th></th></tr>'
-    : '<tr><th>Nom</th><th>Club</th><th>Poule</th><th></th></tr>';
 
   if (equipesCache.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${isDouble ? 6 : 4}">Aucune équipe inscrite.</td></tr>`;
+    container.innerHTML = '<p class="section-lead">Aucune équipe inscrite.</p>';
     return;
   }
 
   const poules = Array.from({ length: selectedCompetition.nb_poules }, (_, i) => i + 1);
-  const pouleOptions = (current) => `<option value="" ${!current ? 'selected' : ''}>—</option>` +
-    poules.map(p => `<option value="${p}" ${current === p ? 'selected' : ''}>Poule ${p}</option>`).join('');
+  let html = '';
 
-  tbody.innerHTML = equipesCache.map(e => `
+  poules.forEach(p => {
+    const equipesPoule = equipesCache.filter(e => e.poule === p);
+    html += renderPouleBlock(p, equipesPoule, isDouble);
+  });
+
+  const nonAssignees = equipesCache.filter(e => !e.poule);
+  if (nonAssignees.length > 0) {
+    html += renderPouleBlock(null, nonAssignees, isDouble);
+  }
+
+  container.innerHTML = html;
+  bindEquipesRowEvents();
+}
+
+function renderPouleBlock(poule, equipes, isDouble) {
+  const titre = poule ? `Poule ${poule}` : 'Non assignées';
+  const capacite = selectedCompetition.taille_poule;
+  const compteur = poule ? `<span class="poule-count">(${equipes.length}/${capacite})</span>` : `<span class="poule-count">(${equipes.length})</span>`;
+
+  return `
+    <div class="poule-block">
+      <h3 class="poule-block-title">${escapeHtml(titre)} ${compteur}</h3>
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead>
+            <tr>
+              <th>Joueur 1</th><th>Club 1</th>
+              ${isDouble ? '<th>Joueur 2</th><th>Club 2</th>' : ''}
+              <th>Tête de poule</th><th>Poule</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${equipes.map(e => renderEquipeRow(e, isDouble)).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderEquipeRow(e, isDouble) {
+  const poules = Array.from({ length: selectedCompetition.nb_poules }, (_, i) => i + 1);
+  const pouleOptions = `<option value="" ${!e.poule ? 'selected' : ''}>—</option>` +
+    poules.map(p => `<option value="${p}" ${e.poule === p ? 'selected' : ''}>Poule ${p}</option>`).join('');
+
+  return `
     <tr data-equipe-id="${e.id}">
       <td>${escapeHtml(e.joueur1_nom)}</td>
       <td>${escapeHtml(e.joueur1_club || '—')}</td>
       ${isDouble ? `<td>${escapeHtml(e.joueur2_nom || '—')}</td><td>${escapeHtml(e.joueur2_club || '—')}</td>` : ''}
-      <td><select class="poule-select">${pouleOptions(e.poule)}</select></td>
+      <td><input type="checkbox" class="tete-poule-checkbox" ${e.tete_de_poule ? 'checked' : ''}></td>
       <td>
+        <select class="poule-select">${pouleOptions}</select>
         <button type="button" class="btn btn-ghost btn-small save-poule-btn">Enregistrer</button>
+      </td>
+      <td>
         <button type="button" class="btn btn-ghost btn-small edit-equipe-btn">Modifier</button>
         <button type="button" class="btn btn-danger btn-small delete-equipe-btn">Supprimer</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+}
 
-  tbody.querySelectorAll('.save-poule-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const row = e.target.closest('tr');
-      const id = row.getAttribute('data-equipe-id');
-      const val = row.querySelector('.poule-select').value;
-      const poule = val ? Number(val) : null;
-      await updateEquipe(id, { poule });
+function bindEquipesRowEvents() {
+  document.querySelectorAll('.tete-poule-checkbox').forEach(cb => {
+    cb.addEventListener('change', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-equipe-id');
+      await updateEquipe(id, { tete_de_poule: e.target.checked });
     });
   });
-  tbody.querySelectorAll('.edit-equipe-btn').forEach(btn => {
+
+  document.querySelectorAll('.save-poule-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const row = e.target.closest('tr');
+      const id = row.getAttribute('data-equipe-id');
+      const select = row.querySelector('.poule-select');
+      const newPoule = select.value ? Number(select.value) : null;
+      const equipe = equipesCache.find(x => x.id === id);
+      const oldPoule = equipe.poule;
+
+      if (newPoule === oldPoule) return;
+
+      // Poule non assignée <-> assignée, ou vers "—" : changement simple, pas d'échange possible.
+      if (oldPoule === null || newPoule === null) {
+        applyPouleChange(id, newPoule);
+        return;
+      }
+
+      const equipesPouleCible = equipesCache.filter(x => x.poule === newPoule && x.id !== id);
+      if (equipesPouleCible.length === 0) {
+        applyPouleChange(id, newPoule);
+        return;
+      }
+
+      openSwapChooser(row, id, oldPoule, newPoule, equipesPouleCible);
+    });
+  });
+
+  document.querySelectorAll('.edit-equipe-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
       editEquipe(id);
     });
   });
-  tbody.querySelectorAll('.delete-equipe-btn').forEach(btn => {
+  document.querySelectorAll('.delete-equipe-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
       if (!confirm('Supprimer cette inscription ?')) return;
@@ -196,6 +263,69 @@ function renderEquipesTable() {
       await loadEquipes();
     });
   });
+}
+
+// ============================================================
+// Échange d'équipes entre poules (pour garder le nombre d'équipes
+// par poule constant quand on déplace une équipe déjà affectée)
+// ============================================================
+
+function openSwapChooser(row, equipeId, oldPoule, newPoule, equipesPouleCible) {
+  // Retire un éventuel sélecteur d'échange déjà ouvert ailleurs
+  document.querySelectorAll('.swap-row').forEach(r => r.remove());
+
+  const colCount = row.children.length;
+  const options = equipesPouleCible.map(eq => `<option value="${eq.id}">${escapeHtml(equipeLabelShort(eq))}</option>`).join('');
+
+  const swapRow = document.createElement('tr');
+  swapRow.className = 'swap-row';
+  swapRow.innerHTML = `
+    <td colspan="${colCount}">
+      <div class="swap-panel">
+        <span>Poule ${oldPoule} → Poule ${newPoule} : cette poule est déjà occupée. Choisissez l'équipe à échanger (elle ira en Poule ${oldPoule}) :</span>
+        <select class="swap-select">
+          <option value="">— Déplacer sans échanger —</option>
+          ${options}
+        </select>
+        <button type="button" class="btn btn-primary btn-small swap-confirm-btn">Confirmer</button>
+        <button type="button" class="btn btn-ghost btn-small swap-cancel-btn">Annuler</button>
+      </div>
+    </td>`;
+  row.after(swapRow);
+
+  swapRow.querySelector('.swap-cancel-btn').addEventListener('click', () => {
+    renderEquipesTable(); // annule proprement (le select de poule revient à sa valeur d'origine)
+  });
+
+  swapRow.querySelector('.swap-confirm-btn').addEventListener('click', async () => {
+    const swapId = swapRow.querySelector('.swap-select').value;
+    if (swapId) {
+      await performSwap(equipeId, newPoule, swapId, oldPoule);
+    } else {
+      await applyPouleChange(equipeId, newPoule);
+    }
+  });
+}
+
+function equipeLabelShort(eq) {
+  return eq.joueur2_nom ? `${eq.joueur1_nom} / ${eq.joueur2_nom}` : eq.joueur1_nom;
+}
+
+async function performSwap(equipeId, newPoule, swapEquipeId, oldPoule) {
+  const hint = document.getElementById('equipesHint');
+  hint.textContent = 'Échange en cours…';
+  const r1 = await sbClient.from('equipes').update({ poule: newPoule }).eq('id', equipeId);
+  const r2 = await sbClient.from('equipes').update({ poule: oldPoule }).eq('id', swapEquipeId);
+  if (r1.error || r2.error) {
+    hint.textContent = 'Erreur : ' + ((r1.error && r1.error.message) || (r2.error && r2.error.message));
+    return;
+  }
+  hint.textContent = 'Équipes échangées.';
+  await loadEquipes();
+}
+
+async function applyPouleChange(equipeId, newPoule) {
+  await updateEquipe(equipeId, { poule: newPoule });
 }
 
 async function updateEquipe(id, patch) {

@@ -6,6 +6,7 @@ let tournoiCotisation = 0;
 let competitionsCache = []; // [{ id, nom, format }]
 let equipesCache = [];      // toutes les équipes du tournoi, tous compétitions confondues
 let searchTerm = '';
+let filterAbsentsOnly = false;
 
 async function initPage() {
   const access = await getCurrentAccess();
@@ -30,6 +31,7 @@ async function initPage() {
   await loadTournoisSelect();
   document.getElementById('tournoiSelect').addEventListener('change', onTournoiChange);
   document.getElementById('searchInput').addEventListener('input', onSearchInput);
+  document.getElementById('absentFilterBtn').addEventListener('click', onToggleAbsentFilter);
 }
 
 async function loadTournoisSelect() {
@@ -131,9 +133,22 @@ function renderKpis() {
 
 function onSearchInput(e) {
   searchTerm = e.target.value.trim().toLowerCase();
+  applyFilters();
+}
+
+function onToggleAbsentFilter() {
+  filterAbsentsOnly = !filterAbsentsOnly;
+  document.getElementById('absentFilterBtn').classList.toggle('is-active', filterAbsentsOnly);
+  applyFilters();
+}
+
+function applyFilters() {
   document.querySelectorAll('.equipe-row').forEach(row => {
     const haystack = row.getAttribute('data-search') || '';
-    row.hidden = searchTerm !== '' && !haystack.includes(searchTerm);
+    const matchesSearch = searchTerm === '' || haystack.includes(searchTerm);
+    const absentInput = row.querySelector('.emarg-check[data-field="absent"]');
+    const matchesAbsent = !filterAbsentsOnly || (absentInput && absentInput.checked);
+    row.hidden = !(matchesSearch && matchesAbsent);
   });
 }
 
@@ -181,6 +196,7 @@ function renderCompetitions() {
   }).join('');
 
   bindRowEvents();
+  applyFilters();
 }
 
 function renderEquipeRow(eq, isDouble) {

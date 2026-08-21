@@ -121,6 +121,8 @@ Pour l'étape 5 (planning), exécutez `supabase/migration_tournois_5.sql`.
 
 Pour bloquer automatiquement les inscriptions une fois une compétition complète, exécutez `supabase/migration_tournois_6.sql`.
 
+Pour la tête de poule, exécutez `supabase/migration_tournois_7.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -190,10 +192,20 @@ Sélectionnez un tournoi pour afficher son planning complet, tous compétitions 
 
 Dès qu'une compétition atteint sa capacité (nombre de poules × taille de poule), les nouvelles inscriptions sont refusées — directement en base de données (une nouvelle tentative d'inscription est bloquée même si deux personnes s'inscrivent en même temps), et la page `tournoi-inscriptions.html` masque le formulaire avec un message "Compétition complète" dès que ce seuil est atteint. Les inscriptions déjà enregistrées restent modifiables (changement de poule, correction de nom/club) : seules les *nouvelles* inscriptions sont bloquées.
 
+## Tête de poule, échange entre poules, affichage encadré
+
+- **Tête de poule** : case à cocher par équipe dans `tournoi-inscriptions.html`. Un garde-fou en base garantit qu'il n'y a jamais plus d'une tête de poule par poule (cocher une équipe décoche automatiquement l'ancienne tête de poule de cette poule).
+- **Échange lors d'un changement de poule** : quand une équipe déjà affectée à une poule est déplacée vers une autre poule déjà occupée, un sélecteur apparaît pour choisir l'équipe de la poule cible à échanger en retour — le nombre d'équipes par poule reste ainsi stable. L'option "Déplacer sans échanger" reste disponible si vous voulez volontairement déséquilibrer les poules. Aucun échange n'est proposé pour une première affectation (équipe non assignée) ou une désassignation.
+- **Affichage encadré par poule** : les équipes ne sont plus listées dans un seul tableau plat, mais regroupées visuellement dans un encadré par poule (avec le compteur d'équipes), plus un encadré "Non assignées" pour les équipes en attente d'affectation.
+
+## Filtre "absents" en émargement
+
+Sur `emargement.html`, à côté de la recherche par nom/club, un bouton "Afficher uniquement les absents" filtre la liste sur les équipes cochées "Absent". Se combine avec la recherche texte, et se réactualise en direct si une case Présent/Absent est cochée pendant que le filtre est actif.
+
 ## Scripts SQL utilitaires
 
 - `supabase/init_tournoi_dm_dh.sql` : crée un tournoi réel "Tournoi 2026-2027" avec Double Dame (8 poules de 4) et Double Homme (4 poules de 4), sans équipe fictive — prêt à recevoir les vraies inscriptions.
-- `supabase/test_tournoi_dm_dh.sql` : variante de démonstration qui crée en plus 48 équipes fictives déjà réparties en poules, pratique pour tester émargement/matchs/planning sans saisie manuelle.
+- `supabase/test_tournoi_dm_dh.sql` : à exécuter après le précédent — remplit ce même tournoi avec 48 participants fictifs par défaut, déjà répartis en poules, pratique pour tester émargement/matchs/planning avant d'y insérer les vraies inscriptions. Rejouable sans risque (repart de zéro sur ces 2 compétitions à chaque exécution).
 
 ## Tester en local avant publication
 
