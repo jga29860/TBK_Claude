@@ -397,5 +397,15 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .table-center th, .table-center td{ text-align:center; }
 .table-center td:first-child, .table-center th:first-child{ text-align:left; }
 
+.score-cell{ white-space:nowrap; }
+.score-input{
+  width: 42px; font-family: var(--font-mono); text-align:center; padding:6px 4px;
+  border-radius:6px; border:1px solid #a9d18e;
+}
+.terrain-input, .rotation-input{
+  width: 60px; font-family: var(--font-body); text-align:center; padding:6px 4px;
+  border-radius:6px; border:1px solid #a9d18e;
+}
+
 /* Focus visibility */
 a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-offset: 2px; }

@@ -115,6 +115,8 @@ Pour l'étape 2 (inscriptions par compétition + affectation aux poules), exécu
 
 Pour l'étape 3 (émargement), exécutez `supabase/migration_tournois_3.sql`.
 
+Pour l'étape 4 (matchs de poule + classement en direct), exécutez `supabase/migration_tournois_4.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -141,7 +143,7 @@ Première étape de la gestion des tournois : deux nouveaux profils à créer de
 
 Pour chaque tournoi, on choisit les compétitions incluses (Simple Homme, Double Dame…) par case à cocher, avec pour chacune le nombre de poules et le nombre d'équipes/participants par poule.
 
-**À venir dans les prochaines étapes** : page matchs avec scores et classement de poule en direct, page planning (terrains, temps d'attente, filtre par équipe).
+**À venir dans une prochaine étape** : page planning (terrains, temps d'attente, filtre par équipe). Les phases finales (Principale / Consolante) pourront faire l'objet d'une étape ultérieure si besoin.
 
 ## Inscriptions tournoi (page `tournoi-inscriptions.html`) — étape 2
 
@@ -159,6 +161,14 @@ Troisième profil : **Tournois - Émargement** (page `tournois_emargement`), pen
 - **Liste par compétition**, une équipe par ligne : nom et club éditables directement (utile en cas de changement de dernière minute), 3 cases à cocher — Présent, Absent (mutuellement exclusives : cocher l'une décoche l'autre), Cotisation payée.
 - Chaque case cochée est enregistrée immédiatement (pas de bouton "Enregistrer" séparé), pensé pour un usage rapide au fil des arrivées.
 - Les compteurs comptent les **participants** (2 personnes pour une équipe de double, 1 pour une équipe de simple), alors que les cases à cocher s'appliquent à l'équipe entière (les deux membres d'un double sont marqués présents/payés ensemble).
+
+## Matchs de poule & classement (page `matchs.html`) — étape 4
+
+Sélectionnez un tournoi puis une compétition pour afficher, poule par poule, le classement en direct et la saisie des scores.
+
+- **Génération des matchs** : bouton qui crée automatiquement tous les matchs en round-robin (chaque équipe rencontre toutes les autres équipes de sa poule) à partir des poules définies dans `tournoi-inscriptions.html`. Régénérer remplace les matchs existants (et leurs scores) après confirmation — les équipes non affectées à une poule sont ignorées.
+- **Classement** : recalculé automatiquement à chaque score saisi — Classement, Équipe, matchs joués, points (3 pour une victoire, 1 pour une défaite, uniquement si le match est décidé), différence de sets, différence de points. Le numéro de classement affiche au survol la valeur exacte (points×1000 + différence de sets×100 + différence de points) qui détermine l'ordre.
+- **Matchs** : un match se joue en 2 sets gagnants (jusqu'à 3 sets), chaque set saisi comme deux nombres (ex. 21 / 18). Numéro de terrain et rotation également modifiables sur chaque ligne. Un match n'est compté dans le classement que lorsqu'une équipe a gagné 2 sets.
 
 ## Tester en local avant publication
 
