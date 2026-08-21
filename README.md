@@ -195,12 +195,12 @@ Dès qu'une compétition atteint sa capacité (nombre de poules × taille de pou
 ## Tête de poule, échange entre poules, affichage encadré
 
 - **Tête de poule** : case à cocher par équipe dans `tournoi-inscriptions.html`. Un garde-fou en base garantit qu'il n'y a jamais plus d'une tête de poule par poule (cocher une équipe décoche automatiquement l'ancienne tête de poule de cette poule).
-- **Échange lors d'un changement de poule** : quand une équipe déjà affectée à une poule est déplacée vers une autre poule déjà occupée, un sélecteur apparaît pour choisir l'équipe de la poule cible à échanger en retour — le nombre d'équipes par poule reste ainsi stable. L'option "Déplacer sans échanger" reste disponible si vous voulez volontairement déséquilibrer les poules. Aucun échange n'est proposé pour une première affectation (équipe non assignée) ou une désassignation.
-- **Affichage encadré par poule** : les équipes ne sont plus listées dans un seul tableau plat, mais regroupées visuellement dans un encadré par poule (avec le compteur d'équipes), plus un encadré "Non assignées" pour les équipes en attente d'affectation.
+- **Assignation et échange de poule** : une équipe non encore affectée ne peut pas être assignée à une poule déjà complète (blocage avec message d'erreur, il faut choisir une poule avec de la place). Déplacer une équipe déjà affectée vers une autre poule : direct si la poule cible a de la place, ou échange obligatoire avec une équipe de la poule cible si celle-ci est déjà complète (le nombre d'équipes par poule reste ainsi toujours respecté). Aucune contrainte pour désassigner une équipe (case "—").
+- **Affichage encadré par poule** : dans `tournoi-inscriptions.html` et `emargement.html`, les équipes sont regroupées visuellement dans un encadré par poule (avec le compteur d'équipes), plus un encadré "Non assignées" pour les équipes en attente d'affectation.
 
 ## Filtre "absents" en émargement
 
-Sur `emargement.html`, à côté de la recherche par nom/club, un bouton "Afficher uniquement les absents" filtre la liste sur les équipes cochées "Absent". Se combine avec la recherche texte, et se réactualise en direct si une case Présent/Absent est cochée pendant que le filtre est actif.
+Sur `emargement.html`, à côté de la recherche par nom/club, un bouton "Afficher uniquement les absents" filtre la liste sur les équipes cochées "Absent". Se combine avec la recherche texte ; les poules sans résultat correspondant sont masquées le temps du filtre pour rester lisible.
 
 ## Scripts SQL utilitaires
 

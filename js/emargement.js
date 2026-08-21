@@ -63,7 +63,7 @@ async function onTournoiChange() {
 
   const { data: comps, error: compsError } = await sbClient
     .from('tournoi_competitions')
-    .select('id, types_competition(nom, format)')
+    .select('id, nb_poules, taille_poule, types_competition(nom, format)')
     .eq('tournoi_id', tournoiId);
 
   if (compsError) { alert('Erreur : ' + compsError.message); return; }
@@ -72,6 +72,8 @@ async function onTournoiChange() {
     id: c.id,
     nom: c.types_competition ? c.types_competition.nom : '?',
     format: c.types_competition ? c.types_competition.format : 'simple',
+    nb_poules: c.nb_poules,
+    taille_poule: c.taille_poule,
   }));
 
   content.hidden = false;
@@ -133,23 +135,13 @@ function renderKpis() {
 
 function onSearchInput(e) {
   searchTerm = e.target.value.trim().toLowerCase();
-  applyFilters();
+  renderCompetitions();
 }
 
 function onToggleAbsentFilter() {
   filterAbsentsOnly = !filterAbsentsOnly;
   document.getElementById('absentFilterBtn').classList.toggle('is-active', filterAbsentsOnly);
-  applyFilters();
-}
-
-function applyFilters() {
-  document.querySelectorAll('.equipe-row').forEach(row => {
-    const haystack = row.getAttribute('data-search') || '';
-    const matchesSearch = searchTerm === '' || haystack.includes(searchTerm);
-    const absentInput = row.querySelector('.emarg-check[data-field="absent"]');
-    const matchesAbsent = !filterAbsentsOnly || (absentInput && absentInput.checked);
-    row.hidden = !(matchesSearch && matchesAbsent);
-  });
+  renderCompetitions();
 }
 
 function buildSearchHaystack(eq) {
@@ -160,7 +152,7 @@ function buildSearchHaystack(eq) {
 }
 
 // ============================================================
-// Rendu par compétition
+// Rendu par compétition, encadré par poule
 // ============================================================
 
 function renderCompetitions() {
@@ -171,45 +163,73 @@ function renderCompetitions() {
     return;
   }
 
+  const filtreActif = searchTerm !== '' || filterAbsentsOnly;
+
   container.innerHTML = competitionsCache.map(comp => {
-    const equipes = equipesCache.filter(eq => eq.tournoi_competition_id === comp.id);
+    const toutesEquipesComp = equipesCache.filter(eq => eq.tournoi_competition_id === comp.id);
+    let equipesFiltrees = toutesEquipesComp;
+    if (searchTerm) equipesFiltrees = equipesFiltrees.filter(eq => buildSearchHaystack(eq).includes(searchTerm));
+    if (filterAbsentsOnly) equipesFiltrees = equipesFiltrees.filter(eq => eq.absent);
+
     const isDouble = comp.format === 'double';
+    const poules = Array.from({ length: comp.nb_poules || 0 }, (_, i) => i + 1);
+
+    let blocs = '';
+    poules.forEach(p => {
+      const equipesPoule = equipesFiltrees.filter(eq => eq.poule === p);
+      if (equipesPoule.length === 0 && filtreActif) return;
+      blocs += renderPouleBlock(p, equipesPoule, isDouble);
+    });
+    const nonAssignees = equipesFiltrees.filter(eq => !eq.poule);
+    if (nonAssignees.length > 0) {
+      blocs += renderPouleBlock(null, nonAssignees, isDouble);
+    }
+
+    if (!blocs) blocs = '<p class="section-lead">Aucune équipe ne correspond à ce filtre.</p>';
 
     return `
       <section class="admin-section">
-        <h2>${escapeHtml(comp.nom)} <span class="count-badge">(${equipes.length} équipe${equipes.length > 1 ? 's' : ''})</span></h2>
-        <div class="table-wrap">
-          <table class="schedule table-center">
-            <thead>
-              <tr>
-                <th>Joueur 1</th><th>Club 1</th>
-                ${isDouble ? '<th>Joueur 2</th><th>Club 2</th>' : ''}
-                <th>Poule</th><th>Présent</th><th>Absent</th><th>Cotisation payée</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${equipes.map(eq => renderEquipeRow(eq, isDouble)).join('') || `<tr><td colspan="${isDouble ? 8 : 6}">Aucune équipe inscrite.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
+        <h2>${escapeHtml(comp.nom)} <span class="count-badge">(${toutesEquipesComp.length} équipe${toutesEquipesComp.length > 1 ? 's' : ''})</span></h2>
+        ${blocs}
       </section>`;
   }).join('');
 
   bindRowEvents();
-  applyFilters();
+}
+
+function renderPouleBlock(poule, equipes, isDouble) {
+  const titre = poule ? `Poule ${poule}` : 'Non assignées';
+  const colCount = isDouble ? 7 : 5;
+
+  return `
+    <div class="poule-block">
+      <h3 class="poule-block-title">${escapeHtml(titre)} <span class="poule-count">(${equipes.length})</span></h3>
+      <div class="table-wrap">
+        <table class="schedule table-center">
+          <thead>
+            <tr>
+              <th>Joueur 1</th><th>Club 1</th>
+              ${isDouble ? '<th>Joueur 2</th><th>Club 2</th>' : ''}
+              <th>Présent</th><th>Absent</th><th>Cotisation payée</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${equipes.map(eq => renderEquipeRow(eq, isDouble)).join('') || `<tr><td colspan="${colCount}">Aucune équipe.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
 }
 
 function renderEquipeRow(eq, isDouble) {
-  const haystack = buildSearchHaystack(eq);
   return `
-    <tr class="equipe-row" data-equipe-id="${eq.id}" data-search="${escapeHtml(haystack)}">
+    <tr class="equipe-row" data-equipe-id="${eq.id}">
       <td><input type="text" class="emarg-input" data-field="joueur1_nom" value="${escapeHtml(eq.joueur1_nom)}"></td>
       <td><input type="text" class="emarg-input" data-field="joueur1_club" value="${escapeHtml(eq.joueur1_club || '')}"></td>
       ${isDouble ? `
         <td><input type="text" class="emarg-input" data-field="joueur2_nom" value="${escapeHtml(eq.joueur2_nom || '')}"></td>
         <td><input type="text" class="emarg-input" data-field="joueur2_club" value="${escapeHtml(eq.joueur2_club || '')}"></td>
       ` : ''}
-      <td>${eq.poule ? 'Poule ' + eq.poule : '—'}</td>
       <td><input type="checkbox" class="emarg-check" data-field="present" ${eq.present ? 'checked' : ''}></td>
       <td><input type="checkbox" class="emarg-check" data-field="absent" ${eq.absent ? 'checked' : ''}></td>
       <td><input type="checkbox" class="emarg-check" data-field="cotisation_payee" ${eq.cotisation_payee ? 'checked' : ''}></td>
@@ -255,6 +275,7 @@ async function saveEquipeField(id, field, value) {
   const eq = equipesCache.find(e => e.id === id);
   if (eq) eq[field] = value;
   renderKpis();
+  renderCompetitions();
 }
 
 function escapeHtml(str) {

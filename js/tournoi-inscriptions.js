@@ -233,18 +233,29 @@ function bindEquipesRowEvents() {
 
       if (newPoule === oldPoule) return;
 
-      // Poule non assignée <-> assignée, ou vers "—" : changement simple, pas d'échange possible.
-      if (oldPoule === null || newPoule === null) {
+      // Désassignation ("—") : toujours possible, libère une place.
+      if (newPoule === null) {
         applyPouleChange(id, newPoule);
         return;
       }
 
+      const capacite = selectedCompetition.taille_poule;
       const equipesPouleCible = equipesCache.filter(x => x.poule === newPoule && x.id !== id);
-      if (equipesPouleCible.length === 0) {
+
+      // La poule cible a encore de la place : affectation/déplacement direct.
+      if (equipesPouleCible.length < capacite) {
         applyPouleChange(id, newPoule);
         return;
       }
 
+      // Poule cible complète et équipe pas encore affectée : impossible, pas d'échange possible.
+      if (oldPoule === null) {
+        alert(`Cette poule est déjà complète (${equipesPouleCible.length}/${capacite}). Choisissez une poule où il reste de la place.`);
+        select.value = '';
+        return;
+      }
+
+      // Poule cible complète, équipe déjà affectée ailleurs : échange obligatoire.
       openSwapChooser(row, id, oldPoule, newPoule, equipesPouleCible);
     });
   });
@@ -282,12 +293,12 @@ function openSwapChooser(row, equipeId, oldPoule, newPoule, equipesPouleCible) {
   swapRow.innerHTML = `
     <td colspan="${colCount}">
       <div class="swap-panel">
-        <span>Poule ${oldPoule} → Poule ${newPoule} : cette poule est déjà occupée. Choisissez l'équipe à échanger (elle ira en Poule ${oldPoule}) :</span>
+        <span>Poule ${newPoule} est complète. Choisissez l'équipe de la Poule ${newPoule} à échanger (elle ira en Poule ${oldPoule}) :</span>
         <select class="swap-select">
-          <option value="">— Déplacer sans échanger —</option>
+          <option value="">— Choisir une équipe —</option>
           ${options}
         </select>
-        <button type="button" class="btn btn-primary btn-small swap-confirm-btn">Confirmer</button>
+        <button type="button" class="btn btn-primary btn-small swap-confirm-btn">Confirmer l'échange</button>
         <button type="button" class="btn btn-ghost btn-small swap-cancel-btn">Annuler</button>
       </div>
     </td>`;
@@ -299,11 +310,11 @@ function openSwapChooser(row, equipeId, oldPoule, newPoule, equipesPouleCible) {
 
   swapRow.querySelector('.swap-confirm-btn').addEventListener('click', async () => {
     const swapId = swapRow.querySelector('.swap-select').value;
-    if (swapId) {
-      await performSwap(equipeId, newPoule, swapId, oldPoule);
-    } else {
-      await applyPouleChange(equipeId, newPoule);
+    if (!swapId) {
+      alert('Choisissez une équipe à échanger.');
+      return;
     }
+    await performSwap(equipeId, newPoule, swapId, oldPoule);
   });
 }
 
