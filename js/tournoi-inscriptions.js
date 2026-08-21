@@ -106,8 +106,8 @@ async function onCompetitionChange() {
 // ============================================================
 
 async function loadEquipes() {
-  const tbody = document.getElementById('equipesTableBody');
-  tbody.innerHTML = '<tr><td>Chargement…</td></tr>';
+  const container = document.getElementById('poulesContainer');
+  container.innerHTML = '<p class="section-lead">Chargement…</p>';
 
   const { data, error } = await sbClient
     .from('equipes')
@@ -117,7 +117,7 @@ async function loadEquipes() {
     .order('joueur1_nom');
 
   if (error) {
-    tbody.innerHTML = `<tr><td>Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    container.innerHTML = `<p class="section-lead">Erreur : ${escapeHtml(error.message)}</p>`;
     return;
   }
 
