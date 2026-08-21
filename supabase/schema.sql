@@ -46,14 +46,16 @@ as $$
   );
 $$;
 
--- 4. Empêche un utilisateur de modifier son propre rôle (seul un admin le peut)
+-- 4. Empêche un utilisateur connecté sur le site de modifier son propre rôle
+--    (les modifications faites hors session utilisateur, ex. SQL Editor/Table
+--    Editor de Supabase, restent possibles pour amorcer le tout premier admin)
 create or replace function public.prevent_role_self_change()
 returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
 begin
-  if new.role <> old.role and not public.is_admin() then
+  if auth.uid() is not null and new.role <> old.role and not public.is_admin() then
     raise exception 'Seul un administrateur peut modifier un rôle.';
   end if;
   return new;

@@ -45,6 +45,8 @@ async function renderAuthState() {
 
   const profile = await getCurrentProfile();
 
+  ensureAdminNavLink(profile);
+
   if (!profile) {
     el.innerHTML = '<a href="membres.html" class="nav-auth-link">Connexion</a>';
     return;
@@ -72,6 +74,24 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+/**
+ * Ajoute un bouton "Administration" dans la navigation (desktop + mobile)
+ * si l'utilisateur connecté est admin, sauf si un lien vers admin.html
+ * existe déjà dans le menu (cas de la page admin.html elle-même).
+ */
+function ensureAdminNavLink(profile) {
+  if (!profile || profile.role !== 'admin') return;
+  document.querySelectorAll('.main-nav').forEach(nav => {
+    const already = Array.from(nav.querySelectorAll('a')).some(a => a.getAttribute('href') === 'admin.html');
+    if (already) return;
+    const a = document.createElement('a');
+    a.href = 'admin.html';
+    a.textContent = 'Administration';
+    a.className = 'nav-admin-btn';
+    nav.appendChild(a);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', renderAuthState);
