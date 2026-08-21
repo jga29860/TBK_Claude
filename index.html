@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</title>
+<meta name="description" content="TBK, club de badminton et tennis de table à Kersaint-Plabennec. Créneaux, tournoi annuel, inscriptions et vie associative.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="trail-progress" aria-hidden="true"><div class="trail-progress__fill" id="scrollFill"></div></div>
+
+<header class="site-header" id="siteHeader">
+  <div class="wrap header-inner">
+    <a href="#top" class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="28" height="28">
+          <circle cx="20" cy="9" r="7" fill="currentColor"/>
+          <path d="M20 16 L11 33 L29 33 Z" fill="currentColor" opacity="0.85"/>
+        </svg>
+      </span>
+      TBK
+    </a>
+    <nav class="main-nav" id="mainNav">
+      <a href="#club">Le club</a>
+      <a href="#creneaux">Créneaux</a>
+      <a href="#tournoi">Tournoi</a>
+      <a href="#forum">Forum</a>
+      <a href="#rejoindre">Rejoindre</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <svg class="hero-arc" viewBox="0 0 1200 500" preserveAspectRatio="none" aria-hidden="true">
+      <path id="arcPath" d="M -50 480 C 250 480, 350 60, 650 60 S 1050 480, 1250 480" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="6 10" opacity="0.35"/>
+      <circle r="9" fill="var(--shuttle)">
+        <animateMotion dur="6s" repeatCount="indefinite" rotate="auto">
+          <mpath href="#arcPath"/>
+        </animateMotion>
+      </circle>
+    </svg>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Kersaint-Plabennec · Finistère</p>
+      <h1>Smashez la<br>routine.</h1>
+      <p class="hero-lead">TBK réunit badistes et pongistes de tous niveaux autour de deux raquettes, une salle, et une bonne ambiance. Débutant curieux ou compétiteur du dimanche, votre place est sur le terrain.</p>
+      <div class="hero-actions">
+        <a href="#rejoindre" class="btn btn-primary">Rejoindre le club</a>
+        <a href="#tournoi" class="btn btn-ghost">Voir le tournoi du 11 septembre</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LE CLUB -->
+  <section class="section" id="club">
+    <div class="wrap">
+      <p class="section-eyebrow">01 — Le club</p>
+      <h2>Deux sports, un seul terrain d'entente</h2>
+      <div class="club-grid">
+        <div class="club-card reveal">
+          <span class="club-card__tag">Badminton</span>
+          <p>Volants, smashs et fous rires : nos créneaux mêlent joueurs loisirs et compétiteurs, en simple comme en double. Prêt de matériel possible pour découvrir avant de s'équiper.</p>
+        </div>
+        <div class="club-card reveal">
+          <span class="club-card__tag">Tennis de table</span>
+          <p>Tables ouvertes en accès libre et séances encadrées pour progresser sur le jeu de jambes, le service et le placement. Ambiance conviviale garantie, niveau débutant bienvenu.</p>
+        </div>
+        <div class="club-card reveal">
+          <span class="club-card__tag">Vie associative</span>
+          <p>Soirées raquettes, tournois internes, forum des associations, moments partagés en dehors du terrain : TBK, c'est aussi une communauté qui se retrouve toute l'année.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CRENEAUX -->
+  <section class="section section-alt" id="creneaux">
+    <div class="wrap">
+      <p class="section-eyebrow">02 — Créneaux</p>
+      <h2>Trouvez votre heure de jeu</h2>
+      <p class="section-lead">Horaires indicatifs, à confirmer selon la salle et la saison — mettez à jour ce tableau avec vos créneaux réels.</p>
+      <div class="table-wrap reveal">
+        <table class="schedule">
+          <thead>
+            <tr><th>Jour</th><th>Horaire</th><th>Activité</th><th>Niveau</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Lundi</td><td>19h00 – 21h00</td><td>Badminton</td><td>Loisir / tous niveaux</td></tr>
+            <tr><td>Mercredi</td><td>18h30 – 20h00</td><td>Tennis de table</td><td>Débutant / initiation</td></tr>
+            <tr><td>Jeudi</td><td>20h00 – 22h30</td><td>Badminton</td><td>Confirmé / compétition</td></tr>
+            <tr><td>Samedi</td><td>10h00 – 12h00</td><td>Tennis de table &amp; Badminton</td><td>Famille / tous niveaux</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOURNOI -->
+  <section class="section tournoi" id="tournoi">
+    <div class="wrap">
+      <p class="section-eyebrow section-eyebrow--light">03 — Rendez-vous</p>
+      <h2 class="light">Tournoi TBK</h2>
+      <p class="tournoi-date">11 septembre 2026</p>
+      <p class="section-lead light-lead">Simples et doubles, tous niveaux, esprit compétition et convivialité. Inscriptions ouvertes — venez seul·e ou avec votre partenaire.</p>
+
+      <div class="countdown" id="countdown" aria-live="polite">
+        <div class="countdown-unit"><span class="countdown-num" id="cd-days">--</span><span class="countdown-label">jours</span></div>
+        <div class="countdown-unit"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-label">heures</span></div>
+        <div class="countdown-unit"><span class="countdown-num" id="cd-mins">--</span><span class="countdown-label">min</span></div>
+        <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-label">sec</span></div>
+      </div>
+
+      <a href="#contact" class="btn btn-primary btn-on-dark">S'inscrire au tournoi</a>
+    </div>
+  </section>
+
+  <!-- FORUM -->
+  <section class="section" id="forum">
+    <div class="wrap forum-grid">
+      <div class="reveal">
+        <p class="section-eyebrow">04 — À venir</p>
+        <h2>Forum des associations</h2>
+        <p class="section-lead">Le 5 septembre 2026, venez découvrir le club sur notre stand : essais de raquettes, présentation des créneaux et inscriptions sur place.</p>
+        <p class="forum-note">Une occasion idéale pour poser toutes vos questions avant de vous lancer.</p>
+      </div>
+      <div class="forum-card reveal" aria-hidden="true">
+        <svg viewBox="0 0 200 200" width="100%">
+          <circle cx="100" cy="45" r="26" fill="none" stroke="var(--court)" stroke-width="2"/>
+          <path d="M100 71 L60 150 L140 150 Z" fill="none" stroke="var(--court)" stroke-width="2"/>
+          <line x1="30" y1="150" x2="170" y2="150" stroke="var(--shuttle)" stroke-width="3"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- REJOINDRE -->
+  <section class="section section-alt" id="rejoindre">
+    <div class="wrap">
+      <p class="section-eyebrow">05 — Rejoindre</p>
+      <h2>Comment nous rejoindre</h2>
+      <div class="steps">
+        <div class="step reveal">
+          <span class="step-num">01</span>
+          <h3>Un premier essai</h3>
+          <p>Venez tester un créneau, matériel prêté sur demande. Aucun engagement pour découvrir.</p>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">02</span>
+          <h3>L'adhésion</h3>
+          <p>Cotisation annuelle donnant accès à tous les créneaux, licence FFBaD / FFTT incluse selon la section.</p>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">03</span>
+          <h3>Le dossier</h3>
+          <p>Formulaire d'inscription, certificat médical ou questionnaire de santé, et vous êtes sur le terrain.</p>
+        </div>
+      </div>
+      <div class="pricing reveal">
+        <div class="price-card">
+          <h4>Badminton</h4>
+          <p class="price">À définir €<span>/an</span></p>
+        </div>
+        <div class="price-card">
+          <h4>Tennis de table</h4>
+          <p class="price">À définir €<span>/an</span></p>
+        </div>
+        <div class="price-card">
+          <h4>Section jeunes</h4>
+          <p class="price">À définir €<span>/an</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="section contact" id="contact">
+    <div class="wrap contact-grid">
+      <div class="reveal">
+        <p class="section-eyebrow">06 — Contact</p>
+        <h2>On vous répond volontiers</h2>
+        <ul class="contact-list">
+          <li><strong>Salle</strong> — Complexe sportif, Kersaint-Plabennec, Finistère</li>
+          <li><strong>Email</strong> — <a href="mailto:contact@tbk-club.fr">contact@tbk-club.fr</a></li>
+          <li><strong>Réseaux</strong> — <a href="#">Instagram</a> · <a href="#">Facebook</a></li>
+        </ul>
+        <p class="contact-note">Remplacez ces coordonnées par les vôtres, et branchez le formulaire ci-contre sur un service comme Formspree ou Google Forms pour recevoir les messages.</p>
+      </div>
+      <form class="contact-form reveal" id="contactForm">
+        <label>Nom
+          <input type="text" name="name" required>
+        </label>
+        <label>Email
+          <input type="email" name="email" required>
+        </label>
+        <label>Message
+          <textarea name="message" rows="4" required></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary">Envoyer</button>
+        <p class="form-hint" id="formHint"></p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <span>Site conçu pour le club — © <span id="year"></span></span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
