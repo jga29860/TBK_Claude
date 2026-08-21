@@ -4,9 +4,21 @@
 
 const SAISON = '2026-2027';
 
+// Colonnes "fixes" pouvant être affichées dans le tableau des inscrits
+// (Nom est toujours affiché, il n'apparaît pas dans cette liste).
+const FIXED_COLUMNS = [
+  { key: 'prenom', label: 'Prénom' },
+  { key: 'categorie', label: 'Catégorie' },
+  { key: 'bad_ping', label: 'Bad / Ping' },
+  { key: 'ufolep_fsgt', label: 'UFOLEP / FSGT' },
+  { key: 'membre_bureau', label: 'Membre Bureau' },
+  { key: 'cotisation', label: 'Cotisation' },
+];
+
 let champsCache = [];      // définition des champs personnalisés (inscription_champs)
 let baremeCache = {};      // { key: montant }
 let inscriptionsCache = []; // inscriptions de la saison
+let colonnesCache = [];    // clés des colonnes sélectionnées pour le tableau
 let editingId = null;      // id en cours d'édition, ou null pour une nouvelle inscription
 let isAdminUser = false;
 
@@ -28,6 +40,7 @@ async function initInscriptionsPage() {
 
   await loadBareme();
   await loadChamps();
+  await loadAffichage();
   await loadInscriptions();
 
   bindMainForm();
@@ -74,7 +87,10 @@ async function loadChamps() {
   champsCache = data || [];
 
   renderDynamicFormFields();
-  if (isAdminUser) renderChampsTable();
+  if (isAdminUser) {
+    renderChampsTable();
+    renderColonnesConfig();
+  }
 }
 
 function renderDynamicFormFields(values = {}) {
@@ -189,6 +205,49 @@ async function saveChamp(id, patch) {
 }
 
 // ============================================================
+// Colonnes affichées dans le tableau des inscrits
+// ============================================================
+
+function getAvailableColumns() {
+  return [
+    ...FIXED_COLUMNS,
+    ...champsCache.map(c => ({ key: c.key, label: c.label })),
+  ];
+}
+
+async function loadAffichage() {
+  const { data, error } = await sbClient
+    .from('inscriptions_affichage')
+    .select('colonnes')
+    .eq('id', true)
+    .single();
+
+  if (error) {
+    console.error(error.message);
+    colonnesCache = FIXED_COLUMNS.slice(0, 4).map(c => c.key);
+  } else {
+    colonnesCache = data.colonnes || [];
+  }
+
+  if (isAdminUser) renderColonnesConfig();
+}
+
+function renderColonnesConfig() {
+  const form = document.getElementById('colonnesForm');
+  if (!form) return;
+  const legend = form.querySelector('legend');
+  form.innerHTML = '';
+  if (legend) form.appendChild(legend);
+
+  getAvailableColumns().forEach(col => {
+    const label = document.createElement('label');
+    label.className = 'checkbox-item';
+    label.innerHTML = `<input type="checkbox" name="colonnes" value="${escapeHtml(col.key)}" ${colonnesCache.includes(col.key) ? 'checked' : ''}> ${escapeHtml(col.label)}`;
+    form.appendChild(label);
+  });
+}
+
+// ============================================================
 // Calcul de la cotisation
 // ============================================================
 
@@ -281,7 +340,10 @@ function resetForm() {
 
 async function loadInscriptions() {
   const tbody = document.getElementById('inscriptionsTableBody');
-  tbody.innerHTML = '<tr><td colspan="7">Chargement…</td></tr>';
+  const columns = getAvailableColumns().filter(c => colonnesCache.includes(c.key));
+  renderInscriptionsTableHead(columns);
+
+  tbody.innerHTML = `<tr><td colspan="${columns.length + 2}">Chargement…</td></tr>`;
 
   const { data, error } = await sbClient
     .from('inscriptions')
@@ -290,7 +352,7 @@ async function loadInscriptions() {
     .order('nom');
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="7">Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 2}">Erreur : ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
 
@@ -298,18 +360,14 @@ async function loadInscriptions() {
   document.getElementById('inscriptionsCount').textContent = `(${inscriptionsCache.length})`;
 
   if (inscriptionsCache.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7">Aucune inscription pour le moment.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 2}">Aucune inscription pour le moment.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = inscriptionsCache.map(i => `
     <tr data-id="${i.id}">
       <td>${escapeHtml(i.nom)}</td>
-      <td>${escapeHtml(i.prenom)}</td>
-      <td>${escapeHtml(i.categorie)}</td>
-      <td>${escapeHtml(i.bad_ping)}</td>
-      <td>${Number(i.cotisation).toFixed(2)} €</td>
-      <td>${i.champs && i.champs.cotisation_payee ? 'Oui' : 'Non'}</td>
+      ${columns.map(col => `<td>${formatColumnValue(i, col.key)}</td>`).join('')}
       <td>
         <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
         <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
@@ -331,6 +389,28 @@ async function loadInscriptions() {
       await loadInscriptions();
     });
   });
+}
+
+function renderInscriptionsTableHead(columns) {
+  const theadRow = document.querySelector('#inscriptionsTable thead tr');
+  theadRow.innerHTML = `<th>Nom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th></th>`;
+}
+
+function formatColumnValue(record, key) {
+  // Colonnes fixes
+  if (key === 'prenom') return escapeHtml(record.prenom);
+  if (key === 'categorie') return escapeHtml(record.categorie);
+  if (key === 'bad_ping') return escapeHtml(record.bad_ping);
+  if (key === 'ufolep_fsgt') return record.ufolep_fsgt ? 'Oui' : 'Non';
+  if (key === 'membre_bureau') return record.membre_bureau ? 'Oui' : 'Non';
+  if (key === 'cotisation') return `${Number(record.cotisation).toFixed(2)} €`;
+
+  // Champs personnalisés
+  const champ = champsCache.find(c => c.key === key);
+  const val = record.champs ? record.champs[key] : undefined;
+  if (!champ || val === undefined || val === null || val === '') return '—';
+  if (champ.type === 'booleen') return val ? 'Oui' : 'Non';
+  return escapeHtml(String(val));
 }
 
 function editInscription(id) {
@@ -360,6 +440,23 @@ function editInscription(id) {
 // ============================================================
 
 function bindConfigForms() {
+  const colonnesForm = document.getElementById('colonnesForm');
+  if (colonnesForm && !colonnesForm.dataset.bound) {
+    colonnesForm.dataset.bound = 'true';
+    colonnesForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const hint = document.getElementById('colonnesHint');
+      const selected = Array.from(colonnesForm.querySelectorAll('input[name="colonnes"]:checked')).map(cb => cb.value);
+
+      hint.textContent = 'Enregistrement…';
+      const { error } = await sbClient.from('inscriptions_affichage').update({ colonnes: selected }).eq('id', true);
+      if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+      hint.textContent = 'Colonnes mises à jour.';
+      colonnesCache = selected;
+      await loadInscriptions();
+    });
+  }
+
   const baremeForm = document.getElementById('baremeForm');
   if (!baremeForm.dataset.bound) {
     baremeForm.dataset.bound = 'true';
@@ -380,8 +477,7 @@ function bindConfigForms() {
     });
   }
 
-  const newChampType = document.getElementById('newChampType');
-  const newChampOptionsLabel = document.getElementById('newChampOptionsLabel');
+  const newChampType = document.getElementById('newChampType');  const newChampOptionsLabel = document.getElementById('newChampOptionsLabel');
   if (!newChampType.dataset.bound) {
     newChampType.dataset.bound = 'true';
     newChampType.addEventListener('change', () => {

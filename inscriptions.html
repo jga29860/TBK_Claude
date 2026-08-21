@@ -107,7 +107,7 @@
       <div class="table-wrap">
         <table class="schedule" id="inscriptionsTable">
           <thead>
-            <tr><th>Nom</th><th>Prénom</th><th>Catégorie</th><th>Bad/Ping</th><th>Cotisation</th><th>Payée</th><th></th></tr>
+            <tr><th>Nom</th><th></th></tr>
           </thead>
           <tbody id="inscriptionsTableBody">
             <tr><td colspan="7">Chargement…</td></tr>
@@ -127,6 +127,16 @@
         <button type="submit" form="baremeForm" class="btn btn-primary btn-small">Enregistrer le barème</button>
       </div>
       <p class="form-hint" id="baremeHint"></p>
+
+      <h3 class="admin-subheading">Colonnes affichées dans le tableau des inscrits</h3>
+      <p class="section-lead">La colonne "Nom" est toujours affichée. Cochez les autres informations à faire apparaître dans le tableau ci-dessus.</p>
+      <form id="colonnesForm" class="checkbox-group checkbox-group--inline" style="margin-top:12px;">
+        <legend class="sr-only">Colonnes</legend>
+      </form>
+      <div class="form-actions">
+        <button type="submit" form="colonnesForm" class="btn btn-primary btn-small">Enregistrer les colonnes</button>
+      </div>
+      <p class="form-hint" id="colonnesHint"></p>
 
       <h3 class="admin-subheading">Champs personnalisés du formulaire</h3>
       <div class="table-wrap">

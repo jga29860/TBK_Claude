@@ -107,7 +107,7 @@ Le site reprend la charte du portail de gestion de tournoi (vert `#00b050` / `#0
 ### Si votre projet Supabase existait déjà avant cette mise à jour
 Exécutez en plus `supabase/migration_roles.sql` dans le SQL Editor (une seule fois). Il ajoute les profils configurables et les invitations sans toucher aux comptes déjà créés.
 
-Pour activer la gestion des inscriptions saison, exécutez aussi `supabase/migration_inscriptions.sql` (une seule fois, après les deux précédents).
+Pour activer la gestion des inscriptions saison, exécutez aussi `supabase/migration_inscriptions.sql` (une seule fois, après les deux précédents), puis `supabase/migration_inscriptions_colonnes.sql`.
 
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
@@ -125,6 +125,7 @@ Page réservée aux profils ayant accès à la page `inscriptions` (créez un pr
 - **Champs personnalisés** (WhatsApp, Cotisation payée, Santé, Date certificat, Téléphone, Adresse, Email, Date de naissance, Commentaire, préconfigurés par défaut) : entièrement paramétrables depuis la section "Configuration" (visible uniquement par le profil admin) — ajout, suppression, changement de type (texte, nombre, date, oui/non, liste de choix) et de valeur par défaut. Techniquement, ces champs sont stockés de façon flexible (colonne `jsonb`) plutôt que par de vraies colonnes SQL ajoutées à la volée — cela évite de faire exécuter des modifications de schéma de base de données depuis le site, ce qui serait fragile et risqué depuis un navigateur.
 - **Cotisation** : calculée automatiquement à partir du barème (Catégorie, Bad+Ping, UFOLEP/FSGT, Membre Bureau) dès que l'un de ces champs change, mais reste modifiable à la main avant enregistrement (bouton "Recalculer" disponible pour revenir au calcul automatique).
 - **Barème des cotisations** (section Configuration, admin uniquement) : les 5 montants sont modifiables à tout moment ; ils ne s'appliquent qu'aux futurs calculs, pas rétroactivement aux inscriptions déjà enregistrées.
+- **Colonnes affichées dans le tableau des inscrits** (section Configuration, admin uniquement) : cases à cocher pour choisir, parmi les champs fixes et personnalisés, lesquels apparaissent comme colonnes du tableau (la colonne "Nom" est toujours affichée). Ce choix est commun à tous les utilisateurs ayant accès à la page.
 
 ## Tester en local avant publication
 

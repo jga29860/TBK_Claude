@@ -354,5 +354,10 @@ table.schedule .role-label-input{
 
 .count-badge{ font-family: var(--font-mono); font-size:0.85rem; color: var(--ink-soft); font-weight:400; }
 
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
 /* Focus visibility */
 a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-offset: 2px; }
