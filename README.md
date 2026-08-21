@@ -168,22 +168,23 @@ Troisième profil : **Tournois - Émargement** (page `tournois_emargement`), pen
 - Chaque case cochée est enregistrée immédiatement (pas de bouton "Enregistrer" séparé), pensé pour un usage rapide au fil des arrivées.
 - Les compteurs comptent les **participants** (2 personnes pour une équipe de double, 1 pour une équipe de simple), alors que les cases à cocher s'appliquent à l'équipe entière (les deux membres d'un double sont marqués présents/payés ensemble).
 
-## Matchs de poule & classement (page `matchs.html`) — étape 4
+## Poules & classement (page `poules.html`)
 
-Sélectionnez un tournoi puis une compétition pour afficher, poule par poule, le classement en direct et la saisie des scores.
+Sélectionnez un tournoi pour afficher, pour **toutes ses compétitions** (pas besoin de choisir une compétition), le classement en direct et la saisie des scores, poule par poule.
 
-- **Génération des matchs** : bouton qui crée automatiquement tous les matchs en round-robin (chaque équipe rencontre toutes les autres équipes de sa poule) à partir des poules définies dans `tournoi-inscriptions.html`. Régénérer remplace les matchs existants (et leurs scores) après confirmation — les équipes non affectées à une poule sont ignorées.
 - **Classement** : recalculé automatiquement à chaque score saisi — Classement, Équipe, matchs joués, points (3 pour une victoire, 1 pour une défaite, uniquement si le match est décidé), différence de sets, différence de points. Le numéro de classement affiche au survol la valeur exacte (points×1000 + différence de sets×100 + différence de points) qui détermine l'ordre.
-- **Matchs** : un match se joue en 2 sets gagnants (jusqu'à 3 sets), chaque set saisi comme deux nombres (ex. 21 / 18). Numéro de terrain et rotation également modifiables sur chaque ligne. Un match n'est compté dans le classement que lorsqu'une équipe a gagné 2 sets.
+- **Matchs** : un match se joue en 2 sets gagnants (jusqu'à 3 sets), chaque set saisi comme deux nombres (ex. 21 / 18). Un match n'est compté dans le classement que lorsqu'une équipe a gagné 2 sets.
+- La **génération des matchs de poule** se fait désormais depuis `planning.html` (voir ci-dessous), pas sur cette page.
 
-## Planning (page `planning.html`) — étape 5
+## Planning (page `planning.html`)
 
-Sélectionnez un tournoi pour afficher son planning complet, tous compétitions confondues (les terrains sont partagés entre toutes les compétitions du tournoi).
+Sélectionnez un tournoi pour afficher son planning complet, toutes compétitions confondues (les terrains sont partagés entre toutes les compétitions du tournoi).
 
-- **Bandeau du haut** : heure de début, rotation (min/match, 20 par défaut), temps minimum entre 2 matchs, filtre texte par équipe — tous modifiables et enregistrés automatiquement. Durée moyenne des matchs calculée en direct à partir des matchs terminés. Trois boutons changent le filtre de la liste en bas : Planning complet, Matchs en cours, Matchs possibles (deux équipes disponibles + un terrain libre).
-- **Terrains** (à droite) : un bouton par terrain, vert si libre, saumon si occupé. Cliquer sur un terrain filtre la liste des matchs sur ce terrain.
-- **Top 5 attente par compétition** (à droite) : les équipes qui attendent depuis le plus longtemps depuis la fin de leur dernier match, par compétition. Cliquer sur une équipe filtre la liste des matchs sur cette équipe.
-- **Liste des matchs** (à gauche) : toutes les colonnes demandées (N°, compétition, équipes, phase, heure estimée, rotation, terrain, scores sur 6 zones, heure de lancement réelle, durée). Un bouton "Lancer" apparaît sur les matchs lançables (deux équipes disponibles + un terrain libre) et assigne automatiquement le terrain libre le plus bas. Le terrain se libère automatiquement dès qu'un score complet (2 sets gagnants) est saisi.
+- **Bandeau du haut**, sur une seule ligne : à gauche les réglages (heure de début, rotation, temps minimum entre 2 matchs, filtre par équipe, durée moyenne, boutons de filtre, génération des matchs de poule par compétition), au centre les terrains, à droite le Top 5 attente. Tout est enregistré automatiquement.
+- **Génération des matchs de poule** : choisissez une compétition dans le menu déroulant dédié puis cliquez sur "Générer / régénérer" — crée automatiquement tous les matchs en round-robin à partir des poules définies dans `tournoi-inscriptions.html`. Régénérer remplace les matchs existants (et leurs scores) après confirmation.
+- **Terrains** : un bouton par terrain, vert si libre, saumon si occupé. Cliquer sur un terrain filtre la liste des matchs sur ce terrain.
+- **Top 5 attente par compétition** : les équipes qui attendent depuis le plus longtemps depuis la fin de leur dernier match, par compétition. Cliquer sur une équipe filtre la liste des matchs sur cette équipe.
+- **Liste des matchs**, en pleine largeur de page : toutes les colonnes demandées (N°, compétition, équipes, phase, heure estimée, rotation, terrain, scores sur 6 zones, heure de lancement réelle, durée). Un bouton "Lancer" apparaît sur les matchs lançables (deux équipes disponibles + un terrain libre) et assigne automatiquement le terrain libre le plus bas. Le terrain se libère automatiquement dès qu'un score complet (2 sets gagnants) est saisi.
 - **Heure estimée de démarrage** : calculée par une répartition proportionnelle au nombre d'équipes de chaque compétition (file d'attente équitable), pour que toutes les compétitions avancent en parallèle plutôt que l'une après l'autre. C'est une estimation, pas un planning figé.
 
 **Simplification assumée** : le lancement se fait via le bouton "Lancer" sur la ligne du match (qui prend automatiquement le terrain libre le plus bas), plutôt que par un clic direct sur le bouton du terrain suivi du choix du match — plus simple à utiliser et à fiabiliser.

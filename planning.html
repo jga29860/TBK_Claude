@@ -50,66 +50,77 @@
 
     <div id="planningContent" hidden>
 
-      <!-- ===== Bandeau du haut ===== -->
+      <!-- ===== Bandeau du haut : réglages + terrains + top 5, sur la même ligne ===== -->
       <section class="admin-section">
-        <div class="field-grid">
-          <label>Heure de début
-            <input type="datetime-local" id="heureDebutInput">
-          </label>
-          <label>Rotation (min / match)
-            <input type="number" id="rotationInput" min="1" value="20">
-          </label>
-          <label>Temps min. entre 2 matchs (min)
-            <input type="number" id="tempsMinInput" min="0" value="15">
-          </label>
-          <label>Filtrer par équipe
-            <input type="text" id="filtreEquipeInput" placeholder="Nom ou club…">
-          </label>
-        </div>
+        <div class="planning-top-row">
 
-        <div class="kpi-row" style="margin-top:18px;">
-          <div class="kpi"><span class="small">Terrains prévus</span><br><strong id="kpiTerrains">0</strong></div>
-          <div class="kpi"><span class="small">Durée moyenne des matchs</span><br><strong id="kpiDureeMoyenne">—</strong></div>
-        </div>
+          <div class="planning-settings">
+            <div class="field-grid">
+              <label>Heure de début
+                <input type="datetime-local" id="heureDebutInput">
+              </label>
+              <label>Rotation (min / match)
+                <input type="number" id="rotationInput" min="1" value="20">
+              </label>
+              <label>Temps min. entre 2 matchs (min)
+                <input type="number" id="tempsMinInput" min="0" value="15">
+              </label>
+              <label>Filtrer par équipe
+                <input type="text" id="filtreEquipeInput" placeholder="Nom ou club…">
+              </label>
+            </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="complet">Planning complet</button>
-          <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="en_cours">Matchs en cours</button>
-          <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="possibles">Matchs possibles</button>
-        </div>
-        <p class="form-hint" id="planningHint"></p>
-      </section>
+            <div class="kpi-row" style="margin-top:16px;">
+              <div class="kpi"><span class="small">Terrains prévus</span><br><strong id="kpiTerrains">0</strong></div>
+              <div class="kpi"><span class="small">Durée moyenne</span><br><strong id="kpiDureeMoyenne">—</strong></div>
+            </div>
 
-      <!-- ===== Partie basse : gauche = matchs, droite = terrains + attente ===== -->
-      <div class="planning-grid">
-        <section class="admin-section planning-left">
-          <h2>Matchs</h2>
-          <div class="table-wrap">
-            <table class="schedule table-center" id="matchsTable">
-              <thead>
-                <tr>
-                  <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Phase</th>
-                  <th>Heure estimée</th><th>Rotation</th><th>Terrain</th>
-                  <th>Set 1</th><th>Set 2</th><th>Set 3</th>
-                  <th>Heure lancement</th><th>Durée</th><th></th>
-                </tr>
-              </thead>
-              <tbody id="matchsTableBody"><tr><td colspan="14">Chargement…</td></tr></tbody>
-            </table>
+            <div class="form-actions">
+              <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="complet">Planning complet</button>
+              <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="en_cours">Matchs en cours</button>
+              <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="possibles">Matchs possibles</button>
+            </div>
+
+            <h3 class="admin-subheading">Générer les matchs de poule</h3>
+            <div class="inline-form" style="margin-top:8px;">
+              <label>Compétition
+                <select id="genCompetitionSelect"></select>
+              </label>
+              <button type="button" class="btn btn-ghost btn-small" id="generateBtn">Générer / régénérer</button>
+            </div>
+            <p class="form-hint" id="planningHint"></p>
           </div>
-        </section>
 
-        <section class="planning-right">
-          <div class="admin-section">
+          <div class="planning-terrains-panel">
             <h3 class="admin-subheading" style="margin-top:0;">Terrains</h3>
             <div id="terrainsGrid" class="terrains-grid"></div>
           </div>
-          <div class="admin-section">
-            <h3 class="admin-subheading" style="margin-top:0;">Top 5 attente par compétition</h3>
+
+          <div class="planning-top5-panel">
+            <h3 class="admin-subheading" style="margin-top:0;">Top 5 attente</h3>
             <div id="top5Container"></div>
           </div>
-        </section>
-      </div>
+
+        </div>
+      </section>
+
+      <!-- ===== Matchs, pleine largeur ===== -->
+      <section class="admin-section">
+        <h2>Matchs</h2>
+        <div class="table-wrap">
+          <table class="schedule table-center" id="matchsTable">
+            <thead>
+              <tr>
+                <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Phase</th>
+                <th>Heure estimée</th><th>Rotation</th><th>Terrain</th>
+                <th>Set 1</th><th>Set 2</th><th>Set 3</th>
+                <th>Heure lancement</th><th>Durée</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="matchsTableBody"><tr><td colspan="14">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
     </div>
 

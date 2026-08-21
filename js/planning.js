@@ -46,6 +46,8 @@ async function initPage() {
   ['heureDebutInput', 'rotationInput', 'tempsMinInput'].forEach(id => {
     document.getElementById(id).addEventListener('change', saveTournoiSettings);
   });
+
+  document.getElementById('generateBtn').addEventListener('click', generateMatchs);
 }
 
 async function loadTournoisSelect() {
@@ -109,6 +111,11 @@ async function loadAll(tournoiId, silent) {
     nbEquipes: equipesCache.filter(e => e.tournoi_competition_id === c.id).length,
   }));
 
+  if (!silent) {
+    const genSelect = document.getElementById('genCompetitionSelect');
+    genSelect.innerHTML = competitionsCache.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('');
+  }
+
   renderTout();
 }
 
@@ -127,6 +134,66 @@ async function saveTournoiSettings() {
   const hint = document.getElementById('planningHint');
   if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
   hint.textContent = 'Réglages enregistrés.';
+  await loadAll(tournoi.id, true);
+}
+
+// ============================================================
+// Génération des matchs de poule (round-robin), par compétition
+// ============================================================
+
+async function generateMatchs() {
+  const hint = document.getElementById('planningHint');
+  const competitionId = document.getElementById('genCompetitionSelect').value;
+  const comp = competitionsCache.find(c => c.id === competitionId);
+  if (!comp) { hint.textContent = 'Choisissez une compétition.'; return; }
+
+  const nbPoules = comp.nb_poules;
+  const equipesParPoule = {};
+  for (let p = 1; p <= nbPoules; p++) {
+    equipesParPoule[p] = equipesCache.filter(e => e.tournoi_competition_id === comp.id && e.poule === p);
+  }
+  const missing = equipesCache.filter(e => e.tournoi_competition_id === comp.id && !e.poule).length;
+  const warn = missing > 0 ? `\n\nAttention : ${missing} équipe(s) non affectée(s) à une poule seront ignorées.` : '';
+
+  if (!confirm(`Générer les matchs de poule pour "${comp.nom}" ? Cela remplace tous les matchs de poule existants (scores déjà saisis inclus).${warn}`)) return;
+
+  hint.textContent = 'Génération en cours…';
+
+  const { error: delError } = await sbClient
+    .from('matchs')
+    .delete()
+    .eq('tournoi_competition_id', comp.id)
+    .eq('phase', 'poule');
+  if (delError) { hint.textContent = 'Erreur : ' + delError.message; return; }
+
+  const rows = [];
+  let numero = 1;
+  for (let p = 1; p <= nbPoules; p++) {
+    const equipes = equipesParPoule[p];
+    for (let i = 0; i < equipes.length; i++) {
+      for (let j = i + 1; j < equipes.length; j++) {
+        rows.push({
+          tournoi_competition_id: comp.id,
+          phase: 'poule',
+          poule: p,
+          numero: numero++,
+          equipe1_id: equipes[i].id,
+          equipe2_id: equipes[j].id,
+        });
+      }
+    }
+  }
+
+  if (rows.length === 0) {
+    hint.textContent = 'Aucune équipe affectée à une poule : rien à générer.';
+    await loadAll(tournoi.id, true);
+    return;
+  }
+
+  const { error: insError } = await sbClient.from('matchs').insert(rows);
+  if (insError) { hint.textContent = 'Erreur : ' + insError.message; return; }
+
+  hint.textContent = `${rows.length} match(s) généré(s) pour ${comp.nom}.`;
   await loadAll(tournoi.id, true);
 }
 
