@@ -95,6 +95,8 @@ async function renderAuthState() {
  */
 const EXTRA_NAV_PAGES = [
   { pageKey: 'inscriptions', href: 'inscriptions.html', label: 'Inscriptions' },
+  { pageKey: 'tournois_admin', href: 'tournois.html', label: 'Tournois' },
+  { pageKey: 'tournois_gestion', href: 'tournois.html', label: 'Tournois' },
   { pageKey: 'administration', href: 'admin.html', label: 'Administration' },
 ];
 

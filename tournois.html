@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournois — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="28" height="28">
+          <circle cx="20" cy="9" r="7" fill="currentColor"/>
+          <path d="M20 16 L11 33 L29 33 Z" fill="currentColor" opacity="0.85"/>
+        </svg>
+      </span>
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+      <a href="membres.html">Espace membres</a>
+      <a href="tournois.html">Tournois</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'organisation des tournois</p>
+  <h1>Tournois</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée aux profils "Tournois - Administration" ou "Tournois - Gestion".</p>
+  </div>
+
+  <div id="mainPanel" hidden>
+
+    <!-- ===== Types de compétition (admin uniquement) ===== -->
+    <section class="admin-section" id="typesSection" hidden>
+      <h2>Types de compétition</h2>
+      <p class="section-lead">Le catalogue des types de compétition proposés lors de la création d'un tournoi (ex. Simple Homme, Double Mixte…).</p>
+
+      <div class="table-wrap">
+        <table class="schedule" id="typesTable">
+          <thead><tr><th>Nom</th><th>Ordre</th><th></th><th></th></tr></thead>
+          <tbody id="typesTableBody"><tr><td colspan="4">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+      <p class="form-hint" id="typesHint"></p>
+
+      <h3 class="admin-subheading">Ajouter un type de compétition</h3>
+      <form id="newTypeForm" class="inline-form">
+        <label>Nom
+          <input type="text" name="nom" required>
+        </label>
+        <label>Ordre d'affichage
+          <input type="number" name="ordre" value="100">
+        </label>
+        <button type="submit" class="btn btn-primary btn-small">Ajouter</button>
+        <p class="form-hint" id="newTypeHint"></p>
+      </form>
+    </section>
+
+    <!-- ===== Créer / modifier un tournoi ===== -->
+    <section class="admin-section">
+      <h2 id="tournoiFormTitle">Créer un tournoi</h2>
+      <form id="tournoiForm">
+        <div class="field-grid">
+          <label>Nom du tournoi
+            <input type="text" name="nom" required>
+          </label>
+          <label>Cotisation (€)
+            <input type="number" step="0.01" name="cotisation" value="0" required>
+          </label>
+          <label>Nombre de terrains disponibles
+            <input type="number" name="nb_terrains" value="4" min="1" required>
+          </label>
+        </div>
+
+        <h3 class="admin-subheading">Compétitions incluses</h3>
+        <p class="section-lead">Cochez les compétitions à inclure, puis précisez le nombre de poules et le nombre d'équipes/participants par poule.</p>
+        <div id="competitionsChecklist" class="competitions-checklist">
+          <!-- généré dynamiquement -->
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="tournoiSubmitBtn">Créer le tournoi</button>
+          <button type="button" class="btn btn-ghost" id="cancelEditTournoiBtn" hidden>Nouveau tournoi (annuler la modification)</button>
+        </div>
+        <p class="form-hint" id="tournoiFormHint"></p>
+      </form>
+    </section>
+
+    <!-- ===== Liste des tournois ===== -->
+    <section class="admin-section">
+      <h2>Tournois existants</h2>
+      <div class="table-wrap">
+        <table class="schedule" id="tournoisTable">
+          <thead>
+            <tr><th>Nom</th><th>Cotisation</th><th>Terrains</th><th>Compétitions</th><th>Créé le</th><th></th></tr>
+          </thead>
+          <tbody id="tournoisTableBody"><tr><td colspan="6">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/tournois.js"></script>
+</body>
+</html>

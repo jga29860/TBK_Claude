@@ -109,6 +109,8 @@ Exécutez en plus `supabase/migration_roles.sql` dans le SQL Editor (une seule f
 
 Pour activer la gestion des inscriptions saison, exécutez aussi `supabase/migration_inscriptions.sql` (une seule fois, après les deux précédents), puis `supabase/migration_inscriptions_colonnes.sql`.
 
+Pour activer la gestion des tournois (étape 1 : types de compétition + création de tournoi), exécutez `supabase/migration_tournois_1.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -126,6 +128,16 @@ Page réservée aux profils ayant accès à la page `inscriptions` (créez un pr
 - **Cotisation** : calculée automatiquement à partir du barème (Catégorie, Bad+Ping, UFOLEP/FSGT, Membre Bureau) dès que l'un de ces champs change, mais reste modifiable à la main avant enregistrement (bouton "Recalculer" disponible pour revenir au calcul automatique).
 - **Barème des cotisations** (section Configuration, admin uniquement) : les 5 montants sont modifiables à tout moment ; ils ne s'appliquent qu'aux futurs calculs, pas rétroactivement aux inscriptions déjà enregistrées.
 - **Colonnes affichées dans le tableau des inscrits** (section Configuration, admin uniquement) : cases à cocher pour choisir, parmi les champs fixes et personnalisés, lesquels apparaissent comme colonnes du tableau (la colonne "Nom" est toujours affichée). Ce choix est commun à tous les utilisateurs ayant accès à la page.
+
+## Tournois (page `tournois.html`) — étape 1
+
+Première étape de la gestion des tournois : deux nouveaux profils à créer depuis `admin.html` → Profils :
+- **Tournois - Administration** (page `tournois_admin`) : gère le catalogue des types de compétition, crée/modifie/supprime les tournois.
+- **Tournois - Gestion** (page `tournois_gestion`) : peut créer/modifier un tournoi (nom, cotisation, terrains, compétitions incluses, poules), mais ne peut pas gérer les types de compétition ni supprimer un tournoi.
+
+Pour chaque tournoi, on choisit les compétitions incluses (Simple Homme, Double Dame…) par case à cocher, avec pour chacune le nombre de poules et le nombre d'équipes/participants par poule.
+
+**À venir dans les prochaines étapes** : inscriptions par compétition et affectation aux poules, page d'émargement (présence + paiement), page matchs avec scores et classement de poule en direct, page planning (terrains, temps d'attente, filtre par équipe).
 
 ## Tester en local avant publication
 

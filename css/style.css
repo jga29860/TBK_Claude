@@ -359,5 +359,15 @@ table.schedule .role-label-input{
   clip:rect(0,0,0,0); white-space:nowrap; border:0;
 }
 
+/* ===== Tournois ===== */
+.competitions-checklist{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.competition-row{
+  background: var(--pale); border:1px solid #d6e5d1; border-radius:8px; padding:10px 14px;
+  display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+}
+.competition-check{ font-weight:700 !important; color: var(--dark) !important; }
+.competition-config{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:0.85rem; color: var(--ink-soft); }
+.competition-config input{ font-family: var(--font-body); padding:6px 8px; border-radius:6px; border:1px solid #a9d18e; margin-left:6px; }
+
 /* Focus visibility */
 a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-offset: 2px; }

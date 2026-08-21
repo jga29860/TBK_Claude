@@ -1,0 +1,322 @@
+Je veux rajouter une page pour réaliser les tournois.
+
+Créer un profil "administrateur tournoi" qui doit pouvoir : 
+
+- Renseigner le type de compétition (Simple Homme, Simple Dame, Double Homme, Double Dame …) - possibilité de rajouter, modifier, supprimer un type de compétition, rajouter des cases a cocher en face de chaque type de compétition
+- Définir le montant de la cotisation pour participation au tournoi, le nombre de terrain disponibles pour le tournoi
+- Créer un tournoi : Renseigner un nom de tournoi et récupérer les cases cochées pour constituer le tournoi (soit simple homme ou simple homme et double dame ou double mixte et double dame …). Il faut également par compétition définir le nombre de poule et le nombre d'équipe ou participant par poule
+- Supprimer un tournoi
+
+créer le profil "gestion tournoi" qui doit pouvoir définir les caractéristiques du tournoi, et collecter les inscriptions.
+
+Une fois que le tournoi est créé, il faut collecter les inscriptions au tournoi par compétition. 
+Les inscriptions se font sur la base de 2 informations : Nom du joueur et Club.
+En simple, les inscriptions se font unitairement, en double, les inscriptions se font avec 2 personnes qui constituent une équipe.
+
+Une fois les inscriptions terminées, il faut pouvoir affecter / modifier les équipes par poules.
+
+créer un profil "émargement tournoi" pour gérer l'émargement.
+La partie émargement recupere pour le tournoi, les participants inscrit au tournoi et doit cocher par participant la présence au tournoi et le paiement de la cotisation au tournoi
+La page émargement est composée de 2 parties : 
+- sur la partie haute de la page emargement, rappeler le montant de la cotisation pour information, donner la possibilité de rechercher un joueur inscrit au tournoi, rappeler en dynamique fonction des présents le nombre de présent par rapport au nombre d inscrit, rappeler pour information le montant total des cotisation regle (en dynamique fonction des cotisations reglees)
+- sur le reste de la page, afficher la liste des inscrits par compétition. Les inscrits sont listés par équipe, en rappelant le nom et le club (les informations nom et club doivent etre modifiables au moment de l emargement en cas de changement de derniere minute), 3 cases a cocher : present, absent et cotisation payée.
+
+
+Gestion des matchs 
+- le tournoi s'organise en mode poule puis phase finale Principale et Consolante : 
+	- chaque équipe au sein d'une poule se rencontre, 
+	- les matchs se jouent en 2 set gagnant - 1 set est considéré gagnant par l equipe qui a marqué le plus de point, donc possibilité d avoir 3 sets par match
+	- calcul des points : 
+		- match joué et gagné : 3 points pour l équipe gagnante
+		- match joué et perdu : 1 point pour l équipe perdante
+
+Rajouter une page par compétition du tournoi qui affiche en temps réel fonction des scores saisi l'évolution du classement des équipes dans la poule :
+- Un tableau par poule (poule 1, poule 2 …)
+- Chaque tableau par poule a la même structure : 
+	1ere partie : 
+	- Classement dans la poule (1, 2, 3 …)
+	- Nom de l'équipe
+	- Nombre de match joué
+	- Points
+	- Différence entre le nombre de set gagnés et le nombre de set perdus
+	- Différence entre le nombre de point marqué et le nombre de point perdu
+	- Quand je positionne le curseur de la souris sur le numero de classement dans la poule, j affiche la valeur nombre de point qui correspond a Points*1000+ différence set * 100 + différence point
+	- Le 1er de la poule est celui qui a la valeur la plus elevée, l affichage des équipes au sein de la poule doit évoluer en dynamique pour afficher les équipes pour ordre de points decroissant
+	2eme partie : 
+	- presente les match au sein de la poule par ligne avec : N° de match, Equipe 1, Equipe 2, Puis les scores saisables dans 6 zones par set (ex 21-2; 18-21; 21-12), rappel du N° du terrain et de la rotation
+
+
+rajouter une page planning pour le tournoi composée de 2 parties : 
+- en partie haute prévoir les champs : 
+	- Heure de debut (modifiable)
+	- Rotation (modifiable) => estimation du temps par match en minute (par défaut 20min)
+	- Rappeler le nombre de terrain prévu pour le tournoi
+	- Indiquer un temps minimum entre 2 match en minute pour 1 equipe (modifiable)
+	- rajouter une zone de filtre par equipe qui permettra de filtrer les données relative a l'équipe sur la partie basse de la page.
+	- Caluler la durée moyenne des matchs du tournoi en dynamique 
+	- Bouton Matchs en cours (permettra de filtrer les matchs en cours sur la partie basse de la page)
+	- Bouton Match possible (permettra de filtrer sur les matchs possibles)
+	- Planning complet
+- en partie basse - decoupé en partie droite et gauche
+	- sur la partie droite, 
+		- je dois avoir la liste des terrains affiché sous forme de bouton (Terrain 1, Terrain 2...). le terrain est soit libre (Vert) soit occupé (Saumon)
+		- affiché le TOP 5 des équipes qui ont un temps d'attente le plus important par compétition. Le temps d'attente correspond au temps entre la fin du match précedent (saisi des scores du matchs) et maintenant. Quand je clique sur 1 equipe remonté dans les top 5, ca me permet de filtre sur les matchs correspondant a ces équipes sur la partie droite.
+	- sur la partie gauche, afficher sous forme de liste, l'ensemble des match avec les infos : 
+		- N° match
+		- Compétition
+		- Equipe 1
+		- Equipe 2
+		- Phase (Poule, puis par Principal ou consolante les 1/8, 1/4, 1/2 et finale…)
+		- Heure estimée de demarrage du match
+		- Rotation
+		- Terrain
+		- Saisie des score dans 6 zones par set (ex 21-2; 18-21; 21-12)
+		- Heure reelle de lancement du match (correspond a l affectation du terrain)
+		- Durée du match, en minute (différence entre lancement du match et saisie du score)
+		
+Les matchs doivent se dérouler sur les terrains disponibles et etre planifié 
+
+
+
+
+
+
+
+
+
+
+Possibilité de sélection les compétitions : 
+
+
+
+
+GESTION DES TOURNOIS
+
+Double Mixte :
+- 32 équipes
+- 8 poules de 4
+
+Double Homme :
+- 16 équipes
+- 4 poules de 4
+
+Chaque équipe possède :
+- Joueur 1
+- Club Joueur 1
+- Joueur 2
+- Club Joueur 2
+- Poule
+- Rang
+
+Les poules peuvent être figées.
+Une fois figées :
+- Modification impossible
+- Déplacement impossible
+
+MATCHS DE POULES
+
+Chaque poule comporte 6 matchs :
+
+1 vs 2
+3 vs 4
+1 vs 3
+2 vs 4
+1 vs 4
+2 vs 3
+
+CLASSEMENT DES POULES
+
+Pour chaque match :
+
+Victoire :
++3 points
+
+Défaite :
++1 point
+
+Critères de classement :
+
+1. Nombre de points
+2. Différence de sets
+3. Différence de points
+4. Rang initial
+
+Formule :
+
+Score classement =
+Points × 1000
++ Différence Sets × 100
++ Différence Points
+
+PHASES FINALES
+
+DM Principal :
+- 1/8
+- 1/4
+- 1/2
+- Finale
+- Petite finale
+
+DM Consolante :
+- Même structure
+
+DH Principal :
+- 1/4
+- 1/2
+- Finale
+- Petite finale
+
+DH Consolante :
+- Même structure
+
+VERROUILLAGE DES TABLEAUX
+
+Aucun match de tableau final ne peut être joué tant que tous les matchs de poules ne sont pas terminés.
+
+SCORES
+
+Saisie sur 3 sets maximum.
+
+Match terminé uniquement lorsque :
+- Une équipe gagne 2 sets
+
+Après validation :
+- Calcul automatique du vainqueur
+- Mise à jour classement
+- Mise à jour tableau final
+
+Modifier un score terminé :
+- Demander confirmation
+
+PLANNING
+
+Paramètres :
+- Heure début
+- Durée rotation
+- Nombre terrains
+- Temps minimum de repos
+
+Le planning doit :
+
+- Calculer les rotations
+- Répartir DM et DH automatiquement
+- Éviter qu’une équipe joue deux matchs simultanément
+- Respecter le temps minimum entre deux matchs
+- Afficher les équipes en attente
+
+TERRAINS
+
+Un match peut être affecté à un terrain.
+
+Un terrain occupé :
+- Ne peut pas être réaffecté
+
+Un match terminé :
+- Libère automatiquement le terrain
+
+EMARGEMENT
+
+Chaque participant possède :
+
+- Présent
+- Absent
+- Cotisation payée
+
+Par défaut :
+Présent = false
+Absent = true
+
+Si présent :
+- Absent = false
+- Payé = true
+
+Si absent :
+- Présent = false
+- Payé = false
+
+Une équipe absente :
+- Impossible à programmer
+- Impossible de saisir un score
+
+INSCRIPTIONS CLUB
+
+Gestion d’adhérents :
+
+Nom
+Prénom
+Catégorie
+Sport
+Téléphone
+Mail
+Adresse
+Date naissance
+UFOLEP
+WhatsApp
+Santé
+Membre bureau
+Montant cotisation
+Cotisation payée
+
+Calcul automatique :
+
+Montant =
+Cotisation catégorie
++ Supplément Bad Ping
++ Supplément UFOLEP
+- Réduction Bureau
+
+Paramètres administrables :
+- Cotisation adulte
+- Cotisation jeune
+- Supplément Bad Ping
+- Supplément UFOLEP
+- Réduction Bureau
+
+COLONNES DYNAMIQUES
+
+Administrateur uniquement :
+
+Créer colonne :
+- Texte
+- Nombre
+- Date
+- Oui/Non
+- Liste
+
+Possibilité :
+- Renommer
+- Déplacer
+- Masquer
+- Supprimer
+
+UTILISATEURS
+
+Administrateur peut :
+
+Créer utilisateur
+Désactiver utilisateur
+Supprimer utilisateur
+Réinitialiser mot de passe
+
+PROFILS
+
+Administrateur peut :
+
+Créer profil
+Supprimer profil
+Attribuer pages
+Attribuer boutons
+
+STOCKAGE
+
+Toutes les données en LocalStorage.
+
+Fonctions :
+
+- Sauvegarde
+- Export JSON
+- Import JSON
+- Réinitialisation scores
+- Réinitialisation totale
+
+DOCUMENTATION

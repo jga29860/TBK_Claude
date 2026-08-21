@@ -9,6 +9,8 @@
 const PAGE_CATALOG = [
   { key: 'espace_membres', label: 'Espace membres' },
   { key: 'inscriptions', label: 'Inscriptions saison' },
+  { key: 'tournois_admin', label: 'Tournois - Administration' },
+  { key: 'tournois_gestion', label: 'Tournois - Gestion' },
   { key: 'administration', label: 'Administration' },
 ];
 
