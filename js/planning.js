@@ -233,6 +233,14 @@ function equipeEnCours(equipeId) {
   return matchsCache.some(m => (m.equipe1_id === equipeId || m.equipe2_id === equipeId) && m.heure_lancement && !m.heure_fin);
 }
 
+function equipePresente(equipeId) {
+  const eq = equipesCache.find(e => e.id === equipeId);
+  if (!eq) return false;
+  const comp = competitionsCache.find(c => c.id === eq.tournoi_competition_id);
+  const isDouble = comp && comp.format === 'double' && eq.joueur2_nom;
+  return !!eq.joueur1_present && (!isDouble || !!eq.joueur2_present);
+}
+
 function dernierMatchTermine(equipeId) {
   const joues = matchsCache
     .filter(m => (m.equipe1_id === equipeId || m.equipe2_id === equipeId) && m.heure_fin)
@@ -248,7 +256,7 @@ function renderTout() {
   renderKpiDureeMoyenne();
   renderTerrains();
   renderTop5();
-  renderMatchsTable();
+  renderMatchsRotations();
 }
 
 function renderKpiDureeMoyenne() {
@@ -368,65 +376,89 @@ function computeEstimatedSlots(matchsAPlanifier) {
 }
 
 // ============================================================
-// Rendu de la liste des matchs
+// Regroupement des matchs par rotation
+// (une rotation = jusqu'à N matchs, N = nombre de terrains)
 // ============================================================
 
-function renderMatchsTable() {
-  const tbody = document.getElementById('matchsTableBody');
-
-  let visibles = matchsCache.slice();
-
-  if (filterMode === 'en_cours') {
-    visibles = visibles.filter(m => m.heure_lancement && !m.heure_fin);
-  } else if (filterMode === 'possibles') {
-    visibles = visibles.filter(m =>
-      !m.heure_lancement &&
-      !equipeEnCours(m.equipe1_id) &&
-      !equipeEnCours(m.equipe2_id)
-    );
-  }
-
-  if (filtreTerrain !== null) {
-    visibles = visibles.filter(m => m.terrain === filtreTerrain);
-  }
-  if (filtreEquipeId !== null) {
-    visibles = visibles.filter(m => m.equipe1_id === filtreEquipeId || m.equipe2_id === filtreEquipeId);
-  }
-  if (filtreEquipe) {
-    visibles = visibles.filter(m =>
-      equipeSearchHaystack(m.equipe1_id).includes(filtreEquipe) ||
-      equipeSearchHaystack(m.equipe2_id).includes(filtreEquipe)
-    );
-  }
-
-  // Estimation des heures pour les matchs non encore lancés
-  const nonLances = matchsCache.filter(m => !m.heure_lancement).sort((a, b) => a.numero - b.numero);
-  const slots = computeEstimatedSlots(nonLances);
+function computeRotations() {
   const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
-  const rotation = tournoi ? tournoi.rotation_minutes : 20;
+
+  const avecHeure = matchsCache
+    .filter(m => m.heure_lancement)
+    .sort((a, b) => new Date(a.heure_lancement) - new Date(b.heure_lancement));
+
+  const sansHeure = matchsCache.filter(m => !m.heure_lancement).sort((a, b) => a.numero - b.numero);
+  const slots = computeEstimatedSlots(sansHeure);
+  const sansHeureOrdonnes = sansHeure.slice().sort((a, b) => (slots[a.id] ?? 0) - (slots[b.id] ?? 0));
+
+  const combines = [...avecHeure, ...sansHeureOrdonnes];
+  const groupes = [];
+  for (let i = 0; i < combines.length; i += nbTerrains) {
+    groupes.push(combines.slice(i, i + nbTerrains));
+  }
+  return groupes;
+}
+
+// ============================================================
+// Rendu de la liste des matchs, regroupés par rotation
+// ============================================================
+
+function renderMatchsRotations() {
+  const container = document.getElementById('matchsRotationsContainer');
+  const rotations = computeRotations();
+  const rotationMinutes = tournoi ? tournoi.rotation_minutes : 20;
   const heureDebut = tournoi && tournoi.heure_debut ? new Date(tournoi.heure_debut) : null;
 
-  const now = Date.now();
+  let anyShown = false;
 
-  if (visibles.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="14">Aucun match pour ce filtre.</td></tr>';
-    return;
-  }
+  const html = rotations.map((matchsRotation, idx) => {
+    let visibles = matchsRotation;
 
-  tbody.innerHTML = visibles.map(m => {
-    const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
-    const terrainsLibres = getTerrainsLibres();
-    const lancable = !m.heure_lancement && !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) && terrainsLibres.length > 0;
-
-    let heureEstimee = '—';
-    if (!m.heure_lancement && heureDebut) {
-      const slot = slots[m.id];
-      if (slot !== undefined) {
-        const minutesOffset = Math.floor(slot / nbTerrains) * rotation;
-        const dt = new Date(heureDebut.getTime() + minutesOffset * 60000);
-        heureEstimee = dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      }
+    if (filterMode === 'en_cours') {
+      visibles = visibles.filter(m => m.heure_lancement && !m.heure_fin);
+    } else if (filterMode === 'possibles') {
+      visibles = visibles.filter(m =>
+        !m.heure_lancement &&
+        !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
+        equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id)
+      );
     }
+
+    if (filtreTerrain !== null) visibles = visibles.filter(m => m.terrain === filtreTerrain);
+    if (filtreEquipeId !== null) visibles = visibles.filter(m => m.equipe1_id === filtreEquipeId || m.equipe2_id === filtreEquipeId);
+    if (filtreEquipe) {
+      visibles = visibles.filter(m =>
+        equipeSearchHaystack(m.equipe1_id).includes(filtreEquipe) ||
+        equipeSearchHaystack(m.equipe2_id).includes(filtreEquipe)
+      );
+    }
+
+    if (visibles.length === 0) return '';
+    anyShown = true;
+
+    let heureEstimeeRotation = '—';
+    if (heureDebut) {
+      const dt = new Date(heureDebut.getTime() + idx * rotationMinutes * 60000);
+      heureEstimeeRotation = dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    return renderRotationBlock(idx + 1, visibles, heureEstimeeRotation);
+  }).join('');
+
+  container.innerHTML = anyShown ? html : '<p class="section-lead">Aucun match pour ce filtre.</p>';
+  bindMatchRowEvents();
+}
+
+function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
+  const now = Date.now();
+  const terrainsLibres = getTerrainsLibres();
+
+  const rows = matchs.map(m => {
+    const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
+    const lancable = !m.heure_lancement &&
+      !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
+      equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id) &&
+      terrainsLibres.length > 0;
 
     let duree = '—';
     if (m.heure_lancement && m.heure_fin) {
@@ -439,6 +471,13 @@ function renderMatchsTable() {
       ? new Date(m.heure_lancement).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       : '—';
 
+    let motifIndisponible = '';
+    if (!m.heure_lancement && !lancable) {
+      if (equipeEnCours(m.equipe1_id) || equipeEnCours(m.equipe2_id)) motifIndisponible = 'Une équipe joue déjà';
+      else if (!equipePresente(m.equipe1_id) || !equipePresente(m.equipe2_id)) motifIndisponible = 'Équipe non présente';
+      else if (terrainsLibres.length === 0) motifIndisponible = 'Aucun terrain libre';
+    }
+
     return `
       <tr data-match-id="${m.id}">
         <td>${m.numero}</td>
@@ -446,8 +485,6 @@ function renderMatchsTable() {
         <td>${escapeHtml(equipeLabel(m.equipe1_id))}</td>
         <td>${escapeHtml(equipeLabel(m.equipe2_id))}</td>
         <td>Poule ${m.poule ?? '—'}</td>
-        <td>${heureEstimee}</td>
-        <td><input type="number" min="1" class="rotation-cell-input" value="${m.rotation ?? rotation}"></td>
         <td>${m.terrain ?? '—'}</td>
         ${[1, 2, 3].map(n => `
           <td class="score-cell">
@@ -457,11 +494,27 @@ function renderMatchsTable() {
           </td>`).join('')}
         <td>${heureLancement}</td>
         <td>${duree}</td>
-        <td>${!m.heure_lancement ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'}>Lancer</button>` : ''}</td>
+        <td>${!m.heure_lancement
+          ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
+          : ''}</td>
       </tr>`;
   }).join('');
 
-  bindMatchRowEvents();
+  return `
+    <div class="poule-block">
+      <h3 class="poule-block-title">Rotation ${numeroRotation} <span class="poule-count">(estimée ${heureEstimeeRotation})</span></h3>
+      <div class="table-wrap">
+        <table class="schedule table-center">
+          <thead>
+            <tr>
+              <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Poule</th><th>Terrain</th>
+              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
 }
 
 function getTerrainsLibres() {
@@ -499,13 +552,6 @@ function bindMatchRowEvents() {
       const field = `set${setN}_${side}`;
       const value = e.target.value === '' ? null : Number(e.target.value);
       await saveMatchField(matchId, field, value);
-    });
-  });
-
-  document.querySelectorAll('.rotation-cell-input').forEach(input => {
-    input.addEventListener('change', async (e) => {
-      const matchId = e.target.closest('tr').getAttribute('data-match-id');
-      await saveMatchField(matchId, 'rotation', e.target.value === '' ? null : Number(e.target.value));
     });
   });
 }

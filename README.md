@@ -123,6 +123,8 @@ Pour bloquer automatiquement les inscriptions une fois une compétition complèt
 
 Pour la tête de poule, exécutez `supabase/migration_tournois_7.sql`.
 
+Pour l'émargement par joueur (avec défaut "absent" à l'inscription), exécutez `supabase/migration_tournois_8.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -202,6 +204,14 @@ Dès qu'une compétition atteint sa capacité (nombre de poules × taille de pou
 ## Filtre "absents" en émargement
 
 Sur `emargement.html`, à côté de la recherche par nom/club, un bouton "Afficher uniquement les absents" filtre la liste sur les équipes cochées "Absent". Se combine avec la recherche texte ; les poules sans résultat correspondant sont masquées le temps du filtre pour rester lisible.
+
+## Émargement par joueur, filtres poules, matchs par rotation
+
+- **Par défaut à l'inscription** : chaque joueur est enregistré "absent" et "cotisation non payée" — l'émargement consiste ensuite à cocher présent/payé au fur et à mesure des arrivées.
+- **Émargement par joueur** : sur `emargement.html`, chaque joueur d'une équipe (les deux en double) a désormais ses propres cases Présent / Absent / Cotisation payée, au lieu d'un seul jeu de cases pour toute l'équipe. Les compteurs du bandeau du haut comptent les joueurs individuellement.
+- **Filtres compétition et poule** sur `poules.html` : en plus du tournoi, deux menus déroulants permettent d'afficher une seule compétition et/ou une seule poule à la fois.
+- **Matchs regroupés par rotation** sur `planning.html` : une rotation correspond à autant de matchs que de terrains disponibles. Les matchs déjà lancés sont regroupés selon leur ordre réel de lancement, les matchs à venir selon l'estimation proportionnelle déjà en place. Chaque rotation est présentée dans un encadré avec son heure estimée.
+- **Un match n'est "lançable" que si les deux équipes sont libres ET présentes** (présence cochée en émargement — les deux joueurs pour une équipe de double). Le bouton "Lancer" est grisé sinon, avec une info-bulle indiquant la raison (équipe déjà en jeu, équipe non présente, ou aucun terrain libre).
 
 ## Scripts SQL utilitaires
 

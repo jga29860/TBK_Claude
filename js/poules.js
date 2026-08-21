@@ -6,6 +6,8 @@
 let competitionsCache = [];
 let equipesCache = [];
 let matchsCache = [];
+let filtreCompetitionId = '';
+let filtrePouleNum = '';
 
 async function initPage() {
   const access = await getCurrentAccess();
@@ -24,6 +26,8 @@ async function initPage() {
 
   await loadTournoisSelect();
   document.getElementById('tournoiSelect').addEventListener('change', onTournoiChange);
+  document.getElementById('competitionFilterSelect').addEventListener('change', onCompetitionFilterChange);
+  document.getElementById('pouleFilterSelect').addEventListener('change', onPouleFilterChange);
 }
 
 async function loadTournoisSelect() {
@@ -38,8 +42,19 @@ async function onTournoiChange() {
   const tournoiId = document.getElementById('tournoiSelect').value;
   const container = document.getElementById('competitionsContainer');
   container.innerHTML = '';
+  filtreCompetitionId = '';
+  filtrePouleNum = '';
 
-  if (!tournoiId) return;
+  const compFilterSelect = document.getElementById('competitionFilterSelect');
+  const pouleFilterSelect = document.getElementById('pouleFilterSelect');
+
+  if (!tournoiId) {
+    compFilterSelect.innerHTML = '<option value="">— Toutes —</option>';
+    compFilterSelect.disabled = true;
+    pouleFilterSelect.innerHTML = '<option value="">— Toutes —</option>';
+    pouleFilterSelect.disabled = true;
+    return;
+  }
 
   const { data: comps, error: compError } = await sbClient
     .from('tournoi_competitions')
@@ -55,6 +70,12 @@ async function onTournoiChange() {
     taille_poule: c.taille_poule,
   }));
 
+  compFilterSelect.disabled = false;
+  compFilterSelect.innerHTML = '<option value="">— Toutes —</option>' +
+    competitionsCache.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('');
+  pouleFilterSelect.innerHTML = '<option value="">— Toutes —</option>';
+  pouleFilterSelect.disabled = true;
+
   const compIds = competitionsCache.map(c => c.id);
   const [{ data: equipes, error: eqError }, { data: matchs, error: mError }] = await Promise.all([
     compIds.length ? sbClient.from('equipes').select('*').in('tournoi_competition_id', compIds) : Promise.resolve({ data: [] }),
@@ -65,6 +86,29 @@ async function onTournoiChange() {
   equipesCache = equipes || [];
   matchsCache = matchs || [];
 
+  renderCompetitions();
+}
+
+function onCompetitionFilterChange() {
+  filtreCompetitionId = document.getElementById('competitionFilterSelect').value;
+  filtrePouleNum = '';
+
+  const pouleFilterSelect = document.getElementById('pouleFilterSelect');
+  const comp = competitionsCache.find(c => c.id === filtreCompetitionId);
+  if (!comp) {
+    pouleFilterSelect.innerHTML = '<option value="">— Toutes —</option>';
+    pouleFilterSelect.disabled = true;
+  } else {
+    pouleFilterSelect.disabled = false;
+    pouleFilterSelect.innerHTML = '<option value="">— Toutes —</option>' +
+      Array.from({ length: comp.nb_poules }, (_, i) => i + 1).map(p => `<option value="${p}">Poule ${p}</option>`).join('');
+  }
+
+  renderCompetitions();
+}
+
+function onPouleFilterChange() {
+  filtrePouleNum = document.getElementById('pouleFilterSelect').value;
   renderCompetitions();
 }
 
@@ -143,11 +187,21 @@ function renderCompetitions() {
     return;
   }
 
-  container.innerHTML = competitionsCache.map(comp => `
-    <section class="admin-section">
-      <h2>${escapeHtml(comp.nom)}</h2>
-      ${Array.from({ length: comp.nb_poules }, (_, i) => i + 1).map(p => renderPouleSection(comp, p)).join('')}
-    </section>`).join('');
+  const compsToShow = filtreCompetitionId
+    ? competitionsCache.filter(c => c.id === filtreCompetitionId)
+    : competitionsCache;
+
+  container.innerHTML = compsToShow.map(comp => {
+    const poulesToShow = (filtreCompetitionId === comp.id && filtrePouleNum)
+      ? [Number(filtrePouleNum)]
+      : Array.from({ length: comp.nb_poules }, (_, i) => i + 1);
+
+    return `
+      <section class="admin-section">
+        <h2>${escapeHtml(comp.nom)}</h2>
+        ${poulesToShow.map(p => renderPouleSection(comp, p)).join('')}
+      </section>`;
+  }).join('');
 
   bindScoreInputs();
 }

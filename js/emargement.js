@@ -108,10 +108,6 @@ function renderAll() {
 // KPI (calculés au niveau participant : 1 en simple, 2 en double)
 // ============================================================
 
-function participantCount(equipe, format) {
-  return format === 'double' && equipe.joueur2_nom ? 2 : 1;
-}
-
 function renderKpis() {
   let totalParticipants = 0;
   let presentsParticipants = 0;
@@ -119,10 +115,17 @@ function renderKpis() {
 
   equipesCache.forEach(eq => {
     const comp = competitionsCache.find(c => c.id === eq.tournoi_competition_id);
-    const n = participantCount(eq, comp ? comp.format : 'simple');
-    totalParticipants += n;
-    if (eq.present) presentsParticipants += n;
-    if (eq.cotisation_payee) totalRegle += n * tournoiCotisation;
+    const isDouble = comp && comp.format === 'double' && eq.joueur2_nom;
+
+    totalParticipants += 1;
+    if (eq.joueur1_present) presentsParticipants += 1;
+    if (eq.joueur1_cotisation_payee) totalRegle += tournoiCotisation;
+
+    if (isDouble) {
+      totalParticipants += 1;
+      if (eq.joueur2_present) presentsParticipants += 1;
+      if (eq.joueur2_cotisation_payee) totalRegle += tournoiCotisation;
+    }
   });
 
   document.getElementById('kpiPresents').textContent = `${presentsParticipants} / ${totalParticipants}`;
@@ -169,7 +172,9 @@ function renderCompetitions() {
     const toutesEquipesComp = equipesCache.filter(eq => eq.tournoi_competition_id === comp.id);
     let equipesFiltrees = toutesEquipesComp;
     if (searchTerm) equipesFiltrees = equipesFiltrees.filter(eq => buildSearchHaystack(eq).includes(searchTerm));
-    if (filterAbsentsOnly) equipesFiltrees = equipesFiltrees.filter(eq => eq.absent);
+    if (filterAbsentsOnly) {
+      equipesFiltrees = equipesFiltrees.filter(eq => eq.joueur1_absent || (comp.format === 'double' && eq.joueur2_absent));
+    }
 
     const isDouble = comp.format === 'double';
     const poules = Array.from({ length: comp.nb_poules || 0 }, (_, i) => i + 1);
@@ -199,7 +204,7 @@ function renderCompetitions() {
 
 function renderPouleBlock(poule, equipes, isDouble) {
   const titre = poule ? `Poule ${poule}` : 'Non assignées';
-  const colCount = isDouble ? 7 : 5;
+  const colCount = isDouble ? 10 : 5;
 
   return `
     <div class="poule-block">
@@ -208,9 +213,8 @@ function renderPouleBlock(poule, equipes, isDouble) {
         <table class="schedule table-center">
           <thead>
             <tr>
-              <th>Joueur 1</th><th>Club 1</th>
-              ${isDouble ? '<th>Joueur 2</th><th>Club 2</th>' : ''}
-              <th>Présent</th><th>Absent</th><th>Cotisation payée</th>
+              <th>Joueur 1</th><th>Club 1</th><th>Présent</th><th>Absent</th><th>Payée</th>
+              ${isDouble ? '<th>Joueur 2</th><th>Club 2</th><th>Présent</th><th>Absent</th><th>Payée</th>' : ''}
             </tr>
           </thead>
           <tbody>
@@ -226,13 +230,16 @@ function renderEquipeRow(eq, isDouble) {
     <tr class="equipe-row" data-equipe-id="${eq.id}">
       <td><input type="text" class="emarg-input" data-field="joueur1_nom" value="${escapeHtml(eq.joueur1_nom)}"></td>
       <td><input type="text" class="emarg-input" data-field="joueur1_club" value="${escapeHtml(eq.joueur1_club || '')}"></td>
+      <td><input type="checkbox" class="emarg-check" data-player="1" data-field="present" ${eq.joueur1_present ? 'checked' : ''}></td>
+      <td><input type="checkbox" class="emarg-check" data-player="1" data-field="absent" ${eq.joueur1_absent ? 'checked' : ''}></td>
+      <td><input type="checkbox" class="emarg-check" data-player="1" data-field="cotisation_payee" ${eq.joueur1_cotisation_payee ? 'checked' : ''}></td>
       ${isDouble ? `
         <td><input type="text" class="emarg-input" data-field="joueur2_nom" value="${escapeHtml(eq.joueur2_nom || '')}"></td>
         <td><input type="text" class="emarg-input" data-field="joueur2_club" value="${escapeHtml(eq.joueur2_club || '')}"></td>
+        <td><input type="checkbox" class="emarg-check" data-player="2" data-field="present" ${eq.joueur2_present ? 'checked' : ''}></td>
+        <td><input type="checkbox" class="emarg-check" data-player="2" data-field="absent" ${eq.joueur2_absent ? 'checked' : ''}></td>
+        <td><input type="checkbox" class="emarg-check" data-player="2" data-field="cotisation_payee" ${eq.joueur2_cotisation_payee ? 'checked' : ''}></td>
       ` : ''}
-      <td><input type="checkbox" class="emarg-check" data-field="present" ${eq.present ? 'checked' : ''}></td>
-      <td><input type="checkbox" class="emarg-check" data-field="absent" ${eq.absent ? 'checked' : ''}></td>
-      <td><input type="checkbox" class="emarg-check" data-field="cotisation_payee" ${eq.cotisation_payee ? 'checked' : ''}></td>
     </tr>`;
 }
 
@@ -250,18 +257,21 @@ function bindRowEvents() {
     cb.addEventListener('change', async (e) => {
       const row = e.target.closest('tr');
       const id = row.getAttribute('data-equipe-id');
+      const player = e.target.getAttribute('data-player');
       const field = e.target.getAttribute('data-field');
       const checked = e.target.checked;
+      const column = `joueur${player}_${field}`;
 
-      // "Présent" et "Absent" sont mutuellement exclusifs
+      // "Présent" et "Absent" sont mutuellement exclusifs, par joueur
       if (checked && (field === 'present' || field === 'absent')) {
-        const other = field === 'present' ? 'absent' : 'present';
-        const otherInput = row.querySelector(`.emarg-check[data-field="${other}"]`);
+        const otherField = field === 'present' ? 'absent' : 'present';
+        const otherColumn = `joueur${player}_${otherField}`;
+        const otherInput = row.querySelector(`.emarg-check[data-player="${player}"][data-field="${otherField}"]`);
         if (otherInput) otherInput.checked = false;
-        await saveEquipeField(id, other, false);
+        await saveEquipeField(id, otherColumn, false);
       }
 
-      await saveEquipeField(id, field, checked);
+      await saveEquipeField(id, column, checked);
     });
   });
 }

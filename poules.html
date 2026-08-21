@@ -43,9 +43,17 @@
   <div id="mainPanel" hidden>
 
     <section class="admin-section">
-      <label class="tournoi-select-label">Tournoi
-        <select id="tournoiSelect"><option value="">— Choisir un tournoi —</option></select>
-      </label>
+      <div class="field-grid">
+        <label>Tournoi
+          <select id="tournoiSelect"><option value="">— Choisir un tournoi —</option></select>
+        </label>
+        <label>Compétition
+          <select id="competitionFilterSelect" disabled><option value="">— Toutes —</option></select>
+        </label>
+        <label>Poule
+          <select id="pouleFilterSelect" disabled><option value="">— Toutes —</option></select>
+        </label>
+      </div>
     </section>
 
     <div id="competitionsContainer"></div>
