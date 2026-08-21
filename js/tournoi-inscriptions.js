@@ -123,14 +123,24 @@ async function loadEquipes() {
 
   equipesCache = data || [];
   renderKpis();
+  renderCompletStatus();
   renderEquipesTable();
+}
+
+function renderCompletStatus() {
+  const capacite = selectedCompetition.nb_poules * selectedCompetition.taille_poule;
+  const complet = equipesCache.length >= capacite;
+  const form = document.getElementById('equipeForm');
+  const banner = document.getElementById('completBanner');
+
+  form.hidden = complet && !editingEquipeId;
+  if (banner) banner.hidden = !complet;
 }
 
 function renderKpis() {
   document.getElementById('kpiInscrits').textContent = equipesCache.length;
   document.getElementById('kpiPlaces').textContent = selectedCompetition.nb_poules * selectedCompetition.taille_poule;
 }
-
 function renderEquipesTable() {
   const isDouble = selectedCompetition.format === 'double';
   const thead = document.getElementById('equipesTableHead');
@@ -202,6 +212,7 @@ function editEquipe(id) {
   if (!eq) return;
   editingEquipeId = id;
   const form = document.getElementById('equipeForm');
+  form.hidden = false;
   form.joueur1_nom.value = eq.joueur1_nom;
   form.joueur1_club.value = eq.joueur1_club || '';
   if (form.joueur2_nom) form.joueur2_nom.value = eq.joueur2_nom || '';
@@ -220,6 +231,7 @@ function resetEquipeForm() {
   document.getElementById('formTitle').textContent = 'Nouvelle inscription';
   document.getElementById('submitBtn').textContent = 'Inscrire';
   document.getElementById('cancelEditBtn').hidden = true;
+  if (selectedCompetition) renderCompletStatus();
 }
 
 // ============================================================

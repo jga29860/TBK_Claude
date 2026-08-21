@@ -119,6 +119,8 @@ Pour l'étape 4 (matchs de poule + classement en direct), exécutez `supabase/mi
 
 Pour l'étape 5 (planning), exécutez `supabase/migration_tournois_5.sql`.
 
+Pour bloquer automatiquement les inscriptions une fois une compétition complète, exécutez `supabase/migration_tournois_6.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -183,6 +185,15 @@ Sélectionnez un tournoi pour afficher son planning complet, tous compétitions 
 - **Heure estimée de démarrage** : calculée par une répartition proportionnelle au nombre d'équipes de chaque compétition (file d'attente équitable), pour que toutes les compétitions avancent en parallèle plutôt que l'une après l'autre. C'est une estimation, pas un planning figé.
 
 **Simplification assumée** : le lancement se fait via le bouton "Lancer" sur la ligne du match (qui prend automatiquement le terrain libre le plus bas), plutôt que par un clic direct sur le bouton du terrain suivi du choix du match — plus simple à utiliser et à fiabiliser.
+
+## Blocage automatique des inscriptions complètes
+
+Dès qu'une compétition atteint sa capacité (nombre de poules × taille de poule), les nouvelles inscriptions sont refusées — directement en base de données (une nouvelle tentative d'inscription est bloquée même si deux personnes s'inscrivent en même temps), et la page `tournoi-inscriptions.html` masque le formulaire avec un message "Compétition complète" dès que ce seuil est atteint. Les inscriptions déjà enregistrées restent modifiables (changement de poule, correction de nom/club) : seules les *nouvelles* inscriptions sont bloquées.
+
+## Scripts SQL utilitaires
+
+- `supabase/init_tournoi_dm_dh.sql` : crée un tournoi réel "Tournoi 2026-2027" avec Double Dame (8 poules de 4) et Double Homme (4 poules de 4), sans équipe fictive — prêt à recevoir les vraies inscriptions.
+- `supabase/test_tournoi_dm_dh.sql` : variante de démonstration qui crée en plus 48 équipes fictives déjà réparties en poules, pratique pour tester émargement/matchs/planning sans saisie manuelle.
 
 ## Tester en local avant publication
 

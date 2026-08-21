@@ -21,7 +21,7 @@
   --font-mono: 'Courier New', monospace;
 
   --radius: 16px;
-  --wrap: 1120px;
+  --wrap: min(94vw, 1240px);
 }
 
 *{ box-sizing: border-box; }
@@ -269,7 +269,7 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   .main-nav .nav-admin-btn{ display:inline-block; margin: 10px 24px 0; background: var(--green) !important; color: var(--white) !important; }
 }
 
-.page-section{ padding: 70px 24px 100px; max-width: 900px; }
+.page-section{ padding: 70px 24px 100px; max-width: min(94vw, 900px); }
 .page-section h1{ font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: 24px; }
 
 .auth-panels{ display:grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 30px; }
@@ -299,7 +299,7 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 }
 .btn-small{ padding: 8px 16px; font-size:0.85rem; }
 
-.page-section--wide{ max-width: 1080px; }
+.page-section--wide{ max-width: min(96vw, 1680px); }
 
 .admin-section{
   background: var(--white); border-radius: var(--radius); padding: 30px;
@@ -370,6 +370,11 @@ table.schedule .role-label-input{
 .competition-config input{ font-family: var(--font-body); padding:6px 8px; border-radius:6px; border:1px solid #a9d18e; margin-left:6px; }
 
 .kpi-row{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+
+.complet-banner{
+  background:#ffe9d9; border:1px solid #f0b27a; color:#8a4a12;
+  border-radius:8px; padding:12px 16px; margin:16px 0; font-size:0.9rem;
+}
 
 /* ===== Émargement ===== */
 .tournoi-select-label{
