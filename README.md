@@ -111,6 +111,8 @@ Pour activer la gestion des inscriptions saison, exécutez aussi `supabase/migra
 
 Pour activer la gestion des tournois (étape 1 : types de compétition + création de tournoi), exécutez `supabase/migration_tournois_1.sql`.
 
+Pour l'étape 2 (inscriptions par compétition + affectation aux poules), exécutez `supabase/migration_tournois_2.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -137,7 +139,15 @@ Première étape de la gestion des tournois : deux nouveaux profils à créer de
 
 Pour chaque tournoi, on choisit les compétitions incluses (Simple Homme, Double Dame…) par case à cocher, avec pour chacune le nombre de poules et le nombre d'équipes/participants par poule.
 
-**À venir dans les prochaines étapes** : inscriptions par compétition et affectation aux poules, page d'émargement (présence + paiement), page matchs avec scores et classement de poule en direct, page planning (terrains, temps d'attente, filtre par équipe).
+**À venir dans les prochaines étapes** : page d'émargement (présence + paiement), page matchs avec scores et classement de poule en direct, page planning (terrains, temps d'attente, filtre par équipe).
+
+## Inscriptions tournoi (page `tournoi-inscriptions.html`) — étape 2
+
+Une fois un tournoi créé, cette page permet de sélectionner un tournoi puis une compétition, et de collecter les inscriptions :
+- **Simple** : Nom + Club du joueur.
+- **Double** : Nom + Club de chacun des deux joueurs (le champ "format" du type de compétition détermine automatiquement le nombre de joueurs demandés).
+- **Affectation aux poules** : menu déroulant par équipe (Poule 1, Poule 2…), modifiable à tout moment. Un bouton "Répartir automatiquement en poules" distribue toutes les équipes de façon équilibrée en un clic (répartition simple, dans l'ordre d'inscription — à ajuster manuellement ensuite si besoin, par exemple pour équilibrer les niveaux).
+- Deux compteurs rappellent le nombre d'équipes inscrites et le nombre de places prévues (poules × taille de poule).
 
 ## Tester en local avant publication
 

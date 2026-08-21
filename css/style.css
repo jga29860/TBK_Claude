@@ -369,5 +369,7 @@ table.schedule .role-label-input{
 .competition-config{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:0.85rem; color: var(--ink-soft); }
 .competition-config input{ font-family: var(--font-body); padding:6px 8px; border-radius:6px; border:1px solid #a9d18e; margin-left:6px; }
 
+.kpi-row{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+
 /* Focus visibility */
 a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-offset: 2px; }
