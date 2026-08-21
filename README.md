@@ -52,6 +52,51 @@ tbk-site/
 - Via l'interface web : ouvrez le fichier à modifier sur GitHub, cliquez sur le crayon (crayon "Edit"), modifiez, "Commit changes". Le site se met à jour automatiquement en 1-2 minutes.
 - Via Git : modifiez en local, puis `git add . && git commit -m "mise à jour" && git push`.
 
+## Connexion à Supabase (comptes utilisateurs, profils, rôles)
+
+Le site utilise [Supabase](https://supabase.com) (gratuit) pour l'authentification et les données. Trois rôles existent : `visiteur` (par défaut à l'inscription), `membre` (accès au contenu réservé, à activer manuellement) et `admin` (peut changer le rôle des autres utilisateurs).
+
+**Point important à comprendre** : le site reste un site statique. Les fichiers HTML sont toujours techniquement accessibles (comme n'importe quel fichier sur GitHub Pages). La vraie protection ne vient pas du fait de "cacher" une page, mais du fait que les **données** affichées sur ces pages sont filtrées côté Supabase selon le rôle de la personne connectée (règles RLS ci-dessous). Un visiteur non autorisé peut ouvrir `membres.html`, mais ne recevra jamais le contenu réservé.
+
+### 1. Créer le projet Supabase
+1. Créez un compte sur [supabase.com](https://supabase.com) et un nouveau projet.
+2. Dans **Project Settings → API**, notez l'**URL du projet** et la clé **`anon` `public`**.
+3. Ouvrez `js/supabase-config.js` et remplacez les deux valeurs :
+   ```js
+   const SUPABASE_URL = 'https://VOTRE-PROJET.supabase.co';
+   const SUPABASE_ANON_KEY = 'VOTRE_CLE_ANON_PUBLIQUE';
+   ```
+   Cette clé `anon` est faite pour être publique — ce n'est pas un mot de passe.
+
+### 2. Créer les tables et les règles de sécurité
+1. Dans Supabase, ouvrez **SQL Editor → New query**.
+2. Collez le contenu du fichier `supabase/schema.sql` fourni, puis cliquez **Run**.
+   Cela crée :
+   - la table `profiles` (un profil par utilisateur, rôle `visiteur` par défaut à l'inscription),
+   - les règles RLS qui empêchent un utilisateur de se donner lui-même un rôle plus élevé,
+   - une table d'exemple `annonces_membres` visible uniquement des `membre`/`admin`.
+
+### 3. Configurer les URLs autorisées
+1. Dans Supabase : **Authentication → URL Configuration**.
+2. **Site URL** : `https://jga29860.github.io/tbk-site/`
+3. **Redirect URLs** : ajoutez la même URL.
+
+### 4. Créer votre propre compte admin
+Il n'existe aucun admin au départ — c'est volontaire, pour la sécurité. Pour créer le premier :
+1. Allez sur `membres.html` sur votre site en ligne, créez un compte normalement (vous aurez le rôle `visiteur`).
+2. Dans Supabase : **Table Editor → profiles**, trouvez votre ligne (par email), modifiez la colonne `role` en `admin` directement dans l'interface Supabase.
+3. Reconnectez-vous sur le site : le lien **Administration** apparaît, vous pouvez désormais changer le rôle des autres utilisateurs depuis `admin.html`.
+
+### 5. Confirmation email (optionnel)
+Par défaut, Supabase envoie un email de confirmation à l'inscription. Vous pouvez désactiver cette étape dans **Authentication → Providers → Email → "Confirm email"** si vous préférez que les comptes soient actifs immédiatement (déconseillé si le site est public).
+
+### Pages ajoutées
+- `membres.html` — connexion / inscription, puis contenu réservé aux `membre`/`admin`.
+- `admin.html` — réservée aux `admin`, liste des utilisateurs et changement de rôle.
+
+### Aller plus loin
+Pour réserver d'autres contenus (résultats de tournoi, documents internes…), créez de nouvelles tables sur le même modèle que `annonces_membres` dans Supabase, avec une policy RLS `role in ('membre','admin')`, puis interrogez-les depuis une page comme `membres.js` le fait pour les annonces.
+
 ## Tester en local avant publication
 
 Ouvrez simplement `index.html` dans un navigateur, ou lancez un petit serveur local :
