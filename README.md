@@ -78,8 +78,8 @@ Le site utilise [Supabase](https://supabase.com) (gratuit) pour l'authentificati
 
 ### 3. Configurer les URLs autorisées
 1. Dans Supabase : **Authentication → URL Configuration**.
-2. **Site URL** : `https://jga29860.github.io/tbk-site/`
-3. **Redirect URLs** : ajoutez la même URL.
+2. **Site URL** : `https://jga29860.github.io/TBK_Claude/`
+3. **Redirect URLs** : ajoutez cette même URL, **et** `https://jga29860.github.io/TBK_Claude/reset-password.html` (nécessaire pour que les emails de réinitialisation de mot de passe fonctionnent).
 
 ### 4. Créer votre propre compte admin
 Il n'existe aucun admin au départ — c'est volontaire, pour la sécurité. Pour créer le premier :
@@ -89,6 +89,13 @@ Il n'existe aucun admin au départ — c'est volontaire, pour la sécurité. Pou
 
 ### 5. Confirmation email (optionnel)
 Par défaut, Supabase envoie un email de confirmation à l'inscription. Vous pouvez désactiver cette étape dans **Authentication → Providers → Email → "Confirm email"** si vous préférez que les comptes soient actifs immédiatement (déconseillé si le site est public).
+
+### Gestion des mots de passe
+- **Un admin change son propre mot de passe** depuis `admin.html`, section "Mon compte" (fonctionne directement, sans email).
+- **Un admin réinitialise le mot de passe d'un autre utilisateur** : bouton "Réinitialiser le mot de passe" sur chaque ligne de la table Utilisateurs. Cela envoie un email à cette personne avec un lien vers `reset-password.html`, où elle choisit elle-même son nouveau mot de passe. Un admin ne peut techniquement pas définir directement le mot de passe de quelqu'un d'autre depuis un site statique — cela nécessiterait d'exposer une clé secrète Supabase dans le code public, ce qui n'est jamais fait.
+
+### Charte graphique
+Le site reprend la charte du portail de gestion de tournoi (vert `#00b050` / `#006100`, cartes arrondies, police Arial). Toutes les couleurs sont centralisées en haut de `css/style.css`, dans `:root { ... }` — modifiez-les à un seul endroit pour ajuster l'ensemble du site.
 
 ### Pages ajoutées
 - `membres.html` — connexion / inscription, puis contenu réservé aux profils ayant accès à la page `espace_membres`.

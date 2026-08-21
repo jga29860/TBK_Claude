@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administration — TBK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -41,6 +38,22 @@
   </div>
 
   <div id="adminPanel" hidden>
+
+    <!-- ===== Mon compte ===== -->
+    <section class="admin-section">
+      <h2>Mon compte</h2>
+      <p class="section-lead">Changez votre propre mot de passe de connexion.</p>
+      <form id="changePasswordForm" class="inline-form">
+        <label>Nouveau mot de passe
+          <input type="password" name="password" required minlength="6">
+        </label>
+        <label>Confirmez
+          <input type="password" name="confirm" required minlength="6">
+        </label>
+        <button type="submit" class="btn btn-primary btn-small">Mettre à jour</button>
+        <p class="form-hint" id="changePasswordHint"></p>
+      </form>
+    </section>
 
     <!-- ===== Profils (rôles) ===== -->
     <section class="admin-section">
@@ -82,7 +95,7 @@
       <div class="table-wrap">
         <table class="schedule" id="usersTable">
           <thead>
-            <tr><th>Email</th><th>Nom affiché</th><th>Profil</th><th>Inscrit le</th><th></th></tr>
+            <tr><th>Email</th><th>Nom affiché</th><th>Profil</th><th>Inscrit le</th><th></th><th></th></tr>
           </thead>
           <tbody id="usersTableBody">
             <tr><td colspan="5">Chargement…</td></tr>

@@ -29,10 +29,40 @@ async function initAdminPage() {
   adminPanel.hidden = false;
 
   buildNewRoleCheckboxes();
+  bindChangePasswordForm();
   await loadRoles();
   await loadUsers();
   await loadInvitations();
   bindForms();
+}
+
+// ===== Mon compte : changer mon propre mot de passe =====
+
+function bindChangePasswordForm() {
+  const form = document.getElementById('changePasswordForm');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = 'true';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById('changePasswordHint');
+    const fd = new FormData(form);
+    const password = fd.get('password');
+    const confirm = fd.get('confirm');
+
+    if (password !== confirm) {
+      hint.textContent = 'Les deux mots de passe ne correspondent pas.';
+      return;
+    }
+
+    hint.textContent = 'Enregistrement…';
+    const { error } = await sbClient.auth.updateUser({ password });
+    if (error) {
+      hint.textContent = 'Erreur : ' + error.message;
+      return;
+    }
+    hint.textContent = 'Mot de passe mis à jour.';
+    form.reset();
+  });
 }
 
 // ===== Profils (rôles) =====
@@ -145,7 +175,7 @@ async function loadUsers() {
   }
 
   tbody.innerHTML = data.map(u => `
-    <tr data-user-id="${u.id}">
+    <tr data-user-id="${u.id}" data-user-email="${escapeHtml(u.email || '')}">
       <td>${escapeHtml(u.email || '—')}</td>
       <td>${escapeHtml(u.display_name || '—')}</td>
       <td>
@@ -155,8 +185,30 @@ async function loadUsers() {
       </td>
       <td>${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
       <td><button type="button" class="btn btn-ghost btn-small save-user-btn">Enregistrer</button></td>
+      <td><button type="button" class="btn btn-ghost btn-small reset-pass-btn">Réinitialiser le mot de passe</button></td>
     </tr>
   `).join('');
+
+  tbody.querySelectorAll('.reset-pass-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const row = e.target.closest('tr');
+      const email = row.getAttribute('data-user-email');
+      const hint = document.getElementById('usersHint');
+      if (!email) {
+        hint.textContent = "Cet utilisateur n'a pas d'email connu.";
+        return;
+      }
+      hint.textContent = 'Envoi de l\'email de réinitialisation…';
+      const { error } = await sbClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname.replace('admin.html', 'reset-password.html'),
+      });
+      if (error) {
+        hint.textContent = 'Erreur : ' + error.message;
+        return;
+      }
+      hint.textContent = `Email de réinitialisation envoyé à ${email}.`;
+    });
+  });
 
   tbody.querySelectorAll('.save-user-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
