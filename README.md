@@ -117,6 +117,8 @@ Pour l'étape 3 (émargement), exécutez `supabase/migration_tournois_3.sql`.
 
 Pour l'étape 4 (matchs de poule + classement en direct), exécutez `supabase/migration_tournois_4.sql`.
 
+Pour l'étape 5 (planning), exécutez `supabase/migration_tournois_5.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -143,7 +145,7 @@ Première étape de la gestion des tournois : deux nouveaux profils à créer de
 
 Pour chaque tournoi, on choisit les compétitions incluses (Simple Homme, Double Dame…) par case à cocher, avec pour chacune le nombre de poules et le nombre d'équipes/participants par poule.
 
-**À venir dans une prochaine étape** : page planning (terrains, temps d'attente, filtre par équipe). Les phases finales (Principale / Consolante) pourront faire l'objet d'une étape ultérieure si besoin.
+**À venir dans une prochaine étape** : les phases finales (Principale / Consolante) pourront faire l'objet d'une étape ultérieure si besoin.
 
 ## Inscriptions tournoi (page `tournoi-inscriptions.html`) — étape 2
 
@@ -169,6 +171,18 @@ Sélectionnez un tournoi puis une compétition pour afficher, poule par poule, l
 - **Génération des matchs** : bouton qui crée automatiquement tous les matchs en round-robin (chaque équipe rencontre toutes les autres équipes de sa poule) à partir des poules définies dans `tournoi-inscriptions.html`. Régénérer remplace les matchs existants (et leurs scores) après confirmation — les équipes non affectées à une poule sont ignorées.
 - **Classement** : recalculé automatiquement à chaque score saisi — Classement, Équipe, matchs joués, points (3 pour une victoire, 1 pour une défaite, uniquement si le match est décidé), différence de sets, différence de points. Le numéro de classement affiche au survol la valeur exacte (points×1000 + différence de sets×100 + différence de points) qui détermine l'ordre.
 - **Matchs** : un match se joue en 2 sets gagnants (jusqu'à 3 sets), chaque set saisi comme deux nombres (ex. 21 / 18). Numéro de terrain et rotation également modifiables sur chaque ligne. Un match n'est compté dans le classement que lorsqu'une équipe a gagné 2 sets.
+
+## Planning (page `planning.html`) — étape 5
+
+Sélectionnez un tournoi pour afficher son planning complet, tous compétitions confondues (les terrains sont partagés entre toutes les compétitions du tournoi).
+
+- **Bandeau du haut** : heure de début, rotation (min/match, 20 par défaut), temps minimum entre 2 matchs, filtre texte par équipe — tous modifiables et enregistrés automatiquement. Durée moyenne des matchs calculée en direct à partir des matchs terminés. Trois boutons changent le filtre de la liste en bas : Planning complet, Matchs en cours, Matchs possibles (deux équipes disponibles + un terrain libre).
+- **Terrains** (à droite) : un bouton par terrain, vert si libre, saumon si occupé. Cliquer sur un terrain filtre la liste des matchs sur ce terrain.
+- **Top 5 attente par compétition** (à droite) : les équipes qui attendent depuis le plus longtemps depuis la fin de leur dernier match, par compétition. Cliquer sur une équipe filtre la liste des matchs sur cette équipe.
+- **Liste des matchs** (à gauche) : toutes les colonnes demandées (N°, compétition, équipes, phase, heure estimée, rotation, terrain, scores sur 6 zones, heure de lancement réelle, durée). Un bouton "Lancer" apparaît sur les matchs lançables (deux équipes disponibles + un terrain libre) et assigne automatiquement le terrain libre le plus bas. Le terrain se libère automatiquement dès qu'un score complet (2 sets gagnants) est saisi.
+- **Heure estimée de démarrage** : calculée par une répartition proportionnelle au nombre d'équipes de chaque compétition (file d'attente équitable), pour que toutes les compétitions avancent en parallèle plutôt que l'une après l'autre. C'est une estimation, pas un planning figé.
+
+**Simplification assumée** : le lancement se fait via le bouton "Lancer" sur la ligne du match (qui prend automatiquement le terrain libre le plus bas), plutôt que par un clic direct sur le bouton du terrain suivi du choix du match — plus simple à utiliser et à fiabiliser.
 
 ## Tester en local avant publication
 
