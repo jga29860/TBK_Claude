@@ -39,6 +39,14 @@ async function initPage() {
       filterMode = btn.getAttribute('data-mode');
       document.querySelectorAll('.filter-mode-btn').forEach(b => b.classList.remove('is-active'));
       btn.classList.add('is-active');
+
+      if (filterMode === 'complet') {
+        filtreTerrain = null;
+        filtreEquipeId = null;
+        filtreEquipe = '';
+        document.getElementById('filtreEquipeInput').value = '';
+      }
+
       renderTout();
     });
   });
@@ -485,14 +493,29 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
       else if (terrainsLibres.length === 0) motifIndisponible = 'Aucun terrain libre';
     }
 
+    // Statut du match + classe de ligne (grisée si terminé ou non jouable pour le moment)
+    let statut, rowClass = '';
+    if (m.heure_lancement && m.heure_fin) {
+      statut = 'Terminé';
+      rowClass = 'row-termine';
+    } else if (m.heure_lancement && !m.heure_fin) {
+      statut = 'En cours';
+    } else if (!lancable) {
+      statut = 'Non lancé';
+      rowClass = 'row-indisponible';
+    } else {
+      statut = 'Non lancé';
+    }
+
     return `
-      <tr data-match-id="${m.id}">
+      <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
         <td>${m.numero}</td>
         <td>${escapeHtml(comp ? comp.nom : '?')}</td>
         <td>${escapeHtml(equipeLabel(m.equipe1_id))}</td>
         <td>${escapeHtml(equipeLabel(m.equipe2_id))}</td>
         <td>Poule ${m.poule ?? '—'}</td>
         <td>${m.terrain ?? '—'}</td>
+        <td>${statut}</td>
         ${[1, 2, 3].map(n => `
           <td class="score-cell">
             <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}">
@@ -514,7 +537,7 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
         <table class="schedule table-center">
           <thead>
             <tr>
-              <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Poule</th><th>Terrain</th>
+              <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Poule</th><th>Terrain</th><th>Statut</th>
               <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
             </tr>
           </thead>
