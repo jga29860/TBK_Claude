@@ -338,65 +338,72 @@ function renderTop5() {
 }
 
 // ============================================================
-// Estimation "au prorata" des heures de démarrage (file équitable)
-// ============================================================
-
-function computeEstimatedSlots(matchsAPlanifier) {
-  const groups = {};
-  matchsAPlanifier.forEach(m => {
-    if (!groups[m.tournoi_competition_id]) groups[m.tournoi_competition_id] = [];
-    groups[m.tournoi_competition_id].push(m);
-  });
-  const compIds = Object.keys(groups);
-  const weights = {};
-  compIds.forEach(id => {
-    const comp = competitionsCache.find(c => c.id === id);
-    weights[id] = Math.max(1, comp ? comp.nbEquipes : 1);
-  });
-  const used = {}; compIds.forEach(id => used[id] = 0);
-
-  const slotById = {};
-  let slot = 0;
-  let remaining = matchsAPlanifier.length;
-  while (remaining > 0) {
-    let best = null, bestRatio = Infinity;
-    compIds.forEach(id => {
-      if (groups[id].length === 0) return;
-      const ratio = used[id] / weights[id];
-      if (ratio < bestRatio) { bestRatio = ratio; best = id; }
-    });
-    if (!best) break;
-    const m = groups[best].shift();
-    slotById[m.id] = slot;
-    used[best]++;
-    slot++;
-    remaining--;
-  }
-  return slotById;
-}
-
-// ============================================================
 // Regroupement des matchs par rotation
 // (une rotation = jusqu'à N matchs, N = nombre de terrains)
+// Contraintes : aucune équipe ne joue deux fois dans une même
+// rotation, et chaque poule progresse de façon équitable (à
+// nombre de terrains suffisant, chaque poule a un match dès la
+// 1ère rotation).
 // ============================================================
 
 function computeRotations() {
   const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
 
+  // Matchs déjà lancés : ordre chronologique réel, inchangé
   const avecHeure = matchsCache
     .filter(m => m.heure_lancement)
     .sort((a, b) => new Date(a.heure_lancement) - new Date(b.heure_lancement));
-
-  const sansHeure = matchsCache.filter(m => !m.heure_lancement).sort((a, b) => a.numero - b.numero);
-  const slots = computeEstimatedSlots(sansHeure);
-  const sansHeureOrdonnes = sansHeure.slice().sort((a, b) => (slots[a.id] ?? 0) - (slots[b.id] ?? 0));
-
-  const combines = [...avecHeure, ...sansHeureOrdonnes];
-  const groupes = [];
-  for (let i = 0; i < combines.length; i += nbTerrains) {
-    groupes.push(combines.slice(i, i + nbTerrains));
+  const groupesLances = [];
+  for (let i = 0; i < avecHeure.length; i += nbTerrains) {
+    groupesLances.push(avecHeure.slice(i, i + nbTerrains));
   }
-  return groupes;
+
+  // Matchs pas encore lancés : ordonnancement équitable par poule
+  const sansHeure = matchsCache.filter(m => !m.heure_lancement);
+  const parPoule = {};
+  sansHeure.forEach(m => {
+    const key = `${m.tournoi_competition_id}|${m.poule}`;
+    if (!parPoule[key]) parPoule[key] = [];
+    parPoule[key].push(m);
+  });
+  Object.values(parPoule).forEach(list => list.sort((a, b) => a.numero - b.numero));
+
+  const pouleKeys = Object.keys(parPoule);
+  const compteScheduled = {};
+  pouleKeys.forEach(k => { compteScheduled[k] = 0; });
+
+  const groupesAPlanifier = [];
+  let restant = sansHeure.length;
+
+  while (restant > 0) {
+    const teamsUsed = new Set();
+    const rotation = [];
+    let progresse = true;
+
+    while (rotation.length < nbTerrains && progresse) {
+      progresse = false;
+      // Priorité aux poules les moins servies jusqu'ici (équité)
+      const ordre = pouleKeys.slice().sort((a, b) => compteScheduled[a] - compteScheduled[b]);
+      for (const key of ordre) {
+        if (rotation.length >= nbTerrains) break;
+        const liste = parPoule[key];
+        const idx = liste.findIndex(m => !teamsUsed.has(m.equipe1_id) && !teamsUsed.has(m.equipe2_id));
+        if (idx === -1) continue;
+        const match = liste.splice(idx, 1)[0];
+        teamsUsed.add(match.equipe1_id);
+        teamsUsed.add(match.equipe2_id);
+        rotation.push(match);
+        compteScheduled[key]++;
+        restant--;
+        progresse = true;
+      }
+    }
+
+    if (rotation.length === 0) break; // sécurité anti-boucle infinie (ne devrait pas arriver)
+    groupesAPlanifier.push(rotation);
+  }
+
+  return [...groupesLances, ...groupesAPlanifier];
 }
 
 // ============================================================

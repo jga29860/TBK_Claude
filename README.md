@@ -170,13 +170,13 @@ Troisième profil : **Tournois - Émargement** (page `tournois_emargement`), pen
 - Chaque case cochée est enregistrée immédiatement (pas de bouton "Enregistrer" séparé), pensé pour un usage rapide au fil des arrivées.
 - Les compteurs comptent les **participants** (2 personnes pour une équipe de double, 1 pour une équipe de simple), alors que les cases à cocher s'appliquent à l'équipe entière (les deux membres d'un double sont marqués présents/payés ensemble).
 
-## Poules & classement (page `poules.html`)
+## Poules & classement (page `poules.html`) — consultation uniquement
 
-Sélectionnez un tournoi pour afficher, pour **toutes ses compétitions** (pas besoin de choisir une compétition), le classement en direct et la saisie des scores, poule par poule.
+Sélectionnez un tournoi, avec des filtres optionnels par compétition et par poule, pour afficher le classement en direct de chaque poule. Cette page est **strictement en lecture** : aucune saisie de score, terrain ou autre n'y est possible (la saisie se fait exclusivement depuis `planning.html`).
 
-- **Classement** : recalculé automatiquement à chaque score saisi — Classement, Équipe, matchs joués, points (3 pour une victoire, 1 pour une défaite, uniquement si le match est décidé), différence de sets, différence de points. Le numéro de classement affiche au survol la valeur exacte (points×1000 + différence de sets×100 + différence de points) qui détermine l'ordre.
-- **Matchs** : un match se joue en 2 sets gagnants (jusqu'à 3 sets), chaque set saisi comme deux nombres (ex. 21 / 18). Un match n'est compté dans le classement que lorsqu'une équipe a gagné 2 sets.
-- La **génération des matchs de poule** se fait désormais depuis `planning.html` (voir ci-dessous), pas sur cette page.
+- **Classement** : affiché en direct — Classement, Équipe, matchs joués, points (3 pour une victoire, 1 pour une défaite, uniquement si le match est décidé), différence de sets, différence de points. Le numéro de classement affiche au survol la valeur exacte (points×1000 + différence de sets×100 + différence de points) qui détermine l'ordre.
+- **Matchs de la poule** : masqués par défaut pour garder l'affichage compact — un bouton "Afficher les matchs" par poule les révèle (scores, terrain, en lecture seule).
+- **Filtres** : en plus du tournoi, deux menus déroulants permettent d'afficher une seule compétition et/ou une seule poule à la fois.
 
 ## Planning (page `planning.html`)
 
@@ -186,10 +186,10 @@ Sélectionnez un tournoi pour afficher son planning complet, toutes compétition
 - **Génération des matchs de poule** : choisissez une compétition dans le menu déroulant dédié puis cliquez sur "Générer / régénérer" — crée automatiquement tous les matchs en round-robin à partir des poules définies dans `tournoi-inscriptions.html`. Régénérer remplace les matchs existants (et leurs scores) après confirmation.
 - **Terrains** : un bouton par terrain, vert si libre, saumon si occupé. Cliquer sur un terrain filtre la liste des matchs sur ce terrain.
 - **Top 5 attente par compétition** : les équipes qui attendent depuis le plus longtemps depuis la fin de leur dernier match, par compétition. Cliquer sur une équipe filtre la liste des matchs sur cette équipe.
-- **Liste des matchs**, en pleine largeur de page : toutes les colonnes demandées (N°, compétition, équipes, phase, heure estimée, rotation, terrain, scores sur 6 zones, heure de lancement réelle, durée). Un bouton "Lancer" apparaît sur les matchs lançables (deux équipes disponibles + un terrain libre) et assigne automatiquement le terrain libre le plus bas. Le terrain se libère automatiquement dès qu'un score complet (2 sets gagnants) est saisi.
-- **Heure estimée de démarrage** : calculée par une répartition proportionnelle au nombre d'équipes de chaque compétition (file d'attente équitable), pour que toutes les compétitions avancent en parallèle plutôt que l'une après l'autre. C'est une estimation, pas un planning figé.
+- **Matchs regroupés par rotation** (pleine largeur de page) : une rotation contient jusqu'à autant de matchs que de terrains disponibles. L'algorithme garantit qu'**aucune équipe ne joue deux fois dans une même rotation**, et sert en priorité les poules les moins avancées — à nombre de terrains suffisant, chaque poule obtient un match dès la première rotation, puis les rotations suivantes progressent équitablement poule par poule plutôt que de vider une compétition avant de passer à la suivante.
+- **Un match n'est "lançable" que si les deux équipes sont libres ET présentes** (présence cochée en émargement — les deux joueurs pour une équipe de double). Le bouton "Lancer" est grisé sinon, avec une info-bulle indiquant la raison.
 
-**Simplification assumée** : le lancement se fait via le bouton "Lancer" sur la ligne du match (qui prend automatiquement le terrain libre le plus bas), plutôt que par un clic direct sur le bouton du terrain suivi du choix du match — plus simple à utiliser et à fiabiliser.
+**Simplifications assumées** : le lancement se fait via le bouton "Lancer" sur la ligne du match (qui prend automatiquement le terrain libre le plus bas), plutôt que par un clic direct sur le bouton du terrain suivi du choix du match. L'algorithme de rotation est un ordonnancement glouton équitable, pas une optimisation mathématique exacte — il respecte les deux contraintes demandées (pas de doublon d'équipe, équité entre poules) sans garantir un plan globalement optimal au sens strict.
 
 ## Blocage automatique des inscriptions complètes
 

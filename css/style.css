@@ -384,6 +384,8 @@ table.schedule .role-label-input{
 
 .tete-poule-checkbox{ width:18px; height:18px; cursor:pointer; }
 
+.matchs-panel{ margin-top: 14px; }
+
 .swap-row td{ background:#fff6e0; padding:14px; }
 .swap-panel{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; font-size:0.88rem; color: var(--ink); }
 .swap-panel select{

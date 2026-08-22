@@ -1,6 +1,6 @@
 // ============================================================
-// TBK — Poules & classement en direct (toutes compétitions du tournoi)
-// La génération des matchs se fait désormais depuis planning.html.
+// TBK — Poules & classement (consultation uniquement)
+// La saisie des scores/terrains se fait depuis planning.html.
 // ============================================================
 
 let competitionsCache = [];
@@ -203,7 +203,7 @@ function renderCompetitions() {
       </section>`;
   }).join('');
 
-  bindScoreInputs();
+  bindToggleButtons();
 }
 
 function renderPouleSection(comp, poule) {
@@ -220,24 +220,27 @@ function renderPouleSection(comp, poule) {
       <td>${row.diffPts >= 0 ? '+' : ''}${row.diffPts}</td>
     </tr>`).join('');
 
+  const setText = (m, n) => {
+    const a = m[`set${n}_e1`], b = m[`set${n}_e2`];
+    return (a === null || a === undefined || b === null || b === undefined) ? '—' : `${a} - ${b}`;
+  };
+
   const matchsRows = matchs.map(m => {
     const e1 = equipesCache.find(e => e.id === m.equipe1_id);
     const e2 = equipesCache.find(e => e.id === m.equipe2_id);
     return `
-      <tr data-match-id="${m.id}">
+      <tr>
         <td>${m.numero}</td>
         <td>${escapeHtml(equipeLabel(e1))}</td>
         <td>${escapeHtml(equipeLabel(e2))}</td>
-        ${[1, 2, 3].map(n => `
-          <td class="score-cell">
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}">
-            -
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
-          </td>`).join('')}
+        <td>${setText(m, 1)}</td>
+        <td>${setText(m, 2)}</td>
+        <td>${setText(m, 3)}</td>
         <td>${m.terrain ?? '—'}</td>
-        <td>${m.rotation ?? '—'}</td>
       </tr>`;
   }).join('');
+
+  const blockId = `poule-matchs-${comp.id}-${poule}`;
 
   return `
     <div class="poule-block">
@@ -248,36 +251,28 @@ function renderPouleSection(comp, poule) {
           <tbody>${classementRows || '<tr><td colspan="6">Aucune équipe dans cette poule.</td></tr>'}</tbody>
         </table>
       </div>
-      <h4 class="admin-subheading">Matchs</h4>
-      <div class="table-wrap">
+      <div class="form-actions" style="margin-top:14px;">
+        <button type="button" class="btn btn-ghost btn-small toggle-matchs-btn" data-target="${blockId}">Afficher les matchs</button>
+      </div>
+      <div class="table-wrap matchs-panel" id="${blockId}" hidden style="margin-top:14px;">
         <table class="schedule table-center">
-          <thead><tr><th>N°</th><th>Équipe 1</th><th>Équipe 2</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Terrain</th><th>Rotation</th></tr></thead>
-          <tbody>${matchsRows || '<tr><td colspan="8">Aucun match généré (rendez-vous sur la page Planning).</td></tr>'}</tbody>
+          <thead><tr><th>N°</th><th>Équipe 1</th><th>Équipe 2</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Terrain</th></tr></thead>
+          <tbody>${matchsRows || '<tr><td colspan="7">Aucun match généré (rendez-vous sur la page Planning).</td></tr>'}</tbody>
         </table>
       </div>
     </div>`;
 }
 
-function bindScoreInputs() {
-  document.querySelectorAll('.score-input').forEach(input => {
-    input.addEventListener('change', async (e) => {
-      const row = e.target.closest('tr');
-      const matchId = row.getAttribute('data-match-id');
-      const setN = e.target.getAttribute('data-set');
-      const side = e.target.getAttribute('data-side');
-      const field = `set${setN}_${side}`;
-      const value = e.target.value === '' ? null : Number(e.target.value);
-      await saveMatchField(matchId, field, value);
+function bindToggleButtons() {
+  document.querySelectorAll('.toggle-matchs-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const panel = document.getElementById(targetId);
+      const hidden = !panel.hidden;
+      panel.hidden = hidden;
+      btn.textContent = hidden ? 'Afficher les matchs' : 'Masquer les matchs';
     });
   });
-}
-
-async function saveMatchField(matchId, field, value) {
-  const { error } = await sbClient.from('matchs').update({ [field]: value }).eq('id', matchId);
-  if (error) { alert('Erreur : ' + error.message); return; }
-  const match = matchsCache.find(m => m.id === matchId);
-  if (match) match[field] = value;
-  renderCompetitions();
 }
 
 function escapeHtml(str) {
