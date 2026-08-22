@@ -534,12 +534,16 @@ function renderTop5() {
 // 1ère rotation).
 // ============================================================
 
-function computeRotations() {
-  const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
-  const matchsPoule = matchsCache.filter(m => m.phase === 'poule');
-
+/**
+ * Répartit une liste de matchs en rotations équitables (au plus
+ * nbTerrains matchs par rotation, aucune équipe ne joue deux fois
+ * dans la même rotation, groupes les moins servis prioritaires).
+ * groupKeyFn détermine le "groupe" à équilibrer (une poule pour la
+ * phase de poules, une compétition+phase pour la phase finale).
+ */
+function computeGroupesEquitables(matches, groupKeyFn, nbTerrains) {
   // Matchs déjà lancés : ordre chronologique réel, inchangé
-  const avecHeure = matchsPoule
+  const avecHeure = matches
     .filter(m => m.heure_lancement)
     .sort((a, b) => new Date(a.heure_lancement) - new Date(b.heure_lancement));
   const groupesLances = [];
@@ -547,19 +551,19 @@ function computeRotations() {
     groupesLances.push(avecHeure.slice(i, i + nbTerrains));
   }
 
-  // Matchs pas encore lancés : ordonnancement équitable par poule
-  const sansHeure = matchsPoule.filter(m => !m.heure_lancement);
-  const parPoule = {};
+  // Matchs pas encore lancés : ordonnancement équitable par groupe
+  const sansHeure = matches.filter(m => !m.heure_lancement);
+  const parGroupe = {};
   sansHeure.forEach(m => {
-    const key = `${m.tournoi_competition_id}|${m.poule}`;
-    if (!parPoule[key]) parPoule[key] = [];
-    parPoule[key].push(m);
+    const key = groupKeyFn(m);
+    if (!parGroupe[key]) parGroupe[key] = [];
+    parGroupe[key].push(m);
   });
-  Object.values(parPoule).forEach(list => list.sort((a, b) => a.numero - b.numero));
+  Object.values(parGroupe).forEach(list => list.sort((a, b) => a.numero - b.numero));
 
-  const pouleKeys = Object.keys(parPoule);
+  const groupeKeys = Object.keys(parGroupe);
   const compteScheduled = {};
-  pouleKeys.forEach(k => { compteScheduled[k] = 0; });
+  groupeKeys.forEach(k => { compteScheduled[k] = 0; });
 
   const groupesAPlanifier = [];
   let restant = sansHeure.length;
@@ -571,11 +575,11 @@ function computeRotations() {
 
     while (rotation.length < nbTerrains && progresse) {
       progresse = false;
-      // Priorité aux poules les moins servies jusqu'ici (équité)
-      const ordre = pouleKeys.slice().sort((a, b) => compteScheduled[a] - compteScheduled[b]);
+      // Priorité aux groupes les moins servis jusqu'ici (équité)
+      const ordre = groupeKeys.slice().sort((a, b) => compteScheduled[a] - compteScheduled[b]);
       for (const key of ordre) {
         if (rotation.length >= nbTerrains) break;
-        const liste = parPoule[key];
+        const liste = parGroupe[key];
         const idx = liste.findIndex(m => !teamsUsed.has(m.equipe1_id) && !teamsUsed.has(m.equipe2_id));
         if (idx === -1) continue;
         const match = liste.splice(idx, 1)[0];
@@ -593,6 +597,21 @@ function computeRotations() {
   }
 
   return [...groupesLances, ...groupesAPlanifier];
+}
+
+function computeRotations() {
+  const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
+  const matchsPoule = matchsCache.filter(m => m.phase === 'poule');
+  return computeGroupesEquitables(matchsPoule, m => `${m.tournoi_competition_id}|${m.poule}`, nbTerrains);
+}
+
+function computeRotationsFinale() {
+  const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
+  // Seuls les matchs dont les 2 équipes sont déjà connues peuvent être planifiés
+  const matchsFinale = matchsCache.filter(m =>
+    (m.phase === 'principale' || m.phase === 'consolante') && m.equipe1_id && m.equipe2_id
+  );
+  return computeGroupesEquitables(matchsFinale, m => `${m.tournoi_competition_id}|${m.phase}`, nbTerrains);
 }
 
 // ============================================================
@@ -747,45 +766,54 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
 
 function renderPhaseFinale() {
   const container = document.getElementById('phaseFinaleContainer');
-  const bracketMatches = matchsCache.filter(m => m.phase === 'principale' || m.phase === 'consolante');
+  const rotations = computeRotationsFinale();
 
-  if (bracketMatches.length === 0) {
+  if (rotations.length === 0) {
     container.innerHTML = '';
     return;
   }
 
-  const noms = { principale: 'Phase Principale', consolante: 'Phase Consolante' };
+  const noms = { principale: 'Principale', consolante: 'Consolante' };
+  let anyShown = false;
 
-  // Regroupement par tour, puis par compétition (dans l'ordre de competitionsCache),
-  // puis Principale avant Consolante : progression identique sur toutes les
-  // compétitions avant de passer au tour suivant.
-  const tours = [...new Set(bracketMatches.map(m => m.tour))].sort((a, b) => a - b);
+  const blocs = rotations.map((matchsRotation, idx) => {
+    let visibles = matchsRotation;
 
-  const html = tours.map(tour => {
-    const blocsCompetitions = competitionsCache.map(comp => {
-      const blocsPhases = ['principale', 'consolante'].map(phase => {
-        const matchsBloc = bracketMatches
-          .filter(m => m.tour === tour && m.phase === phase && m.tournoi_competition_id === comp.id)
-          .sort((a, b) => a.numero - b.numero);
-        if (matchsBloc.length === 0) return '';
-        return renderBracketBlock(`${comp.nom} — ${noms[phase]}`, tour, matchsBloc);
-      }).join('');
-      return blocsPhases;
-    }).join('');
+    if (filterMode === 'en_cours') {
+      visibles = visibles.filter(m => m.heure_lancement && !m.heure_fin);
+    } else if (filterMode === 'possibles') {
+      visibles = visibles.filter(m =>
+        !m.heure_lancement &&
+        !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
+        equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id)
+      );
+    }
+    if (filtreTerrain !== null) visibles = visibles.filter(m => m.terrain === filtreTerrain);
+    if (filtreEquipeId !== null) visibles = visibles.filter(m => m.equipe1_id === filtreEquipeId || m.equipe2_id === filtreEquipeId);
+    if (filtreEquipe) {
+      visibles = visibles.filter(m =>
+        equipeSearchHaystack(m.equipe1_id).includes(filtreEquipe) ||
+        equipeSearchHaystack(m.equipe2_id).includes(filtreEquipe)
+      );
+    }
 
-    if (!blocsCompetitions) return '';
-    return `<section class="admin-section"><h2>Tour ${tour}</h2>${blocsCompetitions}</section>`;
+    if (visibles.length === 0) return '';
+    anyShown = true;
+    return renderBracketRotationBlock(idx + 1, visibles, noms);
   }).join('');
 
-  container.innerHTML = html;
+  container.innerHTML = anyShown
+    ? `<section class="admin-section"><h2>Phase finale par rotation</h2><p class="section-lead">Enchaînement équitable des matchs de phase finale, toutes compétitions et phases (Principale / Consolante) confondues.</p>${blocs}</section>`
+    : '';
 }
 
-function renderBracketBlock(titrePhase, tour, matchs) {
+function renderBracketRotationBlock(numeroRotation, matchs, noms) {
   const now = Date.now();
   const terrainsLibres = getTerrainsLibres();
 
   const rows = matchs.map(m => {
-    const lancable = !m.heure_lancement && m.equipe1_id && m.equipe2_id &&
+    const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
+    const lancable = !m.heure_lancement &&
       !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
       equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id) &&
       terrainsLibres.length > 0;
@@ -803,42 +831,51 @@ function renderBracketBlock(titrePhase, tour, matchs) {
       ? new Date(m.heure_lancement).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       : '—';
 
+    let motifIndisponible = '';
+    if (!m.heure_lancement && !lancable) {
+      if (equipeEnCours(m.equipe1_id) || equipeEnCours(m.equipe2_id)) motifIndisponible = 'Une équipe joue déjà';
+      else if (!equipePresente(m.equipe1_id) || !equipePresente(m.equipe2_id)) motifIndisponible = 'Équipe non présente';
+      else if (terrainsLibres.length === 0) motifIndisponible = 'Aucun terrain libre';
+    }
+
     let statut, rowClass = '';
     if (m.heure_lancement && m.heure_fin) { statut = 'Terminé'; rowClass = 'row-termine'; }
     else if (m.heure_lancement && !m.heure_fin) { statut = 'En cours'; }
-    else if (!m.equipe1_id || !m.equipe2_id) { statut = 'En attente'; rowClass = 'row-indisponible'; }
     else if (!lancable) { statut = 'Non lancé'; rowClass = 'row-indisponible'; }
     else { statut = 'Non lancé'; }
 
+    const competitionLabel = `${comp ? comp.nom : '?'} — ${noms[m.phase] || m.phase} — Tour ${m.tour}`;
+
     return `
-      <tr data-match-id="${m.id}" class="${rowClass}">
+      <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
         <td>${m.numero}</td>
+        <td>${escapeHtml(competitionLabel)}</td>
         <td class="${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</td>
         <td class="${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</td>
         <td>${m.terrain ?? '—'}</td>
         <td>${statut}</td>
         ${[1, 2, 3].map(n => `
           <td class="score-cell">
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}" ${(!m.equipe1_id || !m.equipe2_id) ? 'disabled' : ''}>
+            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}">
             -
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}" ${(!m.equipe1_id || !m.equipe2_id) ? 'disabled' : ''}>
+            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
           </td>`).join('')}
         <td>${heureLancement}</td>
         <td>${duree}</td>
-        <td>${(!m.heure_lancement && m.equipe1_id && m.equipe2_id)
-          ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'}>Lancer</button>`
+        <td>${!m.heure_lancement
+          ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
           : ''}</td>
       </tr>`;
   }).join('');
 
   return `
     <div class="poule-block">
-      <h3 class="poule-block-title">${escapeHtml(titrePhase)} — Tour ${tour}</h3>
+      <h3 class="poule-block-title">Rotation ${numeroRotation}</h3>
       <div class="table-wrap">
         <table class="schedule table-center">
           <thead>
             <tr>
-              <th>N°</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
+              <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
               <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
             </tr>
           </thead>
