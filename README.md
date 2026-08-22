@@ -255,6 +255,16 @@ Le bandeau du haut accumulait trop de liens au fil des ajouts (chaque page outil
 - Sur mobile, le menu s'affiche directement déplié dans la navigation (pas de double clic nécessaire).
 - Le lien "Connexion" en double dans certaines pages a été retiré (déjà géré par l'indicateur d'état de connexion), et deux liens morts vers d'anciennes sections supprimées (Créneaux, Contact) ont été corrigés sur `membres.html`.
 
+## Validation des inscriptions saison par le bureau + demande publique
+
+Exécutez `supabase/migration_inscriptions_validation.sql` pour activer cette évolution.
+
+- **Statut de chaque inscription** : "En attente" ou "Validée", affiché en badge sur `inscriptions.html`.
+- **Saisie directe par un membre connecté** : automatiquement marquée "Validée" (il vous engage directement), avec votre nom et la date enregistrés.
+- **Bouton "Valider"** : réservé au profil dont la clé est exactement `bureau` (à créer depuis `admin.html` → Profils si besoin), ou à un profil ayant accès à l'administration. Valider enregistre qui (nom) et quand (date/heure) — consultable au survol du badge "Validée".
+- **Formulaire public** (`inscription-publique.html`) : accessible à n'importe qui, sans connexion. Une personne extérieure y remplit son nom, prénom, catégorie, Bad/Ping, UFOLEP/FSGT et tous les champs personnalisés configurés (hors "Membre Bureau", réservé à un usage interne). La cotisation affichée est une estimation indicative ; le bureau la confirme à la validation. Toute demande soumise ainsi arrive avec le statut "En attente".
+- **QR code** sur `index.html` (section "Envie de nous rejoindre ?") pointant vers `inscription-publique.html` — généré via le service gratuit [api.qrserver.com](https://api.qrserver.com), calculé automatiquement à partir de l'URL réelle du site (fonctionne quel que soit le nom de domaine/dépôt).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

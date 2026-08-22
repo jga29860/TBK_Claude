@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demande d'inscription — TBK</title>
+<meta name="description" content="Demande d'inscription à la saison 2026/2027 du club TBK (badminton et tennis de table).">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="28" height="28">
+          <circle cx="20" cy="9" r="7" fill="currentColor"/>
+          <path d="M20 16 L11 33 L29 33 Z" fill="currentColor" opacity="0.85"/>
+        </svg>
+      </span>
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap page-section">
+  <p class="section-eyebrow">Saison 2026 / 2027</p>
+  <h1>Demande d'inscription au club</h1>
+  <p class="section-lead">Remplissez ce formulaire pour demander votre inscription à TBK. Un membre du bureau examinera votre demande et reviendra vers vous pour finaliser votre adhésion (cotisation, certificat médical…).</p>
+
+  <div id="successPanel" class="status-panel" hidden>
+    <h2>Demande envoyée</h2>
+    <p>Merci ! Votre demande d'inscription a bien été transmise au bureau du club, qui va l'examiner sous peu.</p>
+  </div>
+
+  <form id="inscriptionPubliqueForm">
+    <div class="field-grid">
+      <label>Nom
+        <input type="text" name="nom" required>
+      </label>
+      <label>Prénom
+        <input type="text" name="prenom" required>
+      </label>
+      <label>Catégorie
+        <select name="categorie" id="categorieInput" required>
+          <option value="Adulte">Adulte</option>
+          <option value="Jeune">Jeune</option>
+        </select>
+      </label>
+      <label>Bad / Ping
+        <select name="bad_ping" id="badPingInput" required>
+          <option value="Bad">Bad</option>
+          <option value="Ping">Ping</option>
+          <option value="Bad et Ping">Bad et Ping</option>
+        </select>
+      </label>
+      <label>UFOLEP / FSGT
+        <select name="ufolep_fsgt" id="ufolepInput">
+          <option value="false">Non</option>
+          <option value="true">Oui</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="field-grid" id="dynamicFieldsContainer">
+      <!-- Champs personnalisés générés dynamiquement -->
+    </div>
+
+    <div class="field-grid">
+      <label>Cotisation estimée (€)
+        <input type="text" id="cotisationApercu" value="—" disabled>
+      </label>
+    </div>
+    <p class="section-lead" style="font-size:0.85rem;">Ce montant est une estimation indicative selon le barème du club ; il sera confirmé par le bureau lors de la validation de votre demande.</p>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" id="submitBtn">Envoyer ma demande d'inscription</button>
+    </div>
+    <p class="form-hint" id="formHint"></p>
+  </form>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/inscription-publique.js"></script>
+</body>
+</html>

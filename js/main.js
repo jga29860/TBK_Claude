@@ -95,3 +95,13 @@ if (contactForm) {
     }
   });
 }
+
+// ===== QR code vers la page de demande d'inscription =====
+// Utilise le service gratuit api.qrserver.com. Calcule l'URL cible dynamiquement
+// (fonctionne quel que soit le nom du dépôt / domaine sur lequel le site est servi).
+const qrImg = document.getElementById('qrCodeInscription');
+if (qrImg) {
+  const basePath = window.location.pathname.replace(/index\.html$/, '');
+  const targetUrl = window.location.origin + basePath + 'inscription-publique.html';
+  qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(targetUrl)}`;
+}

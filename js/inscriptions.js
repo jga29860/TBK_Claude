@@ -21,6 +21,8 @@ let inscriptionsCache = []; // inscriptions de la saison
 let colonnesCache = [];    // clés des colonnes sélectionnées pour le tableau
 let editingId = null;      // id en cours d'édition, ou null pour une nouvelle inscription
 let isAdminUser = false;
+let isBureau = false;
+let currentAccess = null;
 
 async function initInscriptionsPage() {
   const access = await getCurrentAccess();
@@ -35,7 +37,9 @@ async function initInscriptionsPage() {
 
   deniedPanel.hidden = true;
   mainPanel.hidden = false;
+  currentAccess = access;
   isAdminUser = access.pages.includes('administration');
+  isBureau = access.role === 'bureau' || isAdminUser;
   document.getElementById('configSection').hidden = !isAdminUser;
 
   await loadBareme();
@@ -310,6 +314,13 @@ function bindMainForm() {
     } else {
       const { data: { session } } = await sbClient.auth.getSession();
       payload.created_by = session.user.id;
+      // Une inscription saisie directement par un membre connecté est
+      // considérée validée par lui (contrairement à une demande soumise
+      // par le formulaire public, qui reste "en attente").
+      payload.statut = 'validee';
+      payload.valide_par = session.user.id;
+      payload.valide_par_nom = currentAccess ? (currentAccess.display_name || currentAccess.email) : null;
+      payload.valide_le = new Date().toISOString();
       ({ error } = await sbClient.from('inscriptions').insert(payload));
     }
 
@@ -343,7 +354,7 @@ async function loadInscriptions() {
   const columns = getAvailableColumns().filter(c => colonnesCache.includes(c.key));
   renderInscriptionsTableHead(columns);
 
-  tbody.innerHTML = `<tr><td colspan="${columns.length + 2}">Chargement…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Chargement…</td></tr>`;
 
   const { data, error } = await sbClient
     .from('inscriptions')
@@ -352,7 +363,7 @@ async function loadInscriptions() {
     .order('nom');
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="${columns.length + 2}">Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Erreur : ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
 
@@ -360,7 +371,7 @@ async function loadInscriptions() {
   document.getElementById('inscriptionsCount').textContent = `(${inscriptionsCache.length})`;
 
   if (inscriptionsCache.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${columns.length + 2}">Aucune inscription pour le moment.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Aucune inscription pour le moment.</td></tr>`;
     return;
   }
 
@@ -368,12 +379,30 @@ async function loadInscriptions() {
     <tr data-id="${i.id}">
       <td>${escapeHtml(i.nom)}</td>
       ${columns.map(col => `<td>${formatColumnValue(i, col.key)}</td>`).join('')}
+      <td>${renderStatutCell(i)}</td>
       <td>
+        ${isBureau && i.statut === 'en_attente' ? '<button type="button" class="btn btn-primary btn-small valider-inscription-btn">Valider</button>' : ''}
         <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
         <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
       </td>
     </tr>
   `).join('');
+
+  tbody.querySelectorAll('.valider-inscription-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-id');
+      if (!confirm('Valider cette demande d\'inscription ?')) return;
+      const { data: { session } } = await sbClient.auth.getSession();
+      const { error } = await sbClient.from('inscriptions').update({
+        statut: 'validee',
+        valide_par: session.user.id,
+        valide_par_nom: currentAccess ? (currentAccess.display_name || currentAccess.email) : null,
+        valide_le: new Date().toISOString(),
+      }).eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadInscriptions();
+    });
+  });
 
   tbody.querySelectorAll('.edit-inscription-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -393,7 +422,16 @@ async function loadInscriptions() {
 
 function renderInscriptionsTableHead(columns) {
   const theadRow = document.querySelector('#inscriptionsTable thead tr');
-  theadRow.innerHTML = `<th>Nom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th></th>`;
+  theadRow.innerHTML = `<th>Nom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
+}
+
+function renderStatutCell(record) {
+  if (record.statut === 'validee') {
+    const qui = record.valide_par_nom ? escapeHtml(record.valide_par_nom) : 'un membre du bureau';
+    const quand = record.valide_le ? new Date(record.valide_le).toLocaleDateString('fr-FR') : '';
+    return `<span class="statut-badge statut-en-cours" title="Validée par ${qui}${quand ? ' le ' + quand : ''}">Validée</span>`;
+  }
+  return `<span class="statut-badge statut-cloture" style="background:#ffe9d9; color:#8a4a12;">En attente</span>`;
 }
 
 function formatColumnValue(record, key) {
