@@ -223,6 +223,19 @@ function nextPowerOfTwo(n) {
   return p;
 }
 
+/** Nom usuel d'un tour d'élimination directe, selon le nombre d'équipes encore en lice à ce tour. */
+function nomDuTour(nbEquipes) {
+  const noms = {
+    2: 'Finale',
+    4: '1/2 finale',
+    8: '1/4 de finale',
+    16: '1/8 de finale',
+    32: '1/16 de finale',
+    64: '1/32 de finale',
+  };
+  return noms[nbEquipes] || `Tour (${nbEquipes} équipes)`;
+}
+
 /**
  * Génère automatiquement la phase finale (Principale + Consolante)
  * d'une compétition dès que ses matchs de poule sont tous terminés,
@@ -844,7 +857,10 @@ function renderBracketRotationBlock(numeroRotation, matchs, noms) {
     else if (!lancable) { statut = 'Non lancé'; rowClass = 'row-indisponible'; }
     else { statut = 'Non lancé'; }
 
-    const competitionLabel = `${comp ? comp.nom : '?'} — ${noms[m.phase] || m.phase} — Tour ${m.tour}`;
+    const nbMatchsMemeTour = matchsCache.filter(x =>
+      x.tournoi_competition_id === m.tournoi_competition_id && x.phase === m.phase && x.tour === m.tour
+    ).length;
+    const competitionLabel = `${comp ? comp.nom : '?'} — ${noms[m.phase] || m.phase} — ${nomDuTour(nbMatchsMemeTour * 2)}`;
 
     return `
       <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
