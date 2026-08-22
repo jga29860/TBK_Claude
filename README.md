@@ -220,6 +220,15 @@ Le site ne gère qu'un tournoi "en cours" simultanément — garanti au niveau d
 - **Réactivation** : bouton "Réactiver" sur un tournoi clôturé, visible uniquement si aucun autre tournoi n'est actuellement en cours.
 - **Pages simplifiées** : `tournoi-inscriptions.html`, `emargement.html`, `poules.html` et `planning.html` n'ont plus de sélecteur de tournoi — elles chargent automatiquement le tournoi en cours. Un message clair s'affiche si aucun tournoi n'est actif.
 
+## Synthèse Phase finale (page `phase-finale.html`)
+
+Vue de consultation, complémentaire à `planning.html` : présente la phase finale sous forme de tableau à élimination directe classique, en colonnes par tour (1/8 de finale, 1/4, 1/2 finale, Finale…), par compétition puis par phase (Principale / Consolante).
+
+- **Lecture seule** : aucune saisie de score ni lancement de match — uniquement pour visualiser la progression.
+- **Mise à jour automatique** : rechargée toutes les 20 secondes, elle reflète les scores saisis et les vainqueurs propagés depuis `planning.html`, sans avoir besoin de rafraîchir la page.
+- **Équipe gagnante en surbrillance verte**, score résumé (ex. "21-15, 21-12") et statut (À venir / En cours / Terminé / En attente d'une équipe) sur chaque carte de match.
+- Un tour affiche "À déterminer" pour les équipes pas encore connues (matchs futurs dépendant d'un résultat pas encore joué).
+
 ## Phases finales (Principale / Consolante)
 
 **Génération automatique** : dès que tous les matchs de poule d'une compétition sont terminés, sa phase finale (Principale + Consolante) est générée automatiquement — au moment où le dernier score est saisi, ou à l'ouverture de la page si les poules étaient déjà terminées. Il n'y a plus de bouton de génération manuelle ; une génération n'a lieu qu'une seule fois par compétition (elle n'écrase pas une phase finale déjà générée).

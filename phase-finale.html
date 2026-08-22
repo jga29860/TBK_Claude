@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phase finale — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="28" height="28">
+          <circle cx="20" cy="9" r="7" fill="currentColor"/>
+          <path d="M20 16 L11 33 L29 33 Z" fill="currentColor" opacity="0.85"/>
+        </svg>
+      </span>
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+      <a href="tournois.html">Tournois</a>
+      <a href="phase-finale.html">Phase finale</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'organisation des tournois — consultation uniquement</p>
+  <h1 id="pageTitle">Phase finale</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée aux profils "Tournois - Administration" ou "Tournois - Gestion".</p>
+  </div>
+
+  <div id="pasDeTournoiMessage" class="status-panel" hidden>
+    <h2>Aucun tournoi en cours</h2>
+    <p>Créez ou réactivez un tournoi depuis <a href="tournois.html">la page Tournois</a>.</p>
+  </div>
+
+  <div id="pasDePhaseFinaleMessage" class="status-panel" hidden>
+    <h2>Aucune phase finale pour le moment</h2>
+    <p>La phase finale d'une compétition se génère automatiquement une fois tous ses matchs de poule terminés (depuis <a href="planning.html">la page Planning</a>).</p>
+  </div>
+
+  <div id="competitionsContainer"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/phase-finale.js"></script>
+</body>
+</html>

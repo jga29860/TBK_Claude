@@ -446,6 +446,23 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 
 .equipe-gagnante{ background:#d9f2d9 !important; font-weight:700; }
 
+/* ===== Synthèse phase finale (tableau en colonnes) ===== */
+.bracket-rounds{ display:flex; gap:20px; overflow-x:auto; padding-bottom:6px; margin-top:14px; }
+.bracket-round{ display:flex; flex-direction:column; gap:14px; min-width:220px; flex-shrink:0; }
+.bracket-round h4{
+  text-align:center; font-size:0.85rem; color:var(--dark); margin:0 0 4px;
+  text-transform:uppercase; letter-spacing:0.03em;
+}
+.bracket-match{
+  border:1px solid #d6e5d1; border-radius:8px; padding:10px 12px; background:var(--white);
+  display:flex; flex-direction:column; gap:4px;
+}
+.bracket-equipe{ padding:4px 6px; border-radius:4px; font-size:0.88rem; }
+.bracket-meta{
+  display:flex; justify-content:space-between; font-family: var(--font-mono);
+  font-size:0.75rem; color:var(--ink-soft); margin-top:4px; border-top:1px dashed #d6e5d1; padding-top:4px;
+}
+
 .btn:disabled{ opacity:0.4; cursor:not-allowed; filter:grayscale(70%); background:#ccc !important; border-color:#ccc !important; color:#777 !important; }
 .btn:disabled:hover{ transform:none; box-shadow:none; }
 
