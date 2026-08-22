@@ -264,9 +264,41 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   padding: 7px 16px; border-radius: 6px; font-weight:700 !important; text-decoration:none;
 }
 .nav-admin-btn:hover{ background: var(--pale) !important; }
+
+/* ===== Menu déroulant "Organisation" ===== */
+.nav-dropdown{ position:relative; display:inline-block; }
+.nav-dropdown-trigger{ border:none; cursor:pointer; font-family: var(--font-body); font-size:0.9rem; }
+.nav-dropdown-menu{
+  display:none; position:absolute; top:calc(100% + 8px); right:0;
+  background: var(--white); border:1px solid #d6e5d1; border-radius:8px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18); min-width:230px; padding:8px; z-index:200;
+}
+.nav-dropdown.open .nav-dropdown-menu{ display:block; }
+.nav-dropdown-menu a{
+  display:block; padding:9px 12px; border-radius:6px; color: var(--dark);
+  text-decoration:none; font-size:0.88rem; font-weight:600;
+}
+.nav-dropdown-menu a:hover{ background: var(--pale); }
+.nav-dropdown-group-label{
+  font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;
+  color: var(--ink-soft); font-weight:700; padding:10px 12px 2px;
+}
+.nav-dropdown-group-label:first-child{ padding-top:4px; }
+
 @media (max-width: 760px){
   .auth-state{ display:none; }
   .main-nav .nav-admin-btn{ display:inline-block; margin: 10px 24px 0; background: var(--green) !important; color: var(--white) !important; }
+  .nav-dropdown{ display:block; width:100%; }
+  .nav-dropdown-trigger{ display:none !important; }
+  .nav-dropdown-menu{
+    display:block; position:static; box-shadow:none; border:none; border-radius:0;
+    padding:0; margin:0; background:none;
+  }
+  .nav-dropdown-menu a{
+    padding:14px 24px; border-bottom:1px solid var(--border); color: var(--dark);
+    border-radius:0; font-weight:500;
+  }
+  .nav-dropdown-group-label{ padding:14px 24px 4px; background: var(--pale); }
 }
 
 .page-section{ padding: 70px 24px 100px; max-width: min(94vw, 900px); }

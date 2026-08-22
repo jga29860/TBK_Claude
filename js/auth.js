@@ -88,44 +88,67 @@ async function renderAuthState() {
 }
 
 /**
- * Ajoute des boutons dans la navigation (desktop + mobile) pour les pages
- * auxquelles le profil connecté a accès (ex. "Inscriptions", "Administration"),
- * sauf si un lien vers cette page existe déjà dans le menu (cas de la page
- * elle-même, dont le lien statique est présent dans le HTML).
+ * Menu déroulant unique regroupant l'accès à toutes les pages "outils"
+ * auxquelles le profil connecté a droit, plutôt que d'empiler des liens
+ * un par un dans le bandeau (illisible dès qu'on a plusieurs profils).
  */
-const EXTRA_NAV_PAGES = [
-  { pageKey: 'inscriptions', href: 'inscriptions.html', label: 'Inscriptions' },
-  { pageKey: 'tournois_admin', href: 'tournois.html', label: 'Tournois' },
-  { pageKey: 'tournois_gestion', href: 'tournois.html', label: 'Tournois' },
-  { pageKey: 'tournois_admin', href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi' },
-  { pageKey: 'tournois_gestion', href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi' },
-  { pageKey: 'tournois_admin', href: 'emargement.html', label: 'Émargement' },
-  { pageKey: 'tournois_gestion', href: 'emargement.html', label: 'Émargement' },
-  { pageKey: 'tournois_emargement', href: 'emargement.html', label: 'Émargement' },
-  { pageKey: 'tournois_admin', href: 'poules.html', label: 'Poules' },
-  { pageKey: 'tournois_gestion', href: 'poules.html', label: 'Poules' },
-  { pageKey: 'tournois_admin', href: 'phase-finale.html', label: 'Phase finale' },
-  { pageKey: 'tournois_gestion', href: 'phase-finale.html', label: 'Phase finale' },
-  { pageKey: 'tournois_admin', href: 'planning.html', label: 'Planning' },
-  { pageKey: 'tournois_gestion', href: 'planning.html', label: 'Planning' },
-  { pageKey: 'administration', href: 'admin.html', label: 'Administration' },
+const TOOL_LINKS = [
+  { pageKeys: ['inscriptions'], href: 'inscriptions.html', label: 'Inscriptions saison', group: 'Club' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournois.html', label: 'Tournois', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_emargement'], href: 'emargement.html', label: 'Émargement', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'poules.html', label: 'Poules', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'phase-finale.html', label: 'Phase finale', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'planning.html', label: 'Planning', group: 'Tournoi' },
+  { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },
 ];
+const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];
 
 function ensurePageNavLinks(access) {
-  if (!access || !access.pages) return;
+  const menuHtml = buildToolsMenuHtml(access);
+
   document.querySelectorAll('.main-nav').forEach(nav => {
-    EXTRA_NAV_PAGES.forEach(({ pageKey, href, label }) => {
-      if (!access.pages.includes(pageKey)) return;
-      const already = Array.from(nav.querySelectorAll('a')).some(a => a.getAttribute('href') === href);
-      if (already) return;
-      const a = document.createElement('a');
-      a.href = href;
-      a.textContent = label;
-      a.className = 'nav-admin-btn';
-      nav.appendChild(a);
-    });
+    let dropdown = nav.querySelector('.nav-dropdown');
+
+    if (!menuHtml) {
+      if (dropdown) dropdown.remove();
+      return;
+    }
+
+    if (!dropdown) {
+      dropdown = document.createElement('div');
+      dropdown.className = 'nav-dropdown';
+      dropdown.innerHTML = `
+        <button type="button" class="nav-dropdown-trigger nav-admin-btn">Organisation ▾</button>
+        <div class="nav-dropdown-menu"></div>`;
+      nav.appendChild(dropdown);
+      dropdown.querySelector('.nav-dropdown-trigger').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.nav-dropdown.open').forEach(d => { if (d !== dropdown) d.classList.remove('open'); });
+        dropdown.classList.toggle('open');
+      });
+    }
+    dropdown.querySelector('.nav-dropdown-menu').innerHTML = menuHtml;
   });
 }
+
+function buildToolsMenuHtml(access) {
+  if (!access || !access.pages) return null;
+
+  const applicable = TOOL_LINKS.filter(link => link.pageKeys.some(k => access.pages.includes(k)));
+  if (applicable.length === 0) return null;
+
+  return TOOL_GROUPS_ORDER.map(group => {
+    const items = applicable.filter(l => l.group === group);
+    if (items.length === 0) return '';
+    const links = items.map(l => `<a href="${l.href}">${l.label}</a>`).join('');
+    return `<div class="nav-dropdown-group-label">${group}</div>${links}`;
+  }).join('');
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+});
 
 /** Renvoie le tournoi actuellement "en_cours", ou null s'il n'y en a aucun. */
 async function getTournoiEnCours() {

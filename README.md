@@ -246,6 +246,15 @@ Vue de consultation, complémentaire à `planning.html` : présente la phase fin
 - **Clic unique** sur une case de score : le contenu existant est automatiquement sélectionné, prêt à être remplacé sans avoir à l'effacer.
 - **Tab** pour passer à la case suivante fonctionne normalement, y compris juste après une saisie : le focus est désormais préservé lors du rechargement automatique de la page qui suit chaque score enregistré (recalcul du classement, des vainqueurs, etc.) — auparavant, ce rechargement pouvait faire perdre la case en cours d'édition.
 
+## Bandeau de navigation simplifié
+
+Le bandeau du haut accumulait trop de liens au fil des ajouts (chaque page outil affichait ses propres liens statiques, plus les liens injectés dynamiquement pour chaque profil). Simplification :
+
+- Chaque page outil n'affiche plus qu'un seul lien statique ("Le club", retour à l'accueil).
+- Un menu déroulant unique **"Organisation ▾"** apparaît dans le bandeau dès qu'un profil connecté a accès à au moins une page outil, regroupant tout par catégorie : **Club** (Inscriptions saison), **Tournoi** (Tournois, Inscriptions tournoi, Émargement, Poules, Phase finale, Planning), **Administration**. Seules les pages auxquelles le profil a réellement accès apparaissent.
+- Sur mobile, le menu s'affiche directement déplié dans la navigation (pas de double clic nécessaire).
+- Le lien "Connexion" en double dans certaines pages a été retiré (déjà géré par l'indicateur d'état de connexion), et deux liens morts vers d'anciennes sections supprimées (Créneaux, Contact) ont été corrigés sur `membres.html`.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
