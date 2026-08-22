@@ -125,6 +125,16 @@ function ensurePageNavLinks(access) {
   });
 }
 
+/** Renvoie le tournoi actuellement "en_cours", ou null s'il n'y en a aucun. */
+async function getTournoiEnCours() {
+  const { data, error } = await sbClient.from('tournois').select('*').eq('statut', 'en_cours').maybeSingle();
+  if (error) {
+    console.error('Erreur de récupération du tournoi en cours :', error.message);
+    return null;
+  }
+  return data;
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;

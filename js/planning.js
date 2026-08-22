@@ -27,8 +27,6 @@ async function initPage() {
   deniedPanel.hidden = true;
   mainPanel.hidden = false;
 
-  await loadTournoisSelect();
-  document.getElementById('tournoiSelect').addEventListener('change', onTournoiChange);
   document.getElementById('filtreEquipeInput').addEventListener('input', (e) => {
     filtreEquipe = e.target.value.trim().toLowerCase();
     filtreEquipeId = null;
@@ -56,29 +54,16 @@ async function initPage() {
   });
 
   document.getElementById('generateBtn').addEventListener('click', generateMatchs);
-}
 
-async function loadTournoisSelect() {
-  const { data, error } = await sbClient.from('tournois').select('id, nom').order('created_at', { ascending: false });
-  const select = document.getElementById('tournoiSelect');
-  if (error) { select.innerHTML = '<option value="">Erreur</option>'; return; }
-  select.innerHTML = '<option value="">— Choisir un tournoi —</option>' +
-    (data || []).map(t => `<option value="${t.id}">${escapeHtml(t.nom)}</option>`).join('');
-}
-
-async function onTournoiChange() {
-  const tournoiId = document.getElementById('tournoiSelect').value;
-  const content = document.getElementById('planningContent');
-  if (pollTimer) clearInterval(pollTimer);
-
-  if (!tournoiId) {
-    content.hidden = true;
+  const tournoiActif = await getTournoiEnCours();
+  if (!tournoiActif) {
+    document.getElementById('pasDeTournoiMessage').hidden = false;
     return;
   }
 
-  content.hidden = false;
-  await loadAll(tournoiId);
-  pollTimer = setInterval(() => loadAll(tournoiId, true), 20000); // rafraîchissement automatique
+  document.getElementById('planningContent').hidden = false;
+  await loadAll(tournoiActif.id);
+  pollTimer = setInterval(() => loadAll(tournoiActif.id, true), 20000); // rafraîchissement automatique
 }
 
 async function loadAll(tournoiId, silent) {
@@ -235,6 +220,18 @@ function matchDecided(match) {
     if (r.e1 > r.e2) s1++; else if (r.e2 > r.e1) s2++;
   });
   return s1 >= 2 || s2 >= 2;
+}
+
+function matchWinnerId(match) {
+  let s1 = 0, s2 = 0;
+  [1, 2, 3].forEach(n => {
+    const r = setResult(match, n);
+    if (!r) return;
+    if (r.e1 > r.e2) s1++; else if (r.e2 > r.e1) s2++;
+  });
+  if (s1 >= 2) return match.equipe1_id;
+  if (s2 >= 2) return match.equipe2_id;
+  return null;
 }
 
 function equipeEnCours(equipeId) {
@@ -475,6 +472,8 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
       equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id) &&
       terrainsLibres.length > 0;
 
+    const winnerId = matchWinnerId(m);
+
     let duree = '—';
     if (m.heure_lancement && m.heure_fin) {
       duree = Math.round((new Date(m.heure_fin) - new Date(m.heure_lancement)) / 60000) + ' min';
@@ -511,8 +510,8 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
       <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
         <td>${m.numero}</td>
         <td>${escapeHtml(comp ? comp.nom : '?')}</td>
-        <td>${escapeHtml(equipeLabel(m.equipe1_id))}</td>
-        <td>${escapeHtml(equipeLabel(m.equipe2_id))}</td>
+        <td class="${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</td>
+        <td class="${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</td>
         <td>Poule ${m.poule ?? '—'}</td>
         <td>${m.terrain ?? '—'}</td>
         <td>${statut}</td>
@@ -561,6 +560,28 @@ function bindMatchRowEvents() {
   document.querySelectorAll('.lancer-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const matchId = e.target.closest('tr').getAttribute('data-match-id');
+      const match = matchsCache.find(m => m.id === matchId);
+      const tempsMin = tournoi ? tournoi.temps_min_minutes : 0;
+
+      if (match && tempsMin > 0) {
+        const alertes = [];
+        [match.equipe1_id, match.equipe2_id].forEach(eqId => {
+          const dernier = dernierMatchTermine(eqId);
+          if (dernier) {
+            const minutes = Math.round((Date.now() - new Date(dernier.heure_fin)) / 60000);
+            if (minutes < tempsMin) {
+              alertes.push(`${equipeLabel(eqId)} : match précédent terminé il y a seulement ${minutes} min`);
+            }
+          }
+        });
+        if (alertes.length > 0) {
+          const proceed = confirm(
+            `Temps de repos insuffisant (minimum recommandé : ${tempsMin} min) :\n\n${alertes.join('\n')}\n\nLancer quand même ce match ?`
+          );
+          if (!proceed) return;
+        }
+      }
+
       const terrainsLibres = getTerrainsLibres();
       if (terrainsLibres.length === 0) { alert('Aucun terrain libre.'); return; }
       const terrain = terrainsLibres[0];

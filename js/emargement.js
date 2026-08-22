@@ -28,43 +28,19 @@ async function initPage() {
   deniedPanel.hidden = true;
   mainPanel.hidden = false;
 
-  await loadTournoisSelect();
-  document.getElementById('tournoiSelect').addEventListener('change', onTournoiChange);
-  document.getElementById('searchInput').addEventListener('input', onSearchInput);
-  document.getElementById('absentFilterBtn').addEventListener('click', onToggleAbsentFilter);
-}
-
-async function loadTournoisSelect() {
-  const { data, error } = await sbClient.from('tournois').select('id, nom').order('created_at', { ascending: false });
-  const select = document.getElementById('tournoiSelect');
-  if (error) { select.innerHTML = '<option value="">Erreur de chargement</option>'; return; }
-  select.innerHTML = '<option value="">— Choisir un tournoi —</option>' +
-    (data || []).map(t => `<option value="${t.id}">${escapeHtml(t.nom)}</option>`).join('');
-}
-
-async function onTournoiChange() {
-  const tournoiId = document.getElementById('tournoiSelect').value;
-  const content = document.getElementById('emargementContent');
-
-  if (!tournoiId) {
-    content.hidden = true;
+  const tournoi = await getTournoiEnCours();
+  if (!tournoi) {
+    document.getElementById('pasDeTournoiMessage').hidden = false;
     return;
   }
 
-  const { data: tournoi, error: tournoiError } = await sbClient
-    .from('tournois')
-    .select('cotisation')
-    .eq('id', tournoiId)
-    .single();
-
-  if (tournoiError) { alert('Erreur : ' + tournoiError.message); return; }
   tournoiCotisation = Number(tournoi.cotisation) || 0;
   document.getElementById('kpiCotisation').textContent = tournoiCotisation.toFixed(2) + ' €';
 
   const { data: comps, error: compsError } = await sbClient
     .from('tournoi_competitions')
     .select('id, nb_poules, taille_poule, types_competition(nom, format)')
-    .eq('tournoi_id', tournoiId);
+    .eq('tournoi_id', tournoi.id);
 
   if (compsError) { alert('Erreur : ' + compsError.message); return; }
 
@@ -76,8 +52,11 @@ async function onTournoiChange() {
     taille_poule: c.taille_poule,
   }));
 
-  content.hidden = false;
+  document.getElementById('emargementContent').hidden = false;
   await loadEquipes();
+
+  document.getElementById('searchInput').addEventListener('input', onSearchInput);
+  document.getElementById('absentFilterBtn').addEventListener('click', onToggleAbsentFilter);
 }
 
 async function loadEquipes() {

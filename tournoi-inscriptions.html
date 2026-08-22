@@ -42,14 +42,15 @@
 
   <div id="mainPanel" hidden>
 
-    <!-- ===== Sélection tournoi / compétition ===== -->
+    <!-- ===== Sélection compétition (le tournoi en cours est chargé automatiquement) ===== -->
     <section class="admin-section">
-      <div class="field-grid">
-        <label>Tournoi
-          <select id="tournoiSelect"><option value="">— Choisir un tournoi —</option></select>
-        </label>
+      <div id="pasDeTournoiMessage" class="status-panel" hidden>
+        <h2>Aucun tournoi en cours</h2>
+        <p>Créez ou réactivez un tournoi depuis <a href="tournois.html">la page Tournois</a>.</p>
+      </div>
+      <div class="field-grid" id="competitionSelectWrap" hidden>
         <label>Compétition
-          <select id="competitionSelect" disabled><option value="">— Choisir d'abord un tournoi —</option></select>
+          <select id="competitionSelect"><option value="">— Choisir une compétition —</option></select>
         </label>
       </div>
     </section>

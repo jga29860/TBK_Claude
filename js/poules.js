@@ -24,37 +24,22 @@ async function initPage() {
   deniedPanel.hidden = true;
   mainPanel.hidden = false;
 
-  await loadTournoisSelect();
-  document.getElementById('tournoiSelect').addEventListener('change', onTournoiChange);
   document.getElementById('competitionFilterSelect').addEventListener('change', onCompetitionFilterChange);
   document.getElementById('pouleFilterSelect').addEventListener('change', onPouleFilterChange);
-}
 
-async function loadTournoisSelect() {
-  const { data, error } = await sbClient.from('tournois').select('id, nom').order('created_at', { ascending: false });
-  const select = document.getElementById('tournoiSelect');
-  if (error) { select.innerHTML = '<option value="">Erreur de chargement</option>'; return; }
-  select.innerHTML = '<option value="">— Choisir un tournoi —</option>' +
-    (data || []).map(t => `<option value="${t.id}">${escapeHtml(t.nom)}</option>`).join('');
-}
-
-async function onTournoiChange() {
-  const tournoiId = document.getElementById('tournoiSelect').value;
-  const container = document.getElementById('competitionsContainer');
-  container.innerHTML = '';
-  filtreCompetitionId = '';
-  filtrePouleNum = '';
-
-  const compFilterSelect = document.getElementById('competitionFilterSelect');
-  const pouleFilterSelect = document.getElementById('pouleFilterSelect');
-
-  if (!tournoiId) {
-    compFilterSelect.innerHTML = '<option value="">— Toutes —</option>';
-    compFilterSelect.disabled = true;
-    pouleFilterSelect.innerHTML = '<option value="">— Toutes —</option>';
-    pouleFilterSelect.disabled = true;
+  const tournoi = await getTournoiEnCours();
+  if (!tournoi) {
+    document.getElementById('pasDeTournoiMessage').hidden = false;
     return;
   }
+
+  document.getElementById('filtersSection').hidden = false;
+  await loadCompetitionsEtMatchs(tournoi.id);
+}
+
+async function loadCompetitionsEtMatchs(tournoiId) {
+  const compFilterSelect = document.getElementById('competitionFilterSelect');
+  const pouleFilterSelect = document.getElementById('pouleFilterSelect');
 
   const { data: comps, error: compError } = await sbClient
     .from('tournoi_competitions')
@@ -228,11 +213,14 @@ function renderPouleSection(comp, poule) {
   const matchsRows = matchs.map(m => {
     const e1 = equipesCache.find(e => e.id === m.equipe1_id);
     const e2 = equipesCache.find(e => e.id === m.equipe2_id);
+    const s = matchStats(m);
+    const e1Win = s.decided && s.winnerId === m.equipe1_id;
+    const e2Win = s.decided && s.winnerId === m.equipe2_id;
     return `
       <tr>
         <td>${m.numero}</td>
-        <td>${escapeHtml(equipeLabel(e1))}</td>
-        <td>${escapeHtml(equipeLabel(e2))}</td>
+        <td class="${e1Win ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(e1))}</td>
+        <td class="${e2Win ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(e2))}</td>
         <td>${setText(m, 1)}</td>
         <td>${setText(m, 2)}</td>
         <td>${setText(m, 3)}</td>

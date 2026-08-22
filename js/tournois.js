@@ -172,19 +172,43 @@ async function loadTournois() {
     const competitionsLabel = (t.tournoi_competitions || [])
       .map(tc => `${tc.types_competition ? escapeHtml(tc.types_competition.nom) : '?'} (${tc.nb_poules}p × ${tc.taille_poule})`)
       .join(', ') || '—';
+    const enCours = t.statut === 'en_cours';
+    const aUnAutreEnCours = tournoisCache.some(x => x.statut === 'en_cours' && x.id !== t.id);
     return `
       <tr data-tournoi-id="${t.id}">
         <td>${escapeHtml(t.nom)}</td>
+        <td>${enCours ? '<span class="statut-badge statut-en-cours">En cours</span>' : '<span class="statut-badge statut-cloture">Clôturé</span>'}</td>
         <td>${Number(t.cotisation).toFixed(2)} €</td>
         <td>${t.nb_terrains}</td>
         <td>${competitionsLabel}</td>
         <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
         <td>
           <button type="button" class="btn btn-ghost btn-small edit-tournoi-btn">Modifier</button>
+          ${enCours ? '<button type="button" class="btn btn-ghost btn-small close-tournoi-btn">Clore</button>' : ''}
+          ${!enCours && !aUnAutreEnCours ? '<button type="button" class="btn btn-ghost btn-small reactivate-tournoi-btn">Réactiver</button>' : ''}
           ${isTournoiAdmin ? '<button type="button" class="btn btn-danger btn-small delete-tournoi-btn">Supprimer</button>' : ''}
         </td>
       </tr>`;
   }).join('');
+
+  tbody.querySelectorAll('.close-tournoi-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-tournoi-id');
+      if (!confirm('Clore ce tournoi ? Il ne sera plus modifiable comme tournoi actif ; vous pourrez le réactiver plus tard si aucun autre tournoi n\'est en cours.')) return;
+      const { error } = await sbClient.from('tournois').update({ statut: 'cloture' }).eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadTournois();
+    });
+  });
+
+  tbody.querySelectorAll('.reactivate-tournoi-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-tournoi-id');
+      const { error } = await sbClient.from('tournois').update({ statut: 'en_cours' }).eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadTournois();
+    });
+  });
 
   tbody.querySelectorAll('.edit-tournoi-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -278,6 +302,11 @@ function bindForms() {
 
       if (selection.length === 0) {
         hint.textContent = 'Sélectionnez au moins une compétition.';
+        return;
+      }
+
+      if (!editingTournoiId && tournoisCache.some(t => t.statut === 'en_cours')) {
+        hint.textContent = "Un tournoi est déjà en cours. Clôturez-le d'abord (dans la liste ci-dessous) avant d'en créer un nouveau.";
         return;
       }
 

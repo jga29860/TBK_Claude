@@ -42,11 +42,13 @@
 
   <div id="mainPanel" hidden>
 
-    <section class="admin-section">
+    <div id="pasDeTournoiMessage" class="status-panel" hidden>
+      <h2>Aucun tournoi en cours</h2>
+      <p>Créez ou réactivez un tournoi depuis <a href="tournois.html">la page Tournois</a>.</p>
+    </div>
+
+    <section class="admin-section" id="filtersSection" hidden>
       <div class="field-grid">
-        <label>Tournoi
-          <select id="tournoiSelect"><option value="">— Choisir un tournoi —</option></select>
-        </label>
         <label>Compétition
           <select id="competitionFilterSelect" disabled><option value="">— Toutes —</option></select>
         </label>

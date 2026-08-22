@@ -369,6 +369,10 @@ table.schedule .role-label-input{
 .competition-config{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:0.85rem; color: var(--ink-soft); }
 .competition-config input{ font-family: var(--font-body); padding:6px 8px; border-radius:6px; border:1px solid #a9d18e; margin-left:6px; }
 
+.statut-badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-size:0.78rem; font-weight:700; }
+.statut-en-cours{ background:#d9f2d9; color:#1e7a1e; }
+.statut-cloture{ background:#e3e3e3; color:#555; }
+
 .kpi-row{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
 
 /* ===== Encadrement des équipes par poule ===== */
@@ -437,6 +441,11 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 
 .row-termine{ background:#eeeeee !important; opacity:0.65; }
 .row-indisponible{ background:#fff3e6 !important; opacity:0.7; }
+
+.equipe-gagnante{ background:#d9f2d9 !important; font-weight:700; }
+
+.btn:disabled{ opacity:0.4; cursor:not-allowed; filter:grayscale(70%); background:#ccc !important; border-color:#ccc !important; color:#777 !important; }
+.btn:disabled:hover{ transform:none; box-shadow:none; }
 
 /* ===== Planning ===== */
 .planning-top-row{ display:grid; grid-template-columns: 1.6fr 1fr 1fr; gap:24px; align-items:start; }

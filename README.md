@@ -125,6 +125,8 @@ Pour la tête de poule, exécutez `supabase/migration_tournois_7.sql`.
 
 Pour l'émargement par joueur (avec défaut "absent" à l'inscription), exécutez `supabase/migration_tournois_8.sql`.
 
+Pour limiter le site à un seul tournoi actif à la fois, exécutez `supabase/migration_tournois_9.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -206,6 +208,21 @@ Dès qu'une compétition atteint sa capacité (nombre de poules × taille de pou
 ## Filtre "absents" en émargement
 
 Sur `emargement.html`, à côté de la recherche par nom/club, un bouton "Afficher uniquement les absents" filtre la liste sur les équipes cochées "Absent". Se combine avec la recherche texte ; les poules sans résultat correspondant sont masquées le temps du filtre pour rester lisible.
+
+## Un seul tournoi actif à la fois
+
+Le site ne gère qu'un tournoi "en cours" simultanément — garanti au niveau de la base de données (impossible de créer un deuxième tournoi actif, y compris en cas d'action concurrente).
+
+- **Création** : un nouveau tournoi est automatiquement "en cours". La création est bloquée (avec message clair) tant qu'un tournoi est déjà actif — il faut d'abord le clôturer.
+- **Clôture** : bouton "Clore" sur `tournois.html`, disponible pour les profils Administration et Gestion. Un tournoi clôturé n'est plus modifiable comme actif.
+- **Réactivation** : bouton "Réactiver" sur un tournoi clôturé, visible uniquement si aucun autre tournoi n'est actuellement en cours.
+- **Pages simplifiées** : `tournoi-inscriptions.html`, `emargement.html`, `poules.html` et `planning.html` n'ont plus de sélecteur de tournoi — elles chargent automatiquement le tournoi en cours. Un message clair s'affiche si aucun tournoi n'est actif.
+
+## Autres ajustements Planning / affichage des résultats
+
+- **Bouton "Lancer" visuellement grisé** quand un match n'est pas lançable (en plus d'être désactivé), pour que l'indisponibilité soit repérable au premier coup d'œil.
+- **Équipe gagnante mise en évidence** (fond vert clair) partout où un match terminé est affiché — `planning.html` et `poules.html`.
+- **Popup d'avertissement au lancement** : si l'une des deux équipes a terminé son match précédent depuis moins longtemps que le "Temps min. entre 2 matchs" configuré, une confirmation s'affiche avant de lancer, avec le détail de l'équipe concernée et le temps réellement écoulé — l'organisateur peut choisir de lancer quand même.
 
 ## Émargement par joueur, filtres poules, matchs par rotation
 

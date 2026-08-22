@@ -2,8 +2,7 @@
 // TBK — Inscriptions au tournoi + affectation aux poules
 // ============================================================
 
-let tournoisCache = [];
-let competitionsCache = [];   // compétitions du tournoi sélectionné (jointure types_competition)
+let competitionsCache = [];   // compétitions du tournoi en cours (jointure types_competition)
 let selectedCompetition = null; // { id, nom, format, nb_poules, taille_poule }
 let equipesCache = [];
 let editingEquipeId = null;
@@ -23,37 +22,20 @@ async function initPage() {
   deniedPanel.hidden = true;
   mainPanel.hidden = false;
 
-  await loadTournoisSelect();
+  const tournoi = await getTournoiEnCours();
+  if (!tournoi) {
+    document.getElementById('pasDeTournoiMessage').hidden = false;
+    document.getElementById('competitionSelectWrap').hidden = true;
+    return;
+  }
+
+  document.getElementById('competitionSelectWrap').hidden = false;
+  await loadCompetitionsSelect(tournoi.id);
   bindStaticEvents();
 }
 
-// ============================================================
-// Sélecteurs Tournoi / Compétition
-// ============================================================
-
-async function loadTournoisSelect() {
-  const { data, error } = await sbClient.from('tournois').select('id, nom').order('created_at', { ascending: false });
-  const select = document.getElementById('tournoiSelect');
-  if (error) {
-    select.innerHTML = `<option value="">Erreur de chargement</option>`;
-    return;
-  }
-  tournoisCache = data || [];
-  select.innerHTML = '<option value="">— Choisir un tournoi —</option>' +
-    tournoisCache.map(t => `<option value="${t.id}">${escapeHtml(t.nom)}</option>`).join('');
-}
-
-async function onTournoiChange() {
-  const tournoiId = document.getElementById('tournoiSelect').value;
+async function loadCompetitionsSelect(tournoiId) {
   const competitionSelect = document.getElementById('competitionSelect');
-  document.getElementById('competitionPanel').hidden = true;
-  selectedCompetition = null;
-
-  if (!tournoiId) {
-    competitionSelect.disabled = true;
-    competitionSelect.innerHTML = '<option value="">— Choisir d\'abord un tournoi —</option>';
-    return;
-  }
 
   const { data, error } = await sbClient
     .from('tournoi_competitions')
@@ -73,7 +55,6 @@ async function onTournoiChange() {
     taille_poule: tc.taille_poule,
   }));
 
-  competitionSelect.disabled = competitionsCache.length === 0;
   competitionSelect.innerHTML = competitionsCache.length
     ? '<option value="">— Choisir une compétition —</option>' + competitionsCache.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('')
     : '<option value="">Aucune compétition pour ce tournoi</option>';
@@ -401,7 +382,6 @@ async function autoAssignPoules() {
 // ============================================================
 
 function bindStaticEvents() {
-  document.getElementById('tournoiSelect').addEventListener('change', onTournoiChange);
   document.getElementById('competitionSelect').addEventListener('change', onCompetitionChange);
   document.getElementById('autoAssignBtn').addEventListener('click', autoAssignPoules);
   document.getElementById('cancelEditBtn').addEventListener('click', resetEquipeForm);
