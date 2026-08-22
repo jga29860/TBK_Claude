@@ -950,6 +950,7 @@ function bindMatchRowEvents() {
   });
 
   document.querySelectorAll('.score-input').forEach(input => {
+    input.addEventListener('focus', (e) => e.target.select());
     input.addEventListener('change', async (e) => {
       const row = e.target.closest('tr');
       const matchId = row.getAttribute('data-match-id');
@@ -984,7 +985,31 @@ async function saveMatchField(matchId, field, value) {
     await sbClient.from('matchs').update({ [slotField]: winnerId }).eq('id', match.match_suivant_id);
   }
 
+  // Le rechargement reconstruit toutes les lignes (recalcul du classement,
+  // des vainqueurs, etc.) : on capture donc où se trouve le focus juste avant
+  // (là où l'utilisateur a pu tabuler entre-temps) pour le restaurer ensuite,
+  // sinon la saisie au clavier (Tab, case suivante) serait interrompue.
+  const active = document.activeElement;
+  let focusInfo = null;
+  if (active && active.classList && active.classList.contains('score-input')) {
+    const activeRow = active.closest('tr');
+    focusInfo = {
+      matchId: activeRow ? activeRow.getAttribute('data-match-id') : null,
+      set: active.getAttribute('data-set'),
+      side: active.getAttribute('data-side'),
+    };
+  }
+
   await loadAll(tournoi.id, true);
+
+  if (focusInfo && focusInfo.matchId) {
+    const row = document.querySelector(`tr[data-match-id="${focusInfo.matchId}"]`);
+    const input = row && row.querySelector(`.score-input[data-set="${focusInfo.set}"][data-side="${focusInfo.side}"]`);
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
 }
 
 // ============================================================

@@ -241,6 +241,11 @@ Vue de consultation, complémentaire à `planning.html` : présente la phase fin
 
 **Limite assumée** : l'algorithme construit un tableau à élimination directe propre quand le nombre de poules est une puissance de 2 (2, 4, 8, 16…), ce qui couvre le cas type (8 poules → 16 qualifiés en Principale, tableau parfait jusqu'à la finale). Avec un nombre de poules qui n'est pas une puissance de 2, certaines cases du tableau peuvent rester vides faute de gestion automatique des "exemptions" (byes) — à vérifier manuellement dans ce cas de figure.
 
+## Saisie des scores au clavier (Planning)
+
+- **Clic unique** sur une case de score : le contenu existant est automatiquement sélectionné, prêt à être remplacé sans avoir à l'effacer.
+- **Tab** pour passer à la case suivante fonctionne normalement, y compris juste après une saisie : le focus est désormais préservé lors du rechargement automatique de la page qui suit chaque score enregistré (recalcul du classement, des vainqueurs, etc.) — auparavant, ce rechargement pouvait faire perdre la case en cours d'édition.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
