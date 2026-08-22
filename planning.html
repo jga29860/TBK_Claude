@@ -81,12 +81,12 @@
             </div>
 
             <h3 class="admin-subheading">Générer les matchs de poule</h3>
+            <p class="section-lead" style="margin-top:4px;">La phase finale (Principale / Consolante) se génère automatiquement dès que tous les matchs de poule d'une compétition sont terminés.</p>
             <div class="inline-form" style="margin-top:8px;">
               <label>Compétition
                 <select id="genCompetitionSelect"></select>
               </label>
               <button type="button" class="btn btn-ghost btn-small" id="generateBtn">Générer / régénérer</button>
-              <button type="button" class="btn btn-ghost btn-small" id="generateFinaleBtn">Générer la phase finale</button>
             </div>
             <p class="form-hint" id="planningHint"></p>
           </div>
@@ -106,8 +106,13 @@
 
       <!-- ===== Matchs par rotation (phase de poules) ===== -->
       <section class="admin-section">
-        <h2>Matchs par rotation</h2>
-        <p class="section-lead">Une rotation regroupe jusqu'à autant de matchs que de terrains disponibles.</p>
+        <div class="rotation-header">
+          <div>
+            <h2>Matchs par rotation</h2>
+            <p class="section-lead">Une rotation regroupe jusqu'à autant de matchs que de terrains disponibles.</p>
+          </div>
+          <button type="button" class="btn btn-ghost btn-small" id="toggleRotationsBtn">Plier / déplier</button>
+        </div>
         <div id="matchsRotationsContainer"></div>
       </section>
 

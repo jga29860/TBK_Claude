@@ -222,12 +222,13 @@ Le site ne gère qu'un tournoi "en cours" simultanément — garanti au niveau d
 
 ## Phases finales (Principale / Consolante)
 
-Depuis `planning.html`, une fois **tous** les matchs de poule d'une compétition terminés, le bouton "Générer la phase finale" devient utilisable pour cette compétition (bouton toujours visible, mais l'action refuse de générer tant que la phase de poules n'est pas complète).
+**Génération automatique** : dès que tous les matchs de poule d'une compétition sont terminés, sa phase finale (Principale + Consolante) est générée automatiquement — au moment où le dernier score est saisi, ou à l'ouverture de la page si les poules étaient déjà terminées. Il n'y a plus de bouton de génération manuelle ; une génération n'a lieu qu'une seule fois par compétition (elle n'écrase pas une phase finale déjà générée).
 
 - **Qualification** : 1er et 2e de chaque poule → Phase Principale ; 3e et 4e → Phase Consolante. Ce découpage (top 2 / reste) n'est pas paramétrable.
 - **Appariement du 1er tour** : un 1er de poule affronte un 2e d'une **autre** poule (jamais celui de sa propre poule) ; même principe pour le 3e vs 4e en Consolante.
-- **Élimination directe ensuite** : les tours suivants sont créés à l'avance sous forme de cases vides, reliées entre elles ; dès qu'un score complet (2 sets gagnants) est saisi sur un match, le vainqueur est **automatiquement inséré** dans le match du tour suivant qui lui correspond — aucune action manuelle nécessaire pour faire avancer le tableau.
-- **Régénérer** la phase finale (bouton identique) supprime et recrée entièrement les phases Principale/Consolante de la compétition choisie, en repartant du classement de poule actuel.
+- **Élimination directe ensuite** : les tours suivants sont créés à l'avance sous forme de cases vides, reliées entre elles ; dès qu'un score complet (2 sets gagnants) est saisi sur un match, le vainqueur est **automatiquement inséré** dans le match du tour suivant qui lui correspond.
+- **Présentation progressive** : les tableaux sont regroupés par tour (Tour 1, Tour 2…), et à l'intérieur d'un même tour, compétition par compétition, Principale puis Consolante — pour avancer de façon cohérente sur l'ensemble des compétitions avant de passer au tour suivant. Le lancement d'un match reste possible dès que les deux équipes sont connues, disponibles et présentes, quel que soit l'état d'avancement des autres tableaux.
+- **Matchs de poule repliables** : l'en-tête "Matchs par rotation" propose un bouton "Plier / déplier". Une fois tous les matchs de poule terminés, la section se replie automatiquement par défaut (peut être rouverte manuellement à tout moment).
 
 **Limite assumée** : l'algorithme construit un tableau à élimination directe propre quand le nombre de poules est une puissance de 2 (2, 4, 8, 16…), ce qui couvre le cas type (8 poules → 16 qualifiés en Principale, tableau parfait jusqu'à la finale). Avec un nombre de poules qui n'est pas une puissance de 2, certaines cases du tableau peuvent rester vides faute de gestion automatique des "exemptions" (byes) — à vérifier manuellement dans ce cas de figure.
 

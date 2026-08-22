@@ -11,6 +11,7 @@ let filtreEquipe = '';
 let filtreTerrain = null;   // numéro de terrain sélectionné, ou null
 let filtreEquipeId = null;  // équipe sélectionnée via le top 5, ou null
 let pollTimer = null;
+let rotationsRepliees = null; // null = auto (repliées si toutes les poules sont terminées)
 
 async function initPage() {
   const access = await getCurrentAccess();
@@ -54,7 +55,10 @@ async function initPage() {
   });
 
   document.getElementById('generateBtn').addEventListener('click', generateMatchs);
-  document.getElementById('generateFinaleBtn').addEventListener('click', genererPhaseFinale);
+  document.getElementById('toggleRotationsBtn').addEventListener('click', () => {
+    rotationsRepliees = !effectiveRotationsRepliees();
+    renderMatchsRotations();
+  });
 
   const tournoiActif = await getTournoiEnCours();
   if (!tournoiActif) {
@@ -110,6 +114,17 @@ async function loadAll(tournoiId, silent) {
     const genSelect = document.getElementById('genCompetitionSelect');
     genSelect.innerHTML = competitionsCache.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('');
   }
+
+  // Génère automatiquement la phase finale des compétitions dont les poules
+  // viennent de se terminer (ou l'étaient déjà avant le chargement de la page),
+  // puis recharge les matchs pour prendre en compte une éventuelle génération.
+  for (const comp of competitionsCache) {
+    await genererPhaseFinaleAuto(comp);
+  }
+  const { data: matchsMaj, error: mErrorMaj } = compIds.length
+    ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
+    : { data: [] };
+  if (!mErrorMaj) matchsCache = matchsMaj || [];
 
   renderTout();
 }
@@ -208,27 +223,19 @@ function nextPowerOfTwo(n) {
   return p;
 }
 
-async function genererPhaseFinale() {
-  const hint = document.getElementById('planningHint');
-  const competitionId = document.getElementById('genCompetitionSelect').value;
-  const comp = competitionsCache.find(c => c.id === competitionId);
-  if (!comp) { hint.textContent = 'Choisissez une compétition.'; return; }
+/**
+ * Génère automatiquement la phase finale (Principale + Consolante)
+ * d'une compétition dès que ses matchs de poule sont tous terminés,
+ * si ce n'est pas déjà fait. Silencieux (pas de confirmation) —
+ * appelé après chaque score de poule saisi et au chargement de la page.
+ */
+async function genererPhaseFinaleAuto(comp) {
+  if (!poulesTerminees(comp)) return;
 
-  if (!poulesTerminees(comp)) {
-    hint.textContent = 'Tous les matchs de poule de cette compétition doivent être terminés avant de générer la phase finale.';
-    return;
-  }
-
-  if (!confirm(`Générer la phase finale (Principale + Consolante) pour "${comp.nom}" ? Cela remplace toute phase finale déjà générée pour cette compétition.`)) return;
-
-  hint.textContent = 'Génération de la phase finale…';
-
-  const { error: delError } = await sbClient
-    .from('matchs')
-    .delete()
-    .eq('tournoi_competition_id', comp.id)
-    .in('phase', ['principale', 'consolante']);
-  if (delError) { hint.textContent = 'Erreur : ' + delError.message; return; }
+  const dejaGeneree = matchsCache.some(m =>
+    m.tournoi_competition_id === comp.id && (m.phase === 'principale' || m.phase === 'consolante')
+  );
+  if (dejaGeneree) return;
 
   const premiers = [], seconds = [], troisiemes = [], quatriemes = [];
   for (let p = 1; p <= comp.nb_poules; p++) {
@@ -239,20 +246,17 @@ async function genererPhaseFinale() {
     if (classement[3]) quatriemes.push(classement[3].equipe);
   }
 
-  // Numérotation continue des matchs de la compétition
   const dernierNumero = Math.max(0, ...matchsCache.filter(m => m.tournoi_competition_id === comp.id).map(m => m.numero));
   let numero = dernierNumero + 1;
 
   try {
     numero = await genererBracket('principale', premiers, seconds, comp.id, numero);
     numero = await genererBracket('consolante', troisiemes, quatriemes, comp.id, numero);
+    const hint = document.getElementById('planningHint');
+    if (hint) hint.textContent = `Phase finale générée automatiquement pour ${comp.nom}.`;
   } catch (err) {
-    hint.textContent = 'Erreur : ' + err.message;
-    return;
+    console.error('Erreur de génération de la phase finale :', err.message);
   }
-
-  hint.textContent = 'Phase finale générée pour ' + comp.nom + '.';
-  await loadAll(tournoi.id, true);
 }
 
 /**
@@ -595,8 +599,20 @@ function computeRotations() {
 // Rendu de la liste des matchs, regroupés par rotation
 // ============================================================
 
+function effectiveRotationsRepliees() {
+  if (rotationsRepliees !== null) return rotationsRepliees;
+  const matchsPoule = matchsCache.filter(m => m.phase === 'poule');
+  return matchsPoule.length > 0 && matchsPoule.every(m => matchDecided(m));
+}
+
 function renderMatchsRotations() {
   const container = document.getElementById('matchsRotationsContainer');
+
+  if (effectiveRotationsRepliees()) {
+    container.innerHTML = '<p class="section-lead">Matchs de poule repliés (terminés). Cliquez sur "Plier / déplier" pour les revoir.</p>';
+    return;
+  }
+
   const rotations = computeRotations();
   const rotationMinutes = tournoi ? tournoi.rotation_minutes : 20;
   const heureDebut = tournoi && tournoi.heure_debut ? new Date(tournoi.heure_debut) : null;
@@ -738,36 +754,30 @@ function renderPhaseFinale() {
     return;
   }
 
-  const parCompetition = {};
-  bracketMatches.forEach(m => {
-    if (!parCompetition[m.tournoi_competition_id]) parCompetition[m.tournoi_competition_id] = [];
-    parCompetition[m.tournoi_competition_id].push(m);
-  });
-
   const noms = { principale: 'Phase Principale', consolante: 'Phase Consolante' };
 
-  container.innerHTML = Object.keys(parCompetition).map(compId => {
-    const comp = competitionsCache.find(c => c.id === compId);
-    const matchsComp = parCompetition[compId];
+  // Regroupement par tour, puis par compétition (dans l'ordre de competitionsCache),
+  // puis Principale avant Consolante : progression identique sur toutes les
+  // compétitions avant de passer au tour suivant.
+  const tours = [...new Set(bracketMatches.map(m => m.tour))].sort((a, b) => a - b);
 
-    const sections = ['principale', 'consolante'].map(phase => {
-      const matchsPhase = matchsComp.filter(m => m.phase === phase);
-      if (matchsPhase.length === 0) return '';
-
-      const parTour = {};
-      matchsPhase.forEach(m => {
-        if (!parTour[m.tour]) parTour[m.tour] = [];
-        parTour[m.tour].push(m);
-      });
-
-      const tours = Object.keys(parTour).map(Number).sort((a, b) => a - b);
-      const blocs = tours.map(t => renderBracketBlock(noms[phase], t, parTour[t].sort((a, b) => a.numero - b.numero))).join('');
-
-      return blocs;
+  const html = tours.map(tour => {
+    const blocsCompetitions = competitionsCache.map(comp => {
+      const blocsPhases = ['principale', 'consolante'].map(phase => {
+        const matchsBloc = bracketMatches
+          .filter(m => m.tour === tour && m.phase === phase && m.tournoi_competition_id === comp.id)
+          .sort((a, b) => a.numero - b.numero);
+        if (matchsBloc.length === 0) return '';
+        return renderBracketBlock(`${comp.nom} — ${noms[phase]}`, tour, matchsBloc);
+      }).join('');
+      return blocsPhases;
     }).join('');
 
-    return `<section class="admin-section"><h2>${escapeHtml(comp ? comp.nom : '?')} — Phase finale</h2>${sections}</section>`;
+    if (!blocsCompetitions) return '';
+    return `<section class="admin-section"><h2>Tour ${tour}</h2>${blocsCompetitions}</section>`;
   }).join('');
+
+  container.innerHTML = html;
 }
 
 function renderBracketBlock(titrePhase, tour, matchs) {
