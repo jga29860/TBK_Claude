@@ -36,6 +36,7 @@ async function initPage() {
 
   tournoiCotisation = Number(tournoi.cotisation) || 0;
   document.getElementById('kpiCotisation').textContent = tournoiCotisation.toFixed(2) + ' €';
+  document.getElementById('pageTitle').textContent = `Émargement — ${tournoi.nom}`;
 
   const { data: comps, error: compsError } = await sbClient
     .from('tournoi_competitions')

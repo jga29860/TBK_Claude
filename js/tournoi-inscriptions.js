@@ -30,6 +30,7 @@ async function initPage() {
   }
 
   document.getElementById('competitionSelectWrap').hidden = false;
+  document.getElementById('pageTitle').textContent = `Inscriptions au tournoi — ${tournoi.nom}`;
   await loadCompetitionsSelect(tournoi.id);
   bindStaticEvents();
 }

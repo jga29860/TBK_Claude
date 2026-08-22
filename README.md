@@ -127,6 +127,8 @@ Pour l'émargement par joueur (avec défaut "absent" à l'inscription), exécute
 
 Pour limiter le site à un seul tournoi actif à la fois, exécutez `supabase/migration_tournois_9.sql`.
 
+Pour les phases finales (Principale / Consolante), exécutez `supabase/migration_tournois_10.sql`.
+
 ### Ajouter une nouvelle page protégée
 1. Choisissez une clé courte (ex. `resultats_tournoi`), ajoutez-la dans `PAGE_CATALOG` en haut de `js/admin.js` pour qu'elle apparaisse dans les cases à cocher des profils.
 2. Sur la nouvelle page/table Supabase concernée, utilisez `current_user_has_access('resultats_tournoi')` dans la policy RLS de lecture (voir `annonces_membres` dans `schema.sql` comme modèle).
@@ -217,6 +219,24 @@ Le site ne gère qu'un tournoi "en cours" simultanément — garanti au niveau d
 - **Clôture** : bouton "Clore" sur `tournois.html`, disponible pour les profils Administration et Gestion. Un tournoi clôturé n'est plus modifiable comme actif.
 - **Réactivation** : bouton "Réactiver" sur un tournoi clôturé, visible uniquement si aucun autre tournoi n'est actuellement en cours.
 - **Pages simplifiées** : `tournoi-inscriptions.html`, `emargement.html`, `poules.html` et `planning.html` n'ont plus de sélecteur de tournoi — elles chargent automatiquement le tournoi en cours. Un message clair s'affiche si aucun tournoi n'est actif.
+
+## Phases finales (Principale / Consolante)
+
+Depuis `planning.html`, une fois **tous** les matchs de poule d'une compétition terminés, le bouton "Générer la phase finale" devient utilisable pour cette compétition (bouton toujours visible, mais l'action refuse de générer tant que la phase de poules n'est pas complète).
+
+- **Qualification** : 1er et 2e de chaque poule → Phase Principale ; 3e et 4e → Phase Consolante. Ce découpage (top 2 / reste) n'est pas paramétrable.
+- **Appariement du 1er tour** : un 1er de poule affronte un 2e d'une **autre** poule (jamais celui de sa propre poule) ; même principe pour le 3e vs 4e en Consolante.
+- **Élimination directe ensuite** : les tours suivants sont créés à l'avance sous forme de cases vides, reliées entre elles ; dès qu'un score complet (2 sets gagnants) est saisi sur un match, le vainqueur est **automatiquement inséré** dans le match du tour suivant qui lui correspond — aucune action manuelle nécessaire pour faire avancer le tableau.
+- **Régénérer** la phase finale (bouton identique) supprime et recrée entièrement les phases Principale/Consolante de la compétition choisie, en repartant du classement de poule actuel.
+
+**Limite assumée** : l'algorithme construit un tableau à élimination directe propre quand le nombre de poules est une puissance de 2 (2, 4, 8, 16…), ce qui couvre le cas type (8 poules → 16 qualifiés en Principale, tableau parfait jusqu'à la finale). Avec un nombre de poules qui n'est pas une puissance de 2, certaines cases du tableau peuvent rester vides faute de gestion automatique des "exemptions" (byes) — à vérifier manuellement dans ce cas de figure.
+
+## Autres changements de ce tour
+
+- **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
+- **Sections retirées de la page d'accueil** : Créneaux, Rejoindre, Contact (et leurs liens de navigation). Le bouton "S'inscrire au tournoi" pointe désormais vers un email plutôt que vers la section Contact supprimée.
+- **Boutons rendus plus rectangulaires** : coins moins arrondis sur les boutons principaux et sur les pastilles de navigation (Administration, Inscriptions, etc.), pour un rendu plus net et cohérent.
+- **Titres dynamiques** : `tournoi-inscriptions.html`, `emargement.html`, `poules.html` et `planning.html` affichent désormais le nom du tournoi en cours dans leur titre de page.
 
 ## Autres ajustements Planning / affichage des résultats
 

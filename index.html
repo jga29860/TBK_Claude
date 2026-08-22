@@ -24,12 +24,9 @@
     </a>
     <nav class="main-nav" id="mainNav">
       <a href="#club">Le club</a>
-      <a href="#creneaux">Créneaux</a>
       <a href="#tournoi">Tournoi</a>
       <a href="#forum">Forum</a>
-      <a href="#rejoindre">Rejoindre</a>
-      <a href="membres.html">Espace membres</a>
-      <a href="#contact">Contact</a>
+      <a href="membres.html">Connexion</a>
     </nav>
     <span class="auth-state" id="authState"></span>
     <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
@@ -55,8 +52,7 @@
       <h1>Smashez la<br>routine.</h1>
       <p class="hero-lead">TBK réunit badistes et pongistes de tous niveaux autour de deux raquettes, une salle, et une bonne ambiance. Débutant curieux ou compétiteur du dimanche, votre place est sur le terrain.</p>
       <div class="hero-actions">
-        <a href="#rejoindre" class="btn btn-primary">Rejoindre le club</a>
-        <a href="#tournoi" class="btn btn-ghost">Voir le tournoi du 11 septembre</a>
+        <a href="#tournoi" class="btn btn-primary">Voir le tournoi du 11 septembre</a>
       </div>
     </div>
   </section>
@@ -83,32 +79,10 @@
     </div>
   </section>
 
-  <!-- CRENEAUX -->
-  <section class="section section-alt" id="creneaux">
-    <div class="wrap">
-      <p class="section-eyebrow">02 — Créneaux</p>
-      <h2>Trouvez votre heure de jeu</h2>
-      <p class="section-lead">Horaires indicatifs, à confirmer selon la salle et la saison — mettez à jour ce tableau avec vos créneaux réels.</p>
-      <div class="table-wrap reveal">
-        <table class="schedule">
-          <thead>
-            <tr><th>Jour</th><th>Horaire</th><th>Activité</th><th>Niveau</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Lundi</td><td>19h00 – 21h00</td><td>Badminton</td><td>Loisir / tous niveaux</td></tr>
-            <tr><td>Mercredi</td><td>18h30 – 20h00</td><td>Tennis de table</td><td>Débutant / initiation</td></tr>
-            <tr><td>Jeudi</td><td>20h00 – 22h30</td><td>Badminton</td><td>Confirmé / compétition</td></tr>
-            <tr><td>Samedi</td><td>10h00 – 12h00</td><td>Tennis de table &amp; Badminton</td><td>Famille / tous niveaux</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
   <!-- TOURNOI -->
   <section class="section tournoi" id="tournoi">
     <div class="wrap">
-      <p class="section-eyebrow section-eyebrow--light">03 — Rendez-vous</p>
+      <p class="section-eyebrow section-eyebrow--light">02 — Rendez-vous</p>
       <h2 class="light">Tournoi TBK</h2>
       <p class="tournoi-date">11 septembre 2026</p>
       <p class="section-lead light-lead">Simples et doubles, tous niveaux, esprit compétition et convivialité. Inscriptions ouvertes — venez seul·e ou avec votre partenaire.</p>
@@ -120,7 +94,7 @@
         <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-label">sec</span></div>
       </div>
 
-      <a href="#contact" class="btn btn-primary btn-on-dark">S'inscrire au tournoi</a>
+      <a href="mailto:contact@tbk-club.fr?subject=Inscription%20tournoi" class="btn btn-primary btn-on-dark">S'inscrire au tournoi</a>
     </div>
   </section>
 
@@ -128,7 +102,7 @@
   <section class="section" id="forum">
     <div class="wrap forum-grid">
       <div class="reveal">
-        <p class="section-eyebrow">04 — À venir</p>
+        <p class="section-eyebrow">03 — À venir</p>
         <h2>Forum des associations</h2>
         <p class="section-lead">Le 5 septembre 2026, venez découvrir le club sur notre stand : essais de raquettes, présentation des créneaux et inscriptions sur place.</p>
         <p class="forum-note">Une occasion idéale pour poser toutes vos questions avant de vous lancer.</p>
@@ -140,74 +114,6 @@
           <line x1="30" y1="150" x2="170" y2="150" stroke="var(--shuttle)" stroke-width="3"/>
         </svg>
       </div>
-    </div>
-  </section>
-
-  <!-- REJOINDRE -->
-  <section class="section section-alt" id="rejoindre">
-    <div class="wrap">
-      <p class="section-eyebrow">05 — Rejoindre</p>
-      <h2>Comment nous rejoindre</h2>
-      <div class="steps">
-        <div class="step reveal">
-          <span class="step-num">01</span>
-          <h3>Un premier essai</h3>
-          <p>Venez tester un créneau, matériel prêté sur demande. Aucun engagement pour découvrir.</p>
-        </div>
-        <div class="step reveal">
-          <span class="step-num">02</span>
-          <h3>L'adhésion</h3>
-          <p>Cotisation annuelle donnant accès à tous les créneaux, licence FFBaD / FFTT incluse selon la section.</p>
-        </div>
-        <div class="step reveal">
-          <span class="step-num">03</span>
-          <h3>Le dossier</h3>
-          <p>Formulaire d'inscription, certificat médical ou questionnaire de santé, et vous êtes sur le terrain.</p>
-        </div>
-      </div>
-      <div class="pricing reveal">
-        <div class="price-card">
-          <h4>Badminton</h4>
-          <p class="price">À définir €<span>/an</span></p>
-        </div>
-        <div class="price-card">
-          <h4>Tennis de table</h4>
-          <p class="price">À définir €<span>/an</span></p>
-        </div>
-        <div class="price-card">
-          <h4>Section jeunes</h4>
-          <p class="price">À définir €<span>/an</span></p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CONTACT -->
-  <section class="section contact" id="contact">
-    <div class="wrap contact-grid">
-      <div class="reveal">
-        <p class="section-eyebrow">06 — Contact</p>
-        <h2>On vous répond volontiers</h2>
-        <ul class="contact-list">
-          <li><strong>Salle</strong> — Complexe sportif, Kersaint-Plabennec, Finistère</li>
-          <li><strong>Email</strong> — <a href="mailto:contact@tbk-club.fr">contact@tbk-club.fr</a></li>
-          <li><strong>Réseaux</strong> — <a href="#">Instagram</a> · <a href="#">Facebook</a></li>
-        </ul>
-        <p class="contact-note">Remplacez ces coordonnées par les vôtres, et branchez le formulaire ci-contre sur un service comme Formspree ou Google Forms pour recevoir les messages.</p>
-      </div>
-      <form class="contact-form reveal" id="contactForm">
-        <label>Nom
-          <input type="text" name="name" required>
-        </label>
-        <label>Email
-          <input type="email" name="email" required>
-        </label>
-        <label>Message
-          <textarea name="message" rows="4" required></textarea>
-        </label>
-        <button type="submit" class="btn btn-primary">Envoyer</button>
-        <p class="form-hint" id="formHint"></p>
-      </form>
     </div>
   </section>
 

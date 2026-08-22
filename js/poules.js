@@ -34,6 +34,7 @@ async function initPage() {
   }
 
   document.getElementById('filtersSection').hidden = false;
+  document.getElementById('pageTitle').textContent = `Poules & classement — ${tournoi.nom}`;
   await loadCompetitionsEtMatchs(tournoi.id);
 }
 

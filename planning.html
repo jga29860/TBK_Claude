@@ -33,7 +33,7 @@
 
 <main class="wrap page-section page-section--wide">
   <p class="section-eyebrow">Réservé à l'organisation des tournois</p>
-  <h1>Planning</h1>
+  <h1 id="pageTitle">Planning</h1>
 
   <div id="deniedPanel" class="status-panel" hidden>
     <h2>Accès refusé</h2>
@@ -86,6 +86,7 @@
                 <select id="genCompetitionSelect"></select>
               </label>
               <button type="button" class="btn btn-ghost btn-small" id="generateBtn">Générer / régénérer</button>
+              <button type="button" class="btn btn-ghost btn-small" id="generateFinaleBtn">Générer la phase finale</button>
             </div>
             <p class="form-hint" id="planningHint"></p>
           </div>
@@ -103,12 +104,15 @@
         </div>
       </section>
 
-      <!-- ===== Matchs, pleine largeur, regroupés par rotation ===== -->
+      <!-- ===== Matchs par rotation (phase de poules) ===== -->
       <section class="admin-section">
         <h2>Matchs par rotation</h2>
         <p class="section-lead">Une rotation regroupe jusqu'à autant de matchs que de terrains disponibles.</p>
         <div id="matchsRotationsContainer"></div>
       </section>
+
+      <!-- ===== Phase finale (Principale / Consolante) ===== -->
+      <div id="phaseFinaleContainer"></div>
 
     </div>
 

@@ -74,7 +74,7 @@ async function renderAuthState() {
   }
 
   let html = `<span class="nav-auth-name">${escapeHtml(access.display_name || access.email)} <small>(${escapeHtml(access.roleLabel)})</small></span>`;
-  html += ' <a href="membres.html" class="nav-auth-link">Espace membres</a>';
+  html += ' <a href="membres.html" class="nav-auth-link">Connexion</a>';
   html += ' <button id="logoutBtn" class="nav-auth-link nav-auth-btn" type="button">Se déconnecter</button>';
   el.innerHTML = html;
 
