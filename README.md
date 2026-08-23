@@ -265,6 +265,14 @@ Exécutez `supabase/migration_inscriptions_validation.sql` pour activer cette é
 - **Formulaire public** (`inscription-publique.html`) : accessible à n'importe qui, sans connexion. Une personne extérieure y remplit son nom, prénom, catégorie, Bad/Ping, UFOLEP/FSGT et tous les champs personnalisés configurés (hors "Membre Bureau", réservé à un usage interne). La cotisation affichée est une estimation indicative ; le bureau la confirme à la validation. Toute demande soumise ainsi arrive avec le statut "En attente".
 - **QR code** sur `index.html` (section "Envie de nous rejoindre ?") pointant vers `inscription-publique.html` — généré via le service gratuit [api.qrserver.com](https://api.qrserver.com), calculé automatiquement à partir de l'URL réelle du site (fonctionne quel que soit le nom de domaine/dépôt).
 
+## Logo du club
+
+Le logo (mascotte) fourni est intégré sur toutes les pages : version recadrée en rond dans l'en-tête (`images/logo-tbk-rond.png`, généré automatiquement à partir de l'image d'origine, fond transparent en dehors du cercle) et en favicon d'onglet. La version complète (`images/logo-tbk.png`) est affichée en plus grand format en haut de la page de demande d'inscription publique.
+
+## Champs masqués sur le formulaire public d'inscription
+
+Sur `inscription-publique.html`, les champs **WhatsApp**, **Cotisation payée**, **Santé** et **Date certificat** ne sont plus proposés — ils seront renseignés par le bureau au moment de la validation de la demande, pas par la personne qui la soumet. Un bandeau d'information rappelle explicitement que la demande sera validée une fois la cotisation réglée et un certificat médical ou un QS Sport fourni.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

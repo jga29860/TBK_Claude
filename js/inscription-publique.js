@@ -5,6 +5,10 @@
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const SAISON = '2026-2027';
 
+// Ces champs seront renseignés par le bureau au moment de la validation,
+// pas par la personne qui soumet la demande.
+const CHAMPS_MASQUES_PUBLIC = ['whatsapp', 'cotisation_payee', 'sante', 'date_certif'];
+
 let champsCache = [];
 let baremeCache = {};
 
@@ -28,7 +32,7 @@ async function loadChamps() {
     .select('key, label, type, options, valeur_defaut, ordre')
     .order('ordre');
   if (error) { console.error(error.message); return; }
-  champsCache = data || [];
+  champsCache = (data || []).filter(c => !CHAMPS_MASQUES_PUBLIC.includes(c.key));
   renderDynamicFields();
 }
 
