@@ -292,6 +292,14 @@ Sur `admin.html` → Utilisateurs, un bouton **"Supprimer"** apparaît en bout d
 
 **Ce que ça fait réellement** : cela supprime le *profil* (rôle, droits d'accès) de la personne — elle perd immédiatement tout accès au site, comme si son compte n'existait plus pour l'application. **Cela ne supprime pas son compte de connexion Supabase sous-jacent** (ses identifiants email/mot de passe), ce qui nécessiterait une clé secrète jamais exposée dans le code du site. Si vous voulez aussi supprimer complètement ce compte de connexion, faites-le depuis Supabase → Authentication → Users → cet utilisateur → Delete.
 
+## Email de contact paramétrable
+
+Exécutez `supabase/migration_parametres_site.sql` pour activer cette évolution.
+
+- Nouvelle section **"Paramètres du site"** sur `admin.html`, réservée au profil administrateur : un champ "Email de contact du club", modifiable et enregistré immédiatement.
+- Le bouton "S'inscrire au tournoi" de `index.html` utilise désormais cette adresse dynamiquement (récupérée depuis la base à chaque chargement de la page) au lieu d'une adresse codée en dur.
+- Cette table `parametres_site` (clé/valeur) peut accueillir d'autres réglages du même type à l'avenir (même modèle que `bareme_cotisations`).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

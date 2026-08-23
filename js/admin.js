@@ -36,10 +36,39 @@ async function initAdminPage() {
 
   buildNewRoleCheckboxes();
   bindChangePasswordForm();
+  bindParametresForm();
+  await loadParametres();
   await loadRoles();
   await loadUsers();
   await loadInvitations();
   bindForms();
+}
+
+// ===== Paramètres du site =====
+
+async function loadParametres() {
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').eq('cle', 'email_contact').single();
+  if (error) { console.error(error.message); return; }
+  document.getElementById('emailContactInput').value = data ? (data.valeur || '') : '';
+}
+
+function bindParametresForm() {
+  const form = document.getElementById('parametresForm');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = 'true';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById('parametresHint');
+    const email = document.getElementById('emailContactInput').value.trim();
+
+    hint.textContent = 'Enregistrement…';
+    const { error } = await sbClient
+      .from('parametres_site')
+      .update({ valeur: email, updated_at: new Date().toISOString() })
+      .eq('cle', 'email_contact');
+    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+    hint.textContent = 'Email de contact mis à jour.';
+  });
 }
 
 // ===== Mon compte : changer mon propre mot de passe =====

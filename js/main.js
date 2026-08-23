@@ -105,3 +105,15 @@ if (qrImg) {
   const targetUrl = window.location.origin + basePath + 'inscription-publique.html';
   qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(targetUrl)}`;
 }
+
+// ===== Email de contact (paramétrable depuis admin.html) =====
+(async () => {
+  const mailtoLink = document.getElementById('mailtoTournoi');
+  if (!mailtoLink || typeof sbClient === 'undefined') return;
+  const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
+  if (error || !data || !data.valeur) return;
+  const email = data.valeur;
+  const currentHref = mailtoLink.getAttribute('href') || '';
+  const subjectMatch = currentHref.match(/\?(.*)$/);
+  mailtoLink.href = `mailto:${email}${subjectMatch ? '?' + subjectMatch[1] : ''}`;
+})();
