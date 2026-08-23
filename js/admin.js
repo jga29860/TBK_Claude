@@ -178,9 +178,11 @@ async function loadUsers() {
     return;
   }
 
-  tbody.innerHTML = data.map(u => `
+  tbody.innerHTML = data.map(u => {
+    const technique = estIdentifiantTechnique(u.email);
+    return `
     <tr data-user-id="${u.id}" data-user-email="${escapeHtml(u.email || '')}">
-      <td>${escapeHtml(u.email || '—')}</td>
+      <td>${escapeHtml(afficherIdentifiant(u.email) || '—')}${technique ? ' <small style="color:var(--ink-soft);">(nom d\'utilisateur)</small>' : ''}</td>
       <td>${escapeHtml(u.display_name || '—')}</td>
       <td>
         <select class="role-select">
@@ -189,9 +191,11 @@ async function loadUsers() {
       </td>
       <td>${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
       <td><button type="button" class="btn btn-ghost btn-small save-user-btn">Enregistrer</button></td>
-      <td><button type="button" class="btn btn-ghost btn-small reset-pass-btn">Réinitialiser le mot de passe</button></td>
-    </tr>
-  `).join('');
+      <td>${technique
+        ? '<span style="font-size:0.8rem; color:var(--ink-soft);">Pas de vraie adresse email : réinitialisation impossible depuis cette page. Utilisez Supabase → Authentication → Users → cet utilisateur → "Reset password".</span>'
+        : '<button type="button" class="btn btn-ghost btn-small reset-pass-btn">Réinitialiser le mot de passe</button>'}</td>
+    </tr>`;
+  }).join('');
 
   tbody.querySelectorAll('.reset-pass-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {

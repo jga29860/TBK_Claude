@@ -32,7 +32,7 @@
     <div class="auth-panel">
       <h2>Se connecter</h2>
       <form id="loginForm" class="contact-form">
-        <label>Email <input type="email" name="email" required></label>
+        <label>Email ou nom d'utilisateur <input type="text" name="email" required autocomplete="username"></label>
         <label>Mot de passe <input type="password" name="password" required minlength="6"></label>
         <button type="submit" class="btn btn-primary">Se connecter</button>
         <p class="form-hint" id="loginHint"></p>
@@ -41,12 +41,12 @@
     <div class="auth-panel">
       <h2>Créer un compte</h2>
       <form id="signupForm" class="contact-form">
-        <label>Email <input type="email" name="email" required></label>
+        <label>Email ou nom d'utilisateur <input type="text" name="email" required autocomplete="username"></label>
         <label>Mot de passe <input type="password" name="password" required minlength="6"></label>
         <button type="submit" class="btn btn-ghost">Créer mon compte</button>
         <p class="form-hint" id="signupHint"></p>
       </form>
-      <p class="auth-note">Votre compte est créé avec le statut <strong>visiteur</strong>. Un membre du bureau doit ensuite valider votre statut de <strong>membre</strong> pour débloquer le contenu réservé.</p>
+      <p class="auth-note">Un email ou un simple nom d'utilisateur fonctionnent tous les deux. Votre compte est créé avec le statut <strong>visiteur</strong>. Un membre du bureau doit ensuite valider votre statut de <strong>membre</strong> pour débloquer le contenu réservé.</p>
     </div>
   </section>
 

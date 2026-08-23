@@ -5,6 +5,31 @@
 
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Domaine fictif utilisé pour permettre une connexion par simple nom
+// d'utilisateur (Supabase n'authentifie que par email en interne : on
+// génère un email technique invisible pour l'utilisateur, ex. "jgael"
+// devient "jgael@tbk-club.interne"). Une vraie adresse email saisie
+// (contenant "@") est utilisée telle quelle, sans transformation.
+const USERNAME_DOMAIN = 'tbk-club.interne';
+
+function toAuthEmail(identifiant) {
+  const val = (identifiant || '').trim();
+  if (val.includes('@')) return val.toLowerCase();
+  return `${val.toLowerCase().replace(/\s+/g, '')}@${USERNAME_DOMAIN}`;
+}
+
+/** Vrai si cet email est en réalité un identifiant technique (pas une vraie adresse). */
+function estIdentifiantTechnique(email) {
+  return !!email && email.toLowerCase().endsWith('@' + USERNAME_DOMAIN);
+}
+
+/** Renvoie l'identifiant "humain" à afficher : le nom d'utilisateur si
+ *  c'est un compte technique, sinon l'adresse email telle quelle. */
+function afficherIdentifiant(email) {
+  if (estIdentifiantTechnique(email)) return email.split('@')[0];
+  return email;
+}
+
 /**
  * Renvoie { id, email, display_name, role, roleLabel, pages } pour
  * l'utilisateur connecté, ou null si personne n'est connecté.
@@ -44,12 +69,12 @@ async function getCurrentProfile() {
   return getCurrentAccess();
 }
 
-async function signUp(email, password) {
-  return sbClient.auth.signUp({ email, password });
+async function signUp(identifiant, password) {
+  return sbClient.auth.signUp({ email: toAuthEmail(identifiant), password });
 }
 
-async function signIn(email, password) {
-  return sbClient.auth.signInWithPassword({ email, password });
+async function signIn(identifiant, password) {
+  return sbClient.auth.signInWithPassword({ email: toAuthEmail(identifiant), password });
 }
 
 async function signOut() {
@@ -73,7 +98,7 @@ async function renderAuthState() {
     return;
   }
 
-  let html = `<span class="nav-auth-name">${escapeHtml(access.display_name || access.email)} <small>(${escapeHtml(access.roleLabel)})</small></span>`;
+  let html = `<span class="nav-auth-name">${escapeHtml(access.display_name || afficherIdentifiant(access.email))} <small>(${escapeHtml(access.roleLabel)})</small></span>`;
   html += ' <a href="membres.html" class="nav-auth-link">Connexion</a>';
   html += ' <button id="logoutBtn" class="nav-auth-link nav-auth-btn" type="button">Se déconnecter</button>';
   el.innerHTML = html;

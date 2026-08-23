@@ -319,7 +319,7 @@ function bindMainForm() {
       // par le formulaire public, qui reste "en attente").
       payload.statut = 'validee';
       payload.valide_par = session.user.id;
-      payload.valide_par_nom = currentAccess ? (currentAccess.display_name || currentAccess.email) : null;
+      payload.valide_par_nom = currentAccess ? (currentAccess.display_name || afficherIdentifiant(currentAccess.email)) : null;
       payload.valide_le = new Date().toISOString();
       ({ error } = await sbClient.from('inscriptions').insert(payload));
     }
@@ -396,7 +396,7 @@ async function loadInscriptions() {
       const { error } = await sbClient.from('inscriptions').update({
         statut: 'validee',
         valide_par: session.user.id,
-        valide_par_nom: currentAccess ? (currentAccess.display_name || currentAccess.email) : null,
+        valide_par_nom: currentAccess ? (currentAccess.display_name || afficherIdentifiant(currentAccess.email)) : null,
         valide_le: new Date().toISOString(),
       }).eq('id', id);
       if (error) { alert('Erreur : ' + error.message); return; }

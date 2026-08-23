@@ -79,13 +79,21 @@ if (signupForm) {
     e.preventDefault();
     const hint = document.getElementById('signupHint');
     const fd = new FormData(signupForm);
+    const identifiant = fd.get('email');
     hint.textContent = 'Création du compte…';
-    const { error } = await signUp(fd.get('email'), fd.get('password'));
+    const { data, error } = await signUp(identifiant, fd.get('password'));
     if (error) {
       hint.textContent = "Échec de l'inscription : " + error.message;
       return;
     }
-    hint.textContent = "Compte créé ! Vérifiez votre email pour confirmer votre inscription, puis connectez-vous.";
+    if (data && data.session) {
+      // Confirmation par email désactivée sur ce projet : le compte est actif tout de suite.
+      hint.textContent = 'Compte créé ! Vous pouvez recharger la page pour accéder à votre espace.';
+    } else if (identifiant.includes('@')) {
+      hint.textContent = "Compte créé ! Vérifiez votre email pour confirmer votre inscription, puis connectez-vous.";
+    } else {
+      hint.textContent = "Compte créé, mais la confirmation par email est activée sur ce site : impossible de confirmer un nom d'utilisateur sans vraie adresse email. Demandez à un administrateur de désactiver la confirmation par email dans Supabase, ou inscrivez-vous avec une vraie adresse email.";
+    }
     signupForm.reset();
   });
 }

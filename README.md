@@ -273,6 +273,17 @@ Le logo (mascotte) fourni est intégré sur toutes les pages : version recadrée
 
 Sur `inscription-publique.html`, les champs **WhatsApp**, **Cotisation payée**, **Santé** et **Date certificat** ne sont plus proposés — ils seront renseignés par le bureau au moment de la validation de la demande, pas par la personne qui la soumet. Un bandeau d'information rappelle explicitement que la demande sera validée une fois la cotisation réglée et un certificat médical ou un QS Sport fourni.
 
+## Connexion par nom d'utilisateur (sans email)
+
+Sur `membres.html`, les champs "Email" acceptent désormais aussi un simple nom d'utilisateur (ex. "jgael"). Techniquement, Supabase n'authentifie qu'avec un email : un email technique invisible est généré automatiquement (`jgael@tbk-club.interne`), la personne ne le voit jamais et ne saisit que son nom d'utilisateur. Une vraie adresse email reste utilisable normalement, au choix.
+
+**Prérequis indispensable** : dans Supabase → Authentication → Providers → Email, désactivez **"Confirm email"**. Un email technique ne peut jamais recevoir de vraie confirmation ; sans cette désactivation, un compte créé par nom d'utilisateur resterait bloqué indéfiniment.
+
+**Limites à connaître pour un compte "nom d'utilisateur"** :
+- Pas de "mot de passe oublié" par email (impossible d'envoyer un email à une adresse qui n'existe pas). Le changement de mot de passe de quelqu'un d'autre passe alors uniquement par Supabase → Authentication → Users → cet utilisateur → "Reset password" (l'action reste réservée au titulaire du projet Supabase, pas à l'admin du site).
+- Le tableau des utilisateurs sur `admin.html` affiche "(nom d'utilisateur)" à côté de ces comptes, et masque le bouton de réinitialisation par email pour eux (remplacé par cette indication).
+- Le nom affiché partout sur le site (bandeau, validations d'inscription…) reste le nom d'utilisateur choisi — aucune différence visible pour la personne connectée.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
