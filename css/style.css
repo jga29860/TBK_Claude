@@ -81,8 +81,8 @@ a{ color: inherit; }
   color: var(--white);
 }
 .header-inner{
-  display:flex; align-items:center; justify-content: space-between;
-  height: 68px;
+  display:flex; align-items:center; justify-content: space-between; flex-wrap: wrap; row-gap: 8px;
+  min-height: 68px;
 }
 .logo{
   display:flex; align-items:center; gap:8px;
@@ -109,7 +109,7 @@ a{ color: inherit; }
 
 @media (max-width: 760px){
   .main-nav{
-    position:absolute; top:68px; left:0; right:0;
+    position:absolute; top:100%; left:0; right:0;
     background: var(--white); flex-direction:column; gap:0;
     max-height:0; overflow:hidden; border-bottom: 1px solid var(--border);
     transition: max-height .25s ease;
@@ -290,7 +290,10 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 .nav-dropdown-group-label:first-child{ padding-top:4px; }
 
 @media (max-width: 760px){
-  .auth-state{ display:none; }
+  .auth-state{
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+    width:100%; order:3; font-size:0.82rem; justify-content:flex-end;
+  }
   .main-nav .nav-admin-btn{ display:inline-block; margin: 10px 24px 0; background: var(--green) !important; color: var(--white) !important; }
   .nav-dropdown{ display:block; width:100%; }
   .nav-dropdown-trigger{ display:none !important; }
