@@ -7,7 +7,6 @@
 // faites-la vérifier côté Supabase (policy RLS avec current_user_has_access)
 // et/ou côté front (access.pages.includes('votre_cle')) sur la page concernée.
 const PAGE_CATALOG = [
-  { key: 'club', label: 'Club' },
   { key: 'espace_membres', label: 'Espace membres' },
   { key: 'inscriptions', label: 'Inscriptions saison' },
   { key: 'tournois_admin', label: 'Tournois - Administration' },
