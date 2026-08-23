@@ -292,6 +292,12 @@ Sur `admin.html` → Utilisateurs, un bouton **"Supprimer"** apparaît en bout d
 
 **Ce que ça fait réellement** : cela supprime le *profil* (rôle, droits d'accès) de la personne — elle perd immédiatement tout accès au site, comme si son compte n'existait plus pour l'application. **Cela ne supprime pas son compte de connexion Supabase sous-jacent** (ses identifiants email/mot de passe), ce qui nécessiterait une clé secrète jamais exposée dans le code du site. Si vous voulez aussi supprimer complètement ce compte de connexion, faites-le depuis Supabase → Authentication → Users → cet utilisateur → Delete.
 
+## Nouvelle page disponible dans le catalogue des profils : "Club"
+
+Sur `admin.html` → Profils, une case à cocher **"Club"** est désormais disponible pour chaque profil (nouveau ou existant), au même titre que "Espace membres", "Inscriptions saison", etc. Elle n'est cochée par défaut pour aucun profil existant (visiteur, membre, admin…) — un administrateur doit l'activer explicitement là où il le souhaite.
+
+**À savoir** : cette case prépare le terrain pour une future page "Club" protégée, mais aucune page du site ne vérifie encore ce droit d'accès. Tant qu'une page n'est pas construite en la reliant (voir la section "Ajouter une nouvelle page protégée" plus haut dans ce README), cocher "Club" pour un profil n'a pas d'effet visible.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
