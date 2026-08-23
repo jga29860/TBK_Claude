@@ -16,6 +16,7 @@ const PAGE_CATALOG = [
 ];
 
 let rolesCache = [];
+let currentUserId = null;
 
 async function initAdminPage() {
   const access = await getCurrentAccess();
@@ -31,6 +32,7 @@ async function initAdminPage() {
 
   deniedPanel.hidden = true;
   adminPanel.hidden = false;
+  currentUserId = access.id;
 
   buildNewRoleCheckboxes();
   bindChangePasswordForm();
@@ -161,7 +163,7 @@ function populateRoleSelects() {
 
 async function loadUsers() {
   const tbody = document.getElementById('usersTableBody');
-  tbody.innerHTML = '<tr><td colspan="5">Chargement…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6">Chargement…</td></tr>';
 
   const { data, error } = await sbClient
     .from('profiles')
@@ -169,12 +171,12 @@ async function loadUsers() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="5">Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6">Erreur : ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5">Aucun utilisateur.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">Aucun utilisateur.</td></tr>';
     return;
   }
 
@@ -194,8 +196,29 @@ async function loadUsers() {
       <td>${technique
         ? '<span style="font-size:0.8rem; color:var(--ink-soft);">Pas de vraie adresse email : réinitialisation impossible depuis cette page. Utilisez Supabase → Authentication → Users → cet utilisateur → "Reset password".</span>'
         : '<button type="button" class="btn btn-ghost btn-small reset-pass-btn">Réinitialiser le mot de passe</button>'}</td>
+      <td>${u.id !== currentUserId ? '<button type="button" class="btn btn-danger btn-small delete-user-btn">Supprimer</button>' : ''}</td>
     </tr>`;
   }).join('');
+
+  tbody.querySelectorAll('.delete-user-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const row = e.target.closest('tr');
+      const userId = row.getAttribute('data-user-id');
+      const nom = row.querySelector('td').textContent.trim();
+      const hint = document.getElementById('usersHint');
+
+      if (!confirm(`Supprimer le profil de "${nom}" ? Cette personne perdra immédiatement tout accès au site. Cette action ne supprime pas son compte de connexion sous-jacent (identifiants) — pour cela, il faut aussi le supprimer depuis Supabase → Authentication → Users. Continuer ?`)) return;
+
+      hint.textContent = 'Suppression…';
+      const { error } = await sbClient.from('profiles').delete().eq('id', userId);
+      if (error) {
+        hint.textContent = 'Erreur : ' + error.message;
+        return;
+      }
+      hint.textContent = 'Profil supprimé.';
+      await loadUsers();
+    });
+  });
 
   tbody.querySelectorAll('.reset-pass-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {

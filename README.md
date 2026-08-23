@@ -284,6 +284,14 @@ Sur `membres.html`, les champs "Email" acceptent désormais aussi un simple nom 
 - Le tableau des utilisateurs sur `admin.html` affiche "(nom d'utilisateur)" à côté de ces comptes, et masque le bouton de réinitialisation par email pour eux (remplacé par cette indication).
 - Le nom affiché partout sur le site (bandeau, validations d'inscription…) reste le nom d'utilisateur choisi — aucune différence visible pour la personne connectée.
 
+## Suppression d'utilisateurs par l'administrateur
+
+Exécutez `supabase/migration_suppression_profils.sql` pour activer cette fonctionnalité.
+
+Sur `admin.html` → Utilisateurs, un bouton **"Supprimer"** apparaît en bout de ligne pour chaque utilisateur (sauf sur votre propre compte, pour éviter de vous verrouiller vous-même hors du site).
+
+**Ce que ça fait réellement** : cela supprime le *profil* (rôle, droits d'accès) de la personne — elle perd immédiatement tout accès au site, comme si son compte n'existait plus pour l'application. **Cela ne supprime pas son compte de connexion Supabase sous-jacent** (ses identifiants email/mot de passe), ce qui nécessiterait une clé secrète jamais exposée dans le code du site. Si vous voulez aussi supprimer complètement ce compte de connexion, faites-le depuis Supabase → Authentication → Users → cet utilisateur → Delete.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
