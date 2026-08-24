@@ -7,7 +7,7 @@ async function initPage() {
   const deniedPanel = document.getElementById('deniedPanel');
   const docContent = document.getElementById('docContent');
 
-  const hasAccess = !!access && access.pages.includes('administration');
+  const hasAccess = !!access && access.pages.includes('documentation');
 
   if (!hasAccess) {
     deniedPanel.hidden = false;

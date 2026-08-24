@@ -26,12 +26,12 @@
 </header>
 
 <main class="wrap page-section page-section--wide">
-  <p class="section-eyebrow">Réservé à l'administrateur</p>
+  <p class="section-eyebrow">Accès réservé</p>
   <h1>Documentation fonctionnelle du site</h1>
 
   <div id="deniedPanel" class="status-panel" hidden>
     <h2>Accès refusé</h2>
-    <p>Cette page est réservée au profil administrateur.</p>
+    <p>Vous n'avez pas accès à cette page. Un administrateur peut vous y donner accès depuis Administration → Profils.</p>
   </div>
 
   <div id="docContent" hidden>
@@ -53,8 +53,10 @@
         <div><a href="#tournois">6. Gestion des tournois</a></div>
         <div><a href="#administration">7. Administration du site</a></div>
         <div><a href="#agenda">8. Agenda du club</a></div>
-        <div><a href="#base-donnees">9. Structure de la base de données</a></div>
-        <div><a href="#glossaire">10. Glossaire</a></div>
+        <div><a href="#sauvegarde">9. Sauvegarde des données</a></div>
+        <div><a href="#jeu-de-cartes">10. Jeu de cartes</a></div>
+        <div><a href="#base-donnees">11. Structure de la base de données</a></div>
+        <div><a href="#glossaire">12. Glossaire</a></div>
       </div>
     </section>
 
@@ -172,6 +174,18 @@
 
       <h3 class="admin-subheading">5.5 Colonnes affichées</h3>
       <p>Un administrateur choisit quelles colonnes apparaissent dans le tableau des inscrits (la colonne "Nom" est toujours visible).</p>
+
+      <h3 class="admin-subheading">5.6 Conditions requises pour valider une demande</h3>
+      <p>Le bouton "Valider" n'est activable que si 3 conditions sont réunies : la cotisation est marquée payée, le champ Santé est différent de "En Attente", et une date de certificat est renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée, santé en attente").</p>
+
+      <h3 class="admin-subheading">5.7 Notification des demandes en attente</h3>
+      <p>Pour les profils "bureau" et "admin", un badge rouge "X demande(s) en attente" apparaît automatiquement dans le bandeau du site, sur <strong>toutes les pages</strong>, dès qu'au moins une inscription a le statut "En attente". Un clic dessus mène directement à la page Inscriptions. Le badge disparaît de lui-même une fois qu'il n'y a plus de demande en attente.</p>
+
+      <h3 class="admin-subheading">5.8 Photo du certificat médical</h3>
+      <p>Sur chaque demande, un bouton "📷 Certificat" ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur) et envoie la photo dans un espace de stockage privé et sécurisé, lié automatiquement à cette inscription. Une fois envoyée, la date d'envoi s'affiche, avec un avertissement quand le certificat approche de sa fin de validité d'1 an. Un bouton "Voir le certificat" génère un lien de consultation temporaire (2 minutes) à chaque demande — le fichier n'est jamais rendu public. Un bouton "Supprimer le certificat" permet de le retirer définitivement si besoin.</p>
+
+      <h3 class="admin-subheading">5.9 Affichage optimisé pour mobile</h3>
+      <p>Sur petit écran, le tableau des inscriptions devient une liste de fiches compactes : seul le nom et le prénom sont visibles. Un tap sur une fiche la déplie verticalement, affichant chaque information avec son libellé, suivie des boutons d'action empilés pleine largeur — bien plus lisible qu'un tableau large à faire défiler horizontalement. Sur grand écran, l'affichage reste un tableau classique, avec les boutons d'action regroupés en ligne compacte.</p>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->
@@ -262,12 +276,36 @@
       <p>Aucune donnée de calendrier n'est stockée sur le site : tout est récupéré et modifié en direct via l'API Google Calendar.</p>
     </section>
 
-    <!-- ===== 9. BASE DE DONNÉES ===== -->
+    <!-- ===== 9. SAUVEGARDE ===== -->
+    <section class="admin-section" id="sauvegarde">
+      <h2>9. Sauvegarde des données (sauvegarde.html)</h2>
+      <p>Réservée au profil administrateur. Le plan gratuit de Supabase n'incluant aucune sauvegarde automatique native, cette page permet un export à la demande : elle liste toutes les tables du modèle avec leur nombre de lignes actuel, permet d'en sélectionner une ou plusieurs, puis génère et télécharge un fichier <code>.sql</code> contenant les instructions nécessaires pour réinjecter les données.</p>
+      <ul>
+        <li>L'ordre des tables est toujours respecté (indépendamment de l'ordre de sélection), pour éviter les problèmes de contraintes entre tables liées (ex. profils avant utilisateurs, tournois avant équipes).</li>
+        <li>Le fichier neutralise temporairement les contraintes pendant la réinjection, en filet de sécurité supplémentaire.</li>
+        <li>Restauration : ouvrir Supabase → SQL Editor, coller ou importer le contenu du fichier, exécuter.</li>
+      </ul>
+      <p>À utiliser régulièrement (par exemple avant/après la période d'inscriptions ou un tournoi) — les fichiers générés contiennent des données personnelles de membres, à conserver dans un endroit sûr.</p>
+    </section>
+
+    <!-- ===== 10. JEU DE CARTES ===== -->
+    <section class="admin-section" id="jeu-de-cartes">
+      <h2>10. Jeu de cartes (jeu-de-cartes.html)</h2>
+      <p>Accès paramétrable par profil (droit de page "jeu_cartes", pré-accordé à l'admin). Compose aléatoirement les équipes qui s'affrontent, avec un jeu de cartes numérotées de 1 à 10 — le chiffre correspond directement au numéro de terrain, ce qui minimise et fixe le nombre de terrains mobilisés selon le nombre de joueurs (ex. 16 joueurs → uniquement les terrains 1 à 4).</p>
+      <ul>
+        <li>Interface pensée pour un usage à la main sur téléphone, au club : un gros bouton "Carte" fixé en bas de l'écran révèle, à chaque appui, la carte du joueur suivant en grand, avec une petite animation.</li>
+        <li>Les 4 joueurs qui tirent le même chiffre forment un match : la paire de cartes rouges (Cœur/Carreau) affronte la paire de cartes noires (Pique/Trèfle).</li>
+        <li>Reste de 2 joueurs → match en simple sur le terrain dédié. Reste de 3 → 2 matchs à 11 points à organiser entre eux. Reste de 1 → carte Joker ("passe son tour").</li>
+        <li>Aucune donnée stockée en base : fonctionnalité entièrement calculée dans le navigateur, à chaque session.</li>
+      </ul>
+    </section>
+
+    <!-- ===== 11. BASE DE DONNÉES ===== -->
     <section class="admin-section" id="base-donnees">
-      <h2>9. Structure de la base de données</h2>
+      <h2>11. Structure de la base de données</h2>
       <p>Base de données hébergée par Supabase (PostgreSQL). Chaque table est protégée par des règles de sécurité (Row Level Security) qui définissent, ligne par ligne, qui peut lire ou modifier quoi.</p>
 
-      <h3 class="admin-subheading">9.1 Comptes et profils</h3>
+      <h3 class="admin-subheading">11.1 Comptes et profils</h3>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
@@ -279,14 +317,14 @@
         </table>
       </div>
 
-      <h3 class="admin-subheading">9.2 Vie du club</h3>
+      <h3 class="admin-subheading">11.2 Vie du club</h3>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
           <tbody>
             <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
-            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés).</td></tr>
+            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
             <tr><td>bareme_cotisations</td><td>Montants utilisés pour le calcul de la cotisation saison.</td></tr>
             <tr><td>inscriptions_affichage</td><td>Colonnes choisies pour le tableau des inscriptions saison.</td></tr>
@@ -294,7 +332,7 @@
         </table>
       </div>
 
-      <h3 class="admin-subheading">9.3 Tournois — cœur du système</h3>
+      <h3 class="admin-subheading">11.3 Tournois — cœur du système</h3>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
@@ -308,18 +346,21 @@
         </table>
       </div>
 
-      <h3 class="admin-subheading">9.4 Principes de sécurité (RLS)</h3>
+      <h3 class="admin-subheading">11.4 Principes de sécurité (RLS)</h3>
       <ul>
         <li>Chaque table sensible vérifie le profil de la personne connectée via une fonction "current_user_has_access".</li>
         <li>Certaines actions (validation d'inscription, suppression de profil, écriture sur les tournois) sont réservées aux profils précis nommés dans ce document.</li>
         <li>Des déclencheurs (triggers) en base garantissent certaines règles même en cas d'erreur côté site : une seule tête de poule par poule, un seul tournoi actif, blocage au-delà de la capacité, impossibilité de modifier son propre profil.</li>
         <li>Le formulaire public de demande d'inscription dispose d'un droit d'écriture volontairement restreint : il ne peut créer qu'une inscription "En attente", jamais la valider lui-même.</li>
       </ul>
+
+      <h3 class="admin-subheading">11.5 Stockage de fichiers (Supabase Storage)</h3>
+      <p>Au-delà des tables, un espace de stockage de fichiers <strong>privé</strong> nommé <code>certificats-medicaux</code> héberge les photos de certificats médicaux prises depuis la page Inscriptions. Aucune lecture publique n'est possible : l'accès (lecture, dépôt, suppression) est réservé aux comptes ayant le droit de page "inscriptions", exactement comme pour la table correspondante. La consultation d'un fichier se fait via un lien temporaire (2 minutes), généré à la demande à chaque clic sur "Voir le certificat" — jamais via une URL permanente.</p>
     </section>
 
-    <!-- ===== 10. GLOSSAIRE ===== -->
+    <!-- ===== 12. GLOSSAIRE ===== -->
     <section class="admin-section" id="glossaire">
-      <h2>10. Glossaire</h2>
+      <h2>12. Glossaire</h2>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Terme</th><th>Signification</th></tr></thead>

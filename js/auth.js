@@ -146,7 +146,7 @@ const TOOL_LINKS = [
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'phase-finale.html', label: 'Phase finale', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'planning.html', label: 'Planning', group: 'Tournoi' },
   { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },
-  { pageKeys: ['administration'], href: 'documentation.html', label: 'Documentation', group: 'Administration' },
+  { pageKeys: ['documentation'], href: 'documentation.html', label: 'Documentation', group: 'Administration' },
   { pageKeys: ['administration'], href: 'sauvegarde.html', label: 'Sauvegarde', group: 'Administration' },
   { pageKeys: ['jeu_cartes'], href: 'jeu-de-cartes.html', label: 'Jeu de cartes', group: 'Club' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda du club', group: 'Administration' },

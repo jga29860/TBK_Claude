@@ -327,7 +327,9 @@ Sur `membres.html`, un panneau **"Gérer les annonces"** apparaît désormais po
 
 ## Documentation fonctionnelle en ligne (page `documentation.html`)
 
-Réservée au profil administrateur (même droit que `admin.html`). Reprend le contenu du document Word de documentation fonctionnelle, mis en forme dans le style du site, avec sommaire à ancres pour naviguer rapidement dans les 10 sections (vue d'ensemble, comptes/profils, pages publiques, espace membres, inscriptions saison, gestion des tournois en détail, administration, agenda, base de données, glossaire).
+Exécutez `supabase/migration_documentation_droit.sql` pour activer le nouveau droit de page.
+
+Accès désormais **paramétrable par profil** (nouveau droit "Documentation" dans le catalogue des pages, Admin → Profils), pré-accordé au profil admin par défaut. Reprend le contenu du document Word de documentation fonctionnelle, mis en forme dans le style du site, avec sommaire à ancres pour naviguer rapidement dans les 12 sections (vue d'ensemble, comptes/profils, pages publiques, espace membres, inscriptions saison, gestion des tournois en détail, administration, agenda, sauvegarde, jeu de cartes, base de données, glossaire).
 
 **Mise à jour** : cette page est un contenu statique, tenu à jour manuellement à chaque nouvelle fonctionnalité construite — comme le README technique, mais formulé pour un public non-développeur. Pas de mise à jour automatique possible sur un site statique.
 
