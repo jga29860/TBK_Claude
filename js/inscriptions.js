@@ -381,7 +381,7 @@ async function loadInscriptions() {
       ${columns.map(col => `<td>${formatColumnValue(i, col.key)}</td>`).join('')}
       <td>${renderStatutCell(i)}</td>
       <td>
-        ${isBureau && i.statut === 'en_attente' ? '<button type="button" class="btn btn-primary btn-small valider-inscription-btn">Valider</button>' : ''}
+        ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
         <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
         <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
       </td>
@@ -423,6 +423,24 @@ async function loadInscriptions() {
 function renderInscriptionsTableHead(columns) {
   const theadRow = document.querySelector('#inscriptionsTable thead tr');
   theadRow.innerHTML = `<th>Nom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
+}
+
+function conditionsValidationOk(record) {
+  const champs = record.champs || {};
+  const motifs = [];
+  if (champs.cotisation_payee !== true) motifs.push('cotisation non payée');
+  if (!champs.sante || champs.sante === 'En Attente') motifs.push('santé en attente');
+  if (!champs.date_certif) motifs.push('date de certificat non renseignée');
+  return { ok: motifs.length === 0, motifs };
+}
+
+function renderValiderBtn(record) {
+  const { ok, motifs } = conditionsValidationOk(record);
+  if (ok) {
+    return '<button type="button" class="btn btn-primary btn-small valider-inscription-btn">Valider</button>';
+  }
+  const titre = 'Validation impossible : ' + motifs.join(', ');
+  return `<button type="button" class="btn btn-primary btn-small" disabled title="${escapeHtml(titre)}">Valider</button>`;
 }
 
 function renderStatutCell(record) {

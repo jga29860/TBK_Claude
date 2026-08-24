@@ -339,6 +339,10 @@ Les liens du menu "Organisation" sont désormais indentés sous leur libellé de
 
 Le bouton "Se connecter à Google Agenda" ne repasse plus systématiquement par l'écran complet de sélection de compte et de validation des droits : une fois l'autorisation déjà accordée une première fois, un clic suffit généralement pour revenir directement sur l'agenda (l'écran complet ne réapparaît que lors de la toute première connexion, ou après expiration de l'autorisation).
 
+## Contrôle sur la validation des inscriptions saison
+
+Le bouton "Valider" n'est activable que si les 3 conditions sont réunies : cotisation payée, santé différente de "En Attente", et date de certificat renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis au survol (ex. "Validation impossible : cotisation non payée, santé en attente"). La confirmation avant suppression d'une inscription existait déjà (vérifié, aucune modification nécessaire sur ce point).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
