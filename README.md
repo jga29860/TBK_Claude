@@ -354,6 +354,16 @@ Réservée au profil administrateur. Liste toutes les tables du modèle avec leu
 - **Important** : le plan gratuit de Supabase n'inclut aucune sauvegarde automatique native. Cette page comble ce manque via un export à la demande — pensez à l'utiliser régulièrement (par exemple avant/après la période d'inscriptions ou un tournoi), et à conserver les fichiers générés dans un endroit sûr (ils contiennent des données personnelles de membres).
 - Pour restaurer : ouvrez Supabase → SQL Editor, collez ou importez le contenu du fichier, exécutez.
 
+## Jeu de cartes (page `jeu-de-cartes.html`)
+
+Réservée au profil administrateur. Compose aléatoirement les équipes à partir d'un jeu de cartes classique, à partir du nombre de joueurs saisi.
+
+- **Principe** : chaque joueur tire une carte, une par une (bouton "Tirer" individuel par joueur, ou "Tirer toutes les cartes restantes" pour aller plus vite). Les 4 joueurs qui obtiennent le même rang (ex. les 4 Rois) forment un match en double : la paire de cartes rouges (Cœur/Carreau) affronte la paire de cartes noires (Pique/Trèfle).
+- **Gestion du reste** (si le nombre de joueurs n'est pas un multiple de 4) : 1 joueur restant passe son tour ; 2 joueurs restants s'affrontent en simple ; 3 joueurs restants s'organisent pour jouer 2 matchs en 11 points entre eux.
+- Noms de joueurs modifiables avant ou après le tirage (par défaut "Joueur 1", "Joueur 2"…).
+- Bouton "Nouveau tirage" pour rebattre les cartes en conservant les noms déjà saisis.
+- Fonctionnalité entièrement calculée dans le navigateur, sans aucune donnée stockée en base.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

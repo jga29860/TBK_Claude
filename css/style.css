@@ -520,6 +520,41 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .btn:disabled{ opacity:0.4; cursor:not-allowed; filter:grayscale(70%); background:#ccc !important; border-color:#ccc !important; color:#777 !important; }
 .btn:disabled:hover{ transform:none; box-shadow:none; }
 
+/* ===== Jeu de cartes ===== */
+.joueurs-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap:14px; }
+.joueur-slot{
+  border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--white);
+  display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
+}
+.joueur-nom-input{
+  width:100%; border:1px solid var(--border); border-radius:6px; padding:6px 8px;
+  font-family:var(--font-body); font-size:0.85rem; text-align:center;
+}
+.carte{
+  width:64px; height:88px; border:1.5px solid #ccc; border-radius:8px; background:var(--white);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.12); font-weight:800;
+}
+.carte-rang{ font-size:1.3rem; line-height:1; }
+.carte-symbole{ font-size:1.5rem; line-height:1; }
+.carte-rouge{ color:#c0392b; }
+.carte-noire{ color:#1f1f1f; }
+
+.match-bloc{
+  border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; background:var(--white);
+}
+.match-bloc--info{ background:var(--pale); }
+.match-bloc-title{ margin:0 0 10px; font-size:1rem; color:var(--dark); }
+.match-versus{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.match-equipe{
+  flex:1; min-width:160px; border-radius:8px; padding:10px 14px; display:flex; flex-direction:column; gap:4px;
+}
+.match-equipe--rouge{ background:#fdecea; border:1px solid #f3c6c1; }
+.match-equipe--noire{ background:#eceff1; border:1px solid #cfd6da; }
+.match-equipe-label{ font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); }
+.match-joueur{ font-weight:700; }
+.match-vs{ font-weight:900; color:var(--ink-soft); font-size:0.9rem; }
+
 /* ===== Agenda du club ===== */
 .cal-toolbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
 .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }

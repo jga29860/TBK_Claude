@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Jeu de cartes — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'administrateur</p>
+  <h1>Jeu de cartes</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée au profil administrateur.</p>
+  </div>
+
+  <div id="content" hidden>
+
+    <section class="admin-section">
+      <p class="section-lead" style="margin-bottom:14px;">Compose aléatoirement les équipes qui s'affrontent, avec un jeu de cartes classique. Chaque joueur tire une carte ; les 4 joueurs qui tirent le même rang (ex. les 4 Rois) forment un match : la paire de même couleur (Cœur/Carreau, rouge) affronte la paire de l'autre couleur (Pique/Trèfle, noir).</p>
+      <ul style="margin-left:20px; color:var(--ink-soft); font-size:0.9rem;">
+        <li>S'il reste 1 joueur non casé : il passe son tour ce round.</li>
+        <li>S'il reste 2 joueurs : ils s'affrontent en simple.</li>
+        <li>S'il reste 3 joueurs : ils s'organisent pour jouer 2 matchs en 11 points entre eux.</li>
+      </ul>
+
+      <div class="inline-form" style="margin-top:20px;">
+        <label>Nombre de joueurs
+          <input type="number" id="nbJoueursInput" min="1" max="52" value="16" style="width:90px;">
+        </label>
+        <button type="button" class="btn btn-primary btn-small" id="creerJoueursBtn">Créer les joueurs</button>
+      </div>
+    </section>
+
+    <section class="admin-section" id="joueursSection" hidden>
+      <h2>Joueurs</h2>
+      <p class="section-lead">Renseignez les noms si besoin, puis cliquez sur "Tirer" pour révéler la carte de chaque joueur, un par un.</p>
+      <div id="joueursGrid" class="joueurs-grid"></div>
+      <div class="form-actions" style="margin-top:20px;">
+        <button type="button" class="btn btn-ghost btn-small" id="tirerToutBtn">Tirer toutes les cartes restantes</button>
+        <button type="button" class="btn btn-ghost btn-small" id="nouveauTirageBtn">Nouveau tirage (rebattre)</button>
+      </div>
+    </section>
+
+    <section class="admin-section" id="resultatsSection" hidden>
+      <h2>Matchs composés</h2>
+      <div id="resultatsContainer"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/jeu-de-cartes.js"></script>
+</body>
+</html>
