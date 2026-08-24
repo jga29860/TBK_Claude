@@ -137,6 +137,7 @@ async function renderPendingInscriptionsBadge(access) {
  * un par un dans le bandeau (illisible dès qu'on a plusieurs profils).
  */
 const TOOL_LINKS = [
+  { pageKeys: ['espace_membres'], href: 'membres.html', label: 'Espace membres', group: 'Club' },
   { pageKeys: ['inscriptions'], href: 'inscriptions.html', label: 'Inscriptions saison', group: 'Club' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournois.html', label: 'Tournois', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi' },
