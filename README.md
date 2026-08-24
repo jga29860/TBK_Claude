@@ -315,6 +315,10 @@ Exécutez `supabase/migration_parametres_site.sql` pour activer cette évolution
 - Le bouton "S'inscrire au tournoi" de `index.html` utilise désormais cette adresse dynamiquement (récupérée depuis la base à chaque chargement de la page) au lieu d'une adresse codée en dur.
 - Cette table `parametres_site` (clé/valeur) peut accueillir d'autres réglages du même type à l'avenir (même modèle que `bareme_cotisations`).
 
+## Notification des demandes d'inscription en attente
+
+Pour les profils dont la clé est exactement `bureau` ou `admin`, un badge rouge **"X demande(s) en attente"** apparaît automatiquement dans le bandeau, sur **toutes les pages du site** dès qu'au moins une inscription saison a le statut "En attente". Cliquer dessus mène directement à `inscriptions.html`. Le badge disparaît de lui-même dès qu'il n'y a plus de demande en attente.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

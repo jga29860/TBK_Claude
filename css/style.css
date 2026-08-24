@@ -258,6 +258,11 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   color: var(--white); border-radius: 6px; padding: 6px 12px; font-weight:700;
 }
 .nav-auth-name small{ color: rgba(255,255,255,0.75); font-weight:500; }
+.pending-badge{
+  display:inline-block; background:#c00000; color:#fff !important; font-weight:700;
+  padding:5px 12px; border-radius:6px; font-size:0.8rem; text-decoration:none; margin-left:4px;
+}
+.pending-badge:hover{ background:#900000; }
 .nav-auth-link{
   text-decoration:none; color: rgba(255,255,255,0.9); font-weight:600; font-size:0.9rem;
   background:none; border:none; cursor:pointer; font-family: var(--font-body);

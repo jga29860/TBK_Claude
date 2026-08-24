@@ -99,6 +99,7 @@ async function renderAuthState() {
   }
 
   let html = `<span class="nav-auth-name">${escapeHtml(access.display_name || afficherIdentifiant(access.email))} <small>(${escapeHtml(access.roleLabel)})</small></span>`;
+  html += await renderPendingInscriptionsBadge(access);
   html += ' <a href="membres.html" class="nav-auth-link">Connexion</a>';
   html += ' <button id="logoutBtn" class="nav-auth-link nav-auth-btn" type="button">Se déconnecter</button>';
   el.innerHTML = html;
@@ -110,6 +111,24 @@ async function renderAuthState() {
       window.location.href = 'index.html';
     });
   }
+}
+
+/**
+ * Pour les profils "bureau" et "admin" : signale le nombre de demandes
+ * d'inscription saison encore en attente de validation, sur toutes les
+ * pages du site (pas seulement sur inscriptions.html).
+ */
+async function renderPendingInscriptionsBadge(access) {
+  if (!access || (access.role !== 'bureau' && access.role !== 'admin')) return '';
+
+  const { count, error } = await sbClient
+    .from('inscriptions')
+    .select('id', { count: 'exact', head: true })
+    .eq('statut', 'en_attente');
+
+  if (error || !count) return '';
+
+  return ` <a href="inscriptions.html" class="pending-badge">${count} demande${count > 1 ? 's' : ''} en attente</a>`;
 }
 
 /**
