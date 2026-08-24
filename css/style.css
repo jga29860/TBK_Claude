@@ -115,7 +115,7 @@ a{ color: inherit; }
     transition: max-height .25s ease;
     box-shadow: 0 8px 16px rgba(0,0,0,0.08);
   }
-  .main-nav.open{ max-height: 320px; }
+  .main-nav.open{ max-height: 75vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .main-nav a{ padding: 14px 24px; border-bottom: 1px solid var(--border); color: var(--dark); }
   .nav-toggle{ display:flex; }
 }
