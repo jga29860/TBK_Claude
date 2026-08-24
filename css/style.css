@@ -210,7 +210,16 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 .forum-grid{ display:grid; grid-template-columns: 1.3fr 0.7fr; gap: 40px; align-items:center; }
 .forum-card{ background: var(--white); border-radius: var(--radius); padding: 10px; border: 1px solid #d6e5d1; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
 .forum-note{ font-size:0.9rem; color: var(--slate); }
-@media (max-width: 760px){ .forum-grid{ grid-template-columns:1fr; } .forum-card{ order:-1; max-width:340px; margin:0 auto; } }
+.forum-grid--double{ grid-template-columns: 1fr 1fr; }
+.forum-posters{ display:flex; gap:20px; }
+.forum-posters .forum-card{ flex: 1 1 0; min-width:0; }
+@media (max-width: 760px){
+  .forum-grid{ grid-template-columns:1fr; }
+  .forum-card{ order:-1; max-width:340px; margin:0 auto; }
+  .forum-grid--double{ grid-template-columns:1fr; }
+  .forum-posters{ flex-direction:column; align-items:center; }
+  .forum-posters .forum-card{ max-width:340px; width:100%; }
+}
 
 /* Steps */
 .steps{ display:grid; grid-template-columns: repeat(3,1fr); gap:26px; margin-top:36px; }
