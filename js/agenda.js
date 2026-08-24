@@ -12,6 +12,7 @@ let calendarId = null;
 let currentMonth = new Date(currentDateAtMidnight());
 let eventsCache = [];
 let editingEventId = null;
+let editingRecurringEventId = null; // id de la série (si l'événement en fait partie)
 
 function currentDateAtMidnight() {
   const d = new Date();
@@ -227,8 +228,11 @@ function openForm(event, presetDate) {
 
   if (event) {
     editingEventId = event.id;
+    editingRecurringEventId = event.recurringEventId || null;
     document.getElementById('eventFormTitle').textContent = 'Modifier l\'événement';
     document.getElementById('eventDeleteBtn').hidden = false;
+    document.getElementById('eventDeleteBtn').textContent = editingRecurringEventId ? 'Supprimer cette occurrence' : "Supprimer l'événement";
+    document.getElementById('eventDeleteSeriesBtn').hidden = !editingRecurringEventId;
 
     const journee = !!event.start.date;
     form.titre.value = event.summary || '';
@@ -256,8 +260,10 @@ function openForm(event, presetDate) {
     recurrenceNote.hidden = !faitPartieDuneSerie;
   } else {
     editingEventId = null;
+    editingRecurringEventId = null;
     document.getElementById('eventFormTitle').textContent = 'Nouvel événement';
     document.getElementById('eventDeleteBtn').hidden = true;
+    document.getElementById('eventDeleteSeriesBtn').hidden = true;
     form.date_debut.value = presetDate || new Date().toISOString().slice(0, 10);
     form.date_fin.value = presetDate || new Date().toISOString().slice(0, 10);
 
@@ -274,6 +280,7 @@ function closeForm() {
   document.getElementById('eventFormSection').hidden = true;
   document.getElementById('eventForm').reset();
   editingEventId = null;
+  editingRecurringEventId = null;
 }
 
 function toggleHeureFields() {
@@ -318,7 +325,8 @@ function bindStaticEvents() {
   document.getElementById('journeeEntiereInput').addEventListener('change', toggleHeureFields);
   document.getElementById('periodiciteInput').addEventListener('change', togglePeriodiciteFin);
   document.getElementById('eventCancelBtn').addEventListener('click', closeForm);
-  document.getElementById('eventDeleteBtn').addEventListener('click', deleteEvent);
+  document.getElementById('eventDeleteBtn').addEventListener('click', () => deleteEvent(false));
+  document.getElementById('eventDeleteSeriesBtn').addEventListener('click', () => deleteEvent(true));
   document.getElementById('eventForm').addEventListener('submit', submitEvent);
 }
 
@@ -378,15 +386,20 @@ async function submitEvent(e) {
   }
 }
 
-async function deleteEvent() {
-  if (!editingEventId) return;
-  if (!confirm('Supprimer cet événement ?')) return;
+async function deleteEvent(supprimerToutelaSerie) {
+  const idASupprimer = supprimerToutelaSerie ? editingRecurringEventId : editingEventId;
+  if (!idASupprimer) return;
+
+  const message = supprimerToutelaSerie
+    ? 'Supprimer TOUTE la série récurrente (toutes les occurrences, passées et futures) ? Cette action est irréversible.'
+    : 'Supprimer cette occurrence de l\'événement ?';
+  if (!confirm(message)) return;
 
   const hint = document.getElementById('eventFormHint');
   hint.textContent = 'Suppression…';
   try {
     const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${editingEventId}`,
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${idASupprimer}`,
       { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } }
     );
     if (!res.ok && res.status !== 410) {
