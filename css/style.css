@@ -435,6 +435,32 @@ table.schedule .role-label-input{
   .actions-stack .btn{ width:100%; text-align:center; padding:10px 12px; font-size:0.85rem; }
   .certificat-date{ text-align:center; }
 }
+
+/* ===== Tableau des inscriptions : replié/déplié au clic sur le nom (mobile) ===== */
+@media (max-width: 760px){
+  #inscriptionsTable thead{ display:none; }
+  #inscriptionsTable, #inscriptionsTable tbody{ display:block; width:100%; }
+  #inscriptionsTable tr{
+    display:block; width:100%; margin-bottom:10px; border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; background:var(--white);
+  }
+  #inscriptionsTable td{ display:none; border:none; padding:10px 14px; }
+  #inscriptionsTable td.cell-nom{
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    font-weight:700; padding:14px; background:var(--pale);
+  }
+  .cell-nom-chevron{ transition: transform .15s ease; color:var(--green); font-weight:900; }
+  #inscriptionsTable tr.row-expanded td.cell-nom .cell-nom-chevron{ transform: rotate(90deg); }
+
+  #inscriptionsTable tr.row-expanded td{
+    display:block; border-bottom:1px solid #eee;
+  }
+  #inscriptionsTable tr.row-expanded td:last-child{ border-bottom:none; }
+  #inscriptionsTable tr.row-expanded td[data-label]::before{
+    content: attr(data-label); display:block; font-size:0.7rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin-bottom:3px;
+  }
+}
 .statut-en-cours{ background:#d9f2d9; color:#1e7a1e; }
 .statut-cloture{ background:#e3e3e3; color:#555; }
 

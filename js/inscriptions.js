@@ -379,10 +379,10 @@ async function loadInscriptions() {
 
   tbody.innerHTML = inscriptionsCache.map(i => `
     <tr data-id="${i.id}">
-      <td>${escapeHtml(i.nom)}</td>
-      ${columns.map(col => `<td>${formatColumnValue(i, col.key)}</td>`).join('')}
-      <td>${renderStatutCell(i)}</td>
-      <td>
+      <td class="cell-nom"><span class="cell-nom-chevron">▸</span>${escapeHtml(i.nom)}</td>
+      ${columns.map(col => `<td data-label="${escapeHtml(col.label)}">${formatColumnValue(i, col.key)}</td>`).join('')}
+      <td data-label="Statut">${renderStatutCell(i)}</td>
+      <td data-label="Actions">
         <div class="actions-stack">
           ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
           <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${i.id}">${i.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
@@ -397,6 +397,12 @@ async function loadInscriptions() {
       </td>
     </tr>
   `).join('');
+
+  tbody.querySelectorAll('.cell-nom').forEach(cell => {
+    cell.addEventListener('click', () => {
+      cell.closest('tr').classList.toggle('row-expanded');
+    });
+  });
 
   tbody.querySelectorAll('.valider-inscription-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
