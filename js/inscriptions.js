@@ -20,6 +20,7 @@ let baremeCache = {};      // { key: montant }
 let inscriptionsCache = []; // inscriptions de la saison
 let colonnesCache = [];    // clés des colonnes sélectionnées pour le tableau
 let editingId = null;      // id en cours d'édition, ou null pour une nouvelle inscription
+let certificatCibleId = null; // id de l'inscription visée par la prochaine photo de certificat
 let isAdminUser = false;
 let isBureau = false;
 let currentAccess = null;
@@ -48,6 +49,7 @@ async function initInscriptionsPage() {
   await loadInscriptions();
 
   bindMainForm();
+  bindCertificatInput();
   if (isAdminUser) bindConfigForms();
 }
 
@@ -381,9 +383,13 @@ async function loadInscriptions() {
       ${columns.map(col => `<td>${formatColumnValue(i, col.key)}</td>`).join('')}
       <td>${renderStatutCell(i)}</td>
       <td>
-        ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
-        <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
-        <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
+        <div class="actions-stack">
+          ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
+          <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${i.id}">${i.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
+          ${i.certificat_photo_url ? `<button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${i.id}">Voir le certificat</button><span class="certificat-date">${escapeHtml(dateCertificat(i.certificat_photo_url))}</span>` : ''}
+          <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
+          <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -401,6 +407,20 @@ async function loadInscriptions() {
       }).eq('id', id);
       if (error) { alert('Erreur : ' + error.message); return; }
       await loadInscriptions();
+    });
+  });
+
+  tbody.querySelectorAll('.certificat-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      certificatCibleId = e.target.getAttribute('data-id');
+      document.getElementById('certificatFileInput').click();
+    });
+  });
+
+  tbody.querySelectorAll('.voir-certificat-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.getAttribute('data-id');
+      await voirCertificat(id);
     });
   });
 
@@ -441,6 +461,74 @@ function renderValiderBtn(record) {
   }
   const titre = 'Validation impossible : ' + motifs.join(', ');
   return `<button type="button" class="btn btn-primary btn-small" disabled title="${escapeHtml(titre)}">Valider</button>`;
+}
+
+// ============================================================
+// Photo du certificat médical (stockage privé Supabase Storage)
+// ============================================================
+
+function bindCertificatInput() {
+  const input = document.getElementById('certificatFileInput');
+  input.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    e.target.value = ''; // permet de reprendre la même photo si besoin
+    if (!file || !certificatCibleId) return;
+
+    const id = certificatCibleId;
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const chemin = `${id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await sbClient.storage
+      .from('certificats-medicaux')
+      .upload(chemin, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+
+    if (uploadError) {
+      alert("Erreur lors de l'envoi de la photo : " + uploadError.message);
+      return;
+    }
+
+    const { error: updateError } = await sbClient
+      .from('inscriptions')
+      .update({ certificat_photo_url: chemin })
+      .eq('id', id);
+
+    if (updateError) {
+      alert("Erreur lors de l'enregistrement : " + updateError.message);
+      return;
+    }
+
+    await loadInscriptions();
+  });
+}
+
+async function voirCertificat(id) {
+  const inscription = inscriptionsCache.find(i => i.id === id);
+  if (!inscription || !inscription.certificat_photo_url) return;
+
+  const { data, error } = await sbClient.storage
+    .from('certificats-medicaux')
+    .createSignedUrl(inscription.certificat_photo_url, 120);
+
+  if (error) {
+    alert("Erreur d'accès au certificat : " + error.message);
+    return;
+  }
+  window.open(data.signedUrl, '_blank');
+}
+
+/** Le nom du fichier contient l'horodatage de la prise de photo
+ *  (ex. "abc123/1787600000000.jpg") : pas besoin de colonne dédiée
+ *  pour savoir quand le certificat a été envoyé. */
+function dateCertificat(chemin) {
+  const nomFichier = chemin.split('/').pop() || '';
+  const timestamp = parseInt(nomFichier.split('.')[0], 10);
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const unAnPlusTard = new Date(timestamp);
+  unAnPlusTard.setFullYear(unAnPlusTard.getFullYear() + 1);
+  const expireBientot = unAnPlusTard.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000; // < 30 jours
+  const texte = `envoyé le ${date.toLocaleDateString('fr-FR')}`;
+  return expireBientot ? `${texte} ⚠️ à renouveler bientôt` : texte;
 }
 
 function renderStatutCell(record) {

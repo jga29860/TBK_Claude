@@ -370,6 +370,15 @@ Accès désormais **paramétrable par profil** (nouveau droit "Jeu de cartes" da
 - **Plus de tableau récapitulatif** : chaque personne découvre uniquement sa propre carte ; le regroupement se fait naturellement en comparant les chiffres entre joueurs, dans l'esprit d'un vrai tirage au sort en direct.
 - Jusqu'à 41 joueurs (10 terrains × 4 + 1 Joker).
 
+## Photo du certificat médical + actions optimisées mobile (inscriptions.html)
+
+Exécutez `supabase/migration_certificat_medical.sql` pour créer le stockage sécurisé.
+
+- **Bouton "📷 Certificat"** sur chaque demande d'inscription : ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur), envoie la photo dans un espace de stockage **privé** dédié, et la lie automatiquement à cette inscription. Une fois envoyée, un bouton "Voir le certificat" apparaît (lien temporaire valable 2 minutes, généré à la demande — le fichier n'est jamais rendu public).
+- **Accès conservé indéfiniment** : la photo elle-même n'est jamais supprimée automatiquement ; seul le lien de visualisation expire après 2 minutes (sécurité), un nouveau lien se génère à chaque clic sur "Voir le certificat", à tout moment (admin et bureau peuvent y accéder autant de fois que nécessaire, y compris après plusieurs mois). La date d'envoi s'affiche à côté du bouton, avec un avertissement "⚠️ à renouveler bientôt" quand le certificat approche de sa fin de validité d'1 an.
+- **Accès au stockage réservé** aux mêmes personnes qui ont déjà accès à la page Inscriptions (même droit de page, aucune configuration supplémentaire à faire).
+- **Actions en colonne verticale** sur toutes les tailles d'écran (Valider, 📷 Certificat, Voir le certificat, Modifier, Supprimer) au lieu d'une rangée compressée horizontalement — boutons plus grands et plus faciles à toucher sur mobile.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
