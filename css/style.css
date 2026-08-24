@@ -425,13 +425,15 @@ table.schedule .role-label-input{
 
 .statut-badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-size:0.78rem; font-weight:700; }
 
-/* ===== Actions en colonne (inscriptions, etc.) — optimisé mobile ===== */
-.actions-stack{ display:flex; flex-direction:column; gap:6px; min-width:160px; }
-.actions-stack .btn{ width:100%; text-align:center; white-space:nowrap; }
-.certificat-date{ font-size:0.72rem; color:var(--ink-soft); text-align:center; }
+/* ===== Actions en colonne (inscriptions, etc.) — optimisé PC + mobile ===== */
+.actions-stack{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-width:240px; }
+.actions-stack .btn{ flex: 0 0 auto; white-space:nowrap; }
+.certificat-date{ font-size:0.72rem; color:var(--ink-soft); width:100%; }
+
 @media (max-width: 760px){
-  .actions-stack{ min-width:150px; }
-  .actions-stack .btn{ padding:10px 12px; font-size:0.85rem; }
+  .actions-stack{ flex-direction:column; align-items:stretch; min-width:150px; }
+  .actions-stack .btn{ width:100%; text-align:center; padding:10px 12px; font-size:0.85rem; }
+  .certificat-date{ text-align:center; }
 }
 .statut-en-cours{ background:#d9f2d9; color:#1e7a1e; }
 .statut-cloture{ background:#e3e3e3; color:#555; }

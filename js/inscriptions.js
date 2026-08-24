@@ -386,7 +386,11 @@ async function loadInscriptions() {
         <div class="actions-stack">
           ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
           <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${i.id}">${i.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
-          ${i.certificat_photo_url ? `<button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${i.id}">Voir le certificat</button><span class="certificat-date">${escapeHtml(dateCertificat(i.certificat_photo_url))}</span>` : ''}
+          ${i.certificat_photo_url ? `
+            <button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${i.id}">Voir le certificat</button>
+            <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${i.id}">Supprimer le certificat</button>
+            <span class="certificat-date">${escapeHtml(dateCertificat(i.certificat_photo_url))}</span>
+          ` : ''}
           <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
           <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
         </div>
@@ -421,6 +425,13 @@ async function loadInscriptions() {
     btn.addEventListener('click', async (e) => {
       const id = e.target.getAttribute('data-id');
       await voirCertificat(id);
+    });
+  });
+
+  tbody.querySelectorAll('.supprimer-certificat-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.getAttribute('data-id');
+      await supprimerCertificat(id);
     });
   });
 
@@ -529,6 +540,33 @@ function dateCertificat(chemin) {
   const expireBientot = unAnPlusTard.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000; // < 30 jours
   const texte = `envoyé le ${date.toLocaleDateString('fr-FR')}`;
   return expireBientot ? `${texte} ⚠️ à renouveler bientôt` : texte;
+}
+
+async function supprimerCertificat(id) {
+  const inscription = inscriptionsCache.find(i => i.id === id);
+  if (!inscription || !inscription.certificat_photo_url) return;
+  if (!confirm('Supprimer définitivement la photo de ce certificat ?')) return;
+
+  const { error: removeError } = await sbClient.storage
+    .from('certificats-medicaux')
+    .remove([inscription.certificat_photo_url]);
+
+  if (removeError) {
+    alert('Erreur lors de la suppression : ' + removeError.message);
+    return;
+  }
+
+  const { error: updateError } = await sbClient
+    .from('inscriptions')
+    .update({ certificat_photo_url: null })
+    .eq('id', id);
+
+  if (updateError) {
+    alert('Erreur lors de la mise à jour : ' + updateError.message);
+    return;
+  }
+
+  await loadInscriptions();
 }
 
 function renderStatutCell(record) {
