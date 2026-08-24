@@ -437,6 +437,7 @@ table.schedule .role-label-input{
 }
 
 /* ===== Tableau des inscriptions : replié/déplié au clic sur le nom (mobile) ===== */
+.cell-nom-statut-mobile{ display:none; } /* visible uniquement sur mobile, voir media query ci-dessous */
 @media (max-width: 760px){
   #inscriptionsTable thead{ display:none; }
   #inscriptionsTable, #inscriptionsTable tbody{ display:block; width:100%; }
@@ -449,6 +450,9 @@ table.schedule .role-label-input{
     display:flex; align-items:center; gap:8px; cursor:pointer;
     font-weight:700; padding:14px; background:var(--pale);
   }
+  .cell-nom-texte{ flex:1; min-width:0; }
+  .cell-nom-statut-mobile{ display:inline-block; flex-shrink:0; }
+  .cell-nom-statut-mobile .statut-badge{ font-size:0.7rem; padding:3px 8px; }
   .cell-nom-chevron{ transition: transform .15s ease; color:var(--green); font-weight:900; }
   #inscriptionsTable tr.row-expanded td.cell-nom .cell-nom-chevron{ transform: rotate(90deg); }
 

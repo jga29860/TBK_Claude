@@ -379,7 +379,11 @@ async function loadInscriptions() {
 
   tbody.innerHTML = inscriptionsCache.map(i => `
     <tr data-id="${i.id}">
-      <td class="cell-nom"><span class="cell-nom-chevron">▸</span>${escapeHtml(i.nom)} ${escapeHtml(i.prenom || '')}</td>
+      <td class="cell-nom">
+        <span class="cell-nom-chevron">▸</span>
+        <span class="cell-nom-texte">${escapeHtml(i.nom)} ${escapeHtml(i.prenom || '')}</span>
+        <span class="cell-nom-statut-mobile">${renderStatutCell(i)}</span>
+      </td>
       ${columns.map(col => `<td data-label="${escapeHtml(col.label)}">${formatColumnValue(i, col.key)}</td>`).join('')}
       <td data-label="Statut">${renderStatutCell(i)}</td>
       <td data-label="Actions">
