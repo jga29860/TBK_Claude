@@ -44,6 +44,7 @@ async function initPage() {
 
   initGoogleClient();
   bindStaticEvents();
+  tenterConnexionSilencieuse();
 }
 
 // ============================================================
@@ -59,8 +60,17 @@ function initGoogleClient() {
     client_id: GOOGLE_CLIENT_ID,
     scope: GOOGLE_CALENDAR_SCOPE,
     callback: (response) => {
+      document.getElementById('connectBtn').hidden = false;
+      document.getElementById('connectBtn').textContent = 'Se connecter à Google Agenda';
       if (response.error) {
-        document.getElementById('connectHint').textContent = 'Erreur de connexion : ' + response.error;
+        // Échec silencieux normal si aucune session Google active ou consentement
+        // pas encore donné : on laisse simplement le bouton de connexion manuel.
+        if (response.error !== 'popup_closed_by_user') {
+          document.getElementById('connectHint').textContent =
+            response.error === 'immediate_failed' || response.error === 'user_logged_out'
+              ? 'Connexion automatique impossible : cliquez sur le bouton pour vous connecter.'
+              : 'Erreur de connexion : ' + response.error;
+        }
         return;
       }
       accessToken = response.access_token;
@@ -71,9 +81,23 @@ function initGoogleClient() {
   });
 }
 
+/**
+ * Tentative de reconnexion silencieuse (sans fenêtre, sans clic) au chargement
+ * de la page : fonctionne tant que la session Google du navigateur est active
+ * et que l'autorisation donnée précédemment n'a pas expiré (7 jours en mode
+ * Test Google, au-delà il faut redonner son accord manuellement une fois).
+ */
+function tenterConnexionSilencieuse() {
+  if (!tokenClient) return;
+  document.getElementById('connectBtn').hidden = true;
+  document.getElementById('connectHint').textContent = 'Connexion automatique en cours…';
+  tokenClient.requestAccessToken({ prompt: 'none' });
+}
+
 function connect() {
   if (!tokenClient) { initGoogleClient(); }
-  tokenClient.requestAccessToken({ prompt: '' });
+  document.getElementById('connectHint').textContent = '';
+  tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
 // ============================================================
