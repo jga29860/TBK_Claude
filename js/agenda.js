@@ -98,7 +98,10 @@ function tenterConnexionSilencieuse() {
 function connect() {
   if (!tokenClient) { initGoogleClient(); }
   document.getElementById('connectHint').textContent = '';
-  tokenClient.requestAccessToken({ prompt: 'consent' });
+  // '' laisse Google décider du minimum nécessaire : s'il y a déjà une
+  // autorisation valide, la connexion se fait en un clic, sans repasser
+  // par l'écran complet de sélection de compte + validation des droits.
+  tokenClient.requestAccessToken({ prompt: '' });
 }
 
 // ============================================================

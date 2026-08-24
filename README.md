@@ -331,6 +331,14 @@ Réservée au profil administrateur (même droit que `admin.html`). Reprend le c
 
 **Mise à jour** : cette page est un contenu statique, tenu à jour manuellement à chaque nouvelle fonctionnalité construite — comme le README technique, mais formulé pour un public non-développeur. Pas de mise à jour automatique possible sur un site statique.
 
+## Menu Organisation — indentation visuelle
+
+Les liens du menu "Organisation" sont désormais indentés sous leur libellé de groupe (Club, Tournoi, Administration), avec un petit repère vertical au survol, pour mieux montrer la hiérarchie quand la liste s'allonge.
+
+## Connexion Google Agenda — moins de clics
+
+Le bouton "Se connecter à Google Agenda" ne repasse plus systématiquement par l'écran complet de sélection de compte et de validation des droits : une fois l'autorisation déjà accordée une première fois, un clic suffit généralement pour revenir directement sur l'agenda (l'écran complet ne réapparaît que lors de la toute première connexion, ou après expiration de l'autorisation).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

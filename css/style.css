@@ -284,13 +284,14 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 }
 .nav-dropdown.open .nav-dropdown-menu{ display:block; }
 .nav-dropdown-menu a{
-  display:block; padding:9px 12px; border-radius:6px; color: var(--dark);
+  display:block; padding:9px 12px 9px 22px; border-radius:6px; color: var(--dark);
   text-decoration:none; font-size:0.88rem; font-weight:600;
+  border-left: 2px solid #e7f0e3; margin-left:6px;
 }
-.nav-dropdown-menu a:hover{ background: var(--pale); }
+.nav-dropdown-menu a:hover{ background: var(--pale); border-left-color: var(--green); }
 .nav-dropdown-group-label{
   font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;
-  color: var(--ink-soft); font-weight:700; padding:10px 12px 2px;
+  color: var(--ink-soft); font-weight:700; padding:10px 12px 4px;
 }
 .nav-dropdown-group-label:first-child{ padding-top:4px; }
 
@@ -307,8 +308,8 @@ table.schedule tbody tr:hover{ background: var(--pale); }
     padding:0; margin:0; background:none;
   }
   .nav-dropdown-menu a{
-    padding:14px 24px; border-bottom:1px solid var(--border); color: var(--dark);
-    border-radius:0; font-weight:500;
+    padding:14px 24px 14px 40px; border-bottom:1px solid var(--border); color: var(--dark);
+    border-radius:0; border-left:none; margin-left:0; font-weight:500;
   }
   .nav-dropdown-group-label{ padding:14px 24px 4px; background: var(--pale); }
 }
