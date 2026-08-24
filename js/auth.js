@@ -148,7 +148,7 @@ const TOOL_LINKS = [
   { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },
   { pageKeys: ['administration'], href: 'documentation.html', label: 'Documentation', group: 'Administration' },
   { pageKeys: ['administration'], href: 'sauvegarde.html', label: 'Sauvegarde', group: 'Administration' },
-  { pageKeys: ['administration'], href: 'jeu-de-cartes.html', label: 'Jeu de cartes', group: 'Administration' },
+  { pageKeys: ['jeu_cartes'], href: 'jeu-de-cartes.html', label: 'Jeu de cartes', group: 'Tournoi' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda du club', group: 'Administration' },
 ];
 const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];

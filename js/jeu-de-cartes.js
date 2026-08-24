@@ -27,7 +27,7 @@ async function initPage() {
   const deniedPanel = document.getElementById('deniedPanel');
   const main = document.getElementById('cartesMain');
 
-  const hasAccess = !!access && access.pages.includes('administration');
+  const hasAccess = !!access && access.pages.includes('jeu_cartes');
   if (!hasAccess) {
     deniedPanel.hidden = false;
     main.hidden = true;

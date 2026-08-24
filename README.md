@@ -356,7 +356,9 @@ Réservée au profil administrateur. Liste toutes les tables du modèle avec leu
 
 ## Jeu de cartes (page `jeu-de-cartes.html`) — v2 : tirage plein écran
 
-Réservée au profil administrateur. Refonte complète pour un usage à la main sur téléphone, au club, un tirage à la fois.
+Exécutez `supabase/migration_jeu_cartes_droit.sql` pour activer le nouveau droit de page.
+
+Accès désormais **paramétrable par profil** (nouveau droit "Jeu de cartes" dans le catalogue des pages, Admin → Profils), pré-accordé au profil admin par défaut. Peut donc être ouvert à d'autres profils (ex. Bureau, Gestion tournoi) sans leur donner accès à toute l'administration.
 
 - **En-tête compact** : titre + nombre de joueurs + bouton "Créer la session" sur une seule ligne.
 - **Cartes numérotées de 1 à 10** — le chiffre correspond directement au numéro de terrain (plus pratique qu'un jeu de cartes classique à 13 rangs). Toujours 4 couleurs par chiffre (♠♥♦♣) pour former les équipes Rouge/Noir dans les quadruples.
