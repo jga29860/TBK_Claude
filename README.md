@@ -354,15 +354,17 @@ Réservée au profil administrateur. Liste toutes les tables du modèle avec leu
 - **Important** : le plan gratuit de Supabase n'inclut aucune sauvegarde automatique native. Cette page comble ce manque via un export à la demande — pensez à l'utiliser régulièrement (par exemple avant/après la période d'inscriptions ou un tournoi), et à conserver les fichiers générés dans un endroit sûr (ils contiennent des données personnelles de membres).
 - Pour restaurer : ouvrez Supabase → SQL Editor, collez ou importez le contenu du fichier, exécutez.
 
-## Jeu de cartes (page `jeu-de-cartes.html`)
+## Jeu de cartes (page `jeu-de-cartes.html`) — v2 : tirage plein écran
 
-Réservée au profil administrateur. Compose aléatoirement les équipes à partir d'un jeu de cartes classique, à partir du nombre de joueurs saisi.
+Réservée au profil administrateur. Refonte complète pour un usage à la main sur téléphone, au club, un tirage à la fois.
 
-- **Principe** : chaque joueur tire une carte, une par une (bouton "Tirer" individuel par joueur, ou "Tirer toutes les cartes restantes" pour aller plus vite). Les 4 joueurs qui obtiennent le même rang (ex. les 4 Rois) forment un match en double : la paire de cartes rouges (Cœur/Carreau) affronte la paire de cartes noires (Pique/Trèfle).
-- **Gestion du reste** (si le nombre de joueurs n'est pas un multiple de 4) : 1 joueur restant passe son tour ; 2 joueurs restants s'affrontent en simple ; 3 joueurs restants s'organisent pour jouer 2 matchs en 11 points entre eux.
-- Noms de joueurs modifiables avant ou après le tirage (par défaut "Joueur 1", "Joueur 2"…).
-- Bouton "Nouveau tirage" pour rebattre les cartes en conservant les noms déjà saisis.
-- Fonctionnalité entièrement calculée dans le navigateur, sans aucune donnée stockée en base.
+- **En-tête compact** : titre + nombre de joueurs + bouton "Créer la session" sur une seule ligne.
+- **Cartes numérotées de 1 à 10** — le chiffre correspond directement au numéro de terrain (plus pratique qu'un jeu de cartes classique à 13 rangs). Toujours 4 couleurs par chiffre (♠♥♦♣) pour former les équipes Rouge/Noir dans les quadruples.
+- **Tirage séquentiel plein écran** : un gros bouton "Carte" fixé en bas de l'écran révèle, à chaque appui, la carte du joueur suivant en grand, avec une petite animation. Le joueur regarde son terrain et sa couleur, passe le téléphone au suivant.
+- **Message contextuel sous la carte** selon le nombre de joueurs partageant ce chiffre : "Rouge contre Noir" pour un quadruple (4), "match en simple" pour un duo (2), "2 matchs à 11 points à organiser" pour un trio (3).
+- **Joker** : la personne qui, seule, ne peut pas être casée dans un quadruple (reste = 1) reçoit une carte Joker distincte ("Tu passes ton tour ce round").
+- **Plus de tableau récapitulatif** : chaque personne découvre uniquement sa propre carte ; le regroupement se fait naturellement en comparant les chiffres entre joueurs, dans l'esprit d'un vrai tirage au sort en direct.
+- Jusqu'à 41 joueurs (10 terrains × 4 + 1 Joker).
 
 ## Autres changements de ce tour
 

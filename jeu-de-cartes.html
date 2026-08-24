@@ -2,12 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
 <title>Jeu de cartes — TBK</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="cartes-body">
 
 <header class="site-header">
   <div class="wrap header-inner">
@@ -25,52 +25,41 @@
   </div>
 </header>
 
-<main class="wrap page-section page-section--wide">
-  <p class="section-eyebrow">Réservé à l'administrateur</p>
-  <h1>Jeu de cartes</h1>
+<div id="deniedPanel" class="status-panel" hidden style="margin:24px auto; max-width:600px;">
+  <h2>Accès refusé</h2>
+  <p>Cette page est réservée au profil administrateur.</p>
+</div>
 
-  <div id="deniedPanel" class="status-panel" hidden>
-    <h2>Accès refusé</h2>
-    <p>Cette page est réservée au profil administrateur.</p>
+<main id="cartesMain" class="cartes-main" hidden>
+
+  <div class="cartes-topbar">
+    <h1>Jeu de cartes</h1>
+    <div class="cartes-setup">
+      <input type="number" id="nbJoueursInput" min="1" max="41" value="16" aria-label="Nombre de joueurs">
+      <button type="button" class="btn btn-primary btn-small" id="creerSessionBtn">Créer la session</button>
+    </div>
+    <p class="form-hint" id="setupHint"></p>
   </div>
 
-  <div id="content" hidden>
+  <div id="jeuZone" class="jeu-zone" hidden>
+    <div class="carte-progress" id="carteProgress"></div>
 
-    <section class="admin-section">
-      <p class="section-lead" style="margin-bottom:14px;">Compose aléatoirement les équipes qui s'affrontent, avec un jeu de cartes classique. Chaque joueur tire une carte ; les 4 joueurs qui tirent le même rang (ex. les 4 Rois) forment un match : la paire de même couleur (Cœur/Carreau, rouge) affronte la paire de l'autre couleur (Pique/Trèfle, noir).</p>
-      <ul style="margin-left:20px; color:var(--ink-soft); font-size:0.9rem;">
-        <li>S'il reste 1 joueur non casé : il passe son tour ce round.</li>
-        <li>S'il reste 2 joueurs : ils s'affrontent en simple.</li>
-        <li>S'il reste 3 joueurs : ils s'organisent pour jouer 2 matchs en 11 points entre eux.</li>
-      </ul>
-
-      <div class="inline-form" style="margin-top:20px;">
-        <label>Nombre de joueurs
-          <input type="number" id="nbJoueursInput" min="1" max="52" value="16" style="width:90px;">
-        </label>
-        <button type="button" class="btn btn-primary btn-small" id="creerJoueursBtn">Créer les joueurs</button>
+    <div class="carte-affichage">
+      <div class="carte-geante carte-dos" id="carteGeante">
+        <span class="carte-dos-motif">🏸</span>
       </div>
-    </section>
+    </div>
 
-    <section class="admin-section" id="joueursSection" hidden>
-      <h2>Joueurs</h2>
-      <p class="section-lead">Renseignez les noms si besoin, puis cliquez sur "Tirer" pour révéler la carte de chaque joueur, un par un.</p>
-      <div id="joueursGrid" class="joueurs-grid"></div>
-      <div class="form-actions" style="margin-top:20px;">
-        <button type="button" class="btn btn-ghost btn-small" id="tirerToutBtn">Tirer toutes les cartes restantes</button>
-        <button type="button" class="btn btn-ghost btn-small" id="nouveauTirageBtn">Nouveau tirage (rebattre)</button>
-      </div>
-    </section>
-
-    <section class="admin-section" id="resultatsSection" hidden>
-      <h2>Matchs composés</h2>
-      <div id="resultatsContainer"></div>
-    </section>
-
+    <div class="carte-message" id="carteMessage">Appuyez sur "Carte" pour commencer le tirage.</div>
   </div>
+
+  <div class="cartes-bottombar" id="cartesBottombar" hidden>
+    <button type="button" class="btn-carte-geant" id="carteBtn">Carte</button>
+  </div>
+
 </main>
 
-<footer class="site-footer">
+<footer class="site-footer cartes-footer">
   <div class="wrap footer-inner">
     <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
     <a href="index.html">Retour à l'accueil</a>

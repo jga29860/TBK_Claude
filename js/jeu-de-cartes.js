@@ -1,15 +1,16 @@
 // ============================================================
-// TBK — Jeu de cartes : composition aléatoire d'équipes
+// TBK — Jeu de cartes : tirage séquentiel plein écran, pensé
+// pour être utilisé à la main sur un téléphone au club.
 // ============================================================
-// Principe : chaque joueur tire une carte d'un jeu de 52 cartes
-// (préparé pour que le nombre de rangs utilisés corresponde
-// exactement au nombre de joueurs). Les 4 joueurs qui partagent
-// le même rang (ex. les 4 Rois) forment un "quadruple" : la paire
-// de cartes rouges (Cœur/Carreau) affronte la paire de cartes
-// noires (Pique/Trèfle). Le reste (1, 2 ou 3 joueurs non casés
-// dans un quadruple) suit des règles dédiées.
+// Les cartes vont de 1 à 10 : le chiffre correspond directement
+// au numéro de terrain. Les 4 joueurs qui tirent le même chiffre
+// forment un match sur ce terrain : la paire de cartes rouges
+// (Cœur/Carreau) affronte la paire de cartes noires (Pique/Trèfle).
+// S'il reste 2 ou 3 joueurs non casés dans un quadruple, ils
+// partagent un chiffre/terrain dédié (simple, ou trio à organiser).
+// S'il ne reste qu'1 joueur, il reçoit un Joker : il passe son tour.
 
-const RANGS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'V', 'D', 'R'];
+const RANGS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 const COULEURS = [
   { symbole: '♠', nom: 'Pique', couleur: 'noir' },
   { symbole: '♥', nom: 'Cœur', couleur: 'rouge' },
@@ -17,27 +18,27 @@ const COULEURS = [
   { symbole: '♣', nom: 'Trèfle', couleur: 'noir' },
 ];
 
-let joueurs = [];   // [{ nom, carte: {rang, couleur} | null }]
-let paquet = [];    // cartes déjà mélangées, dans l'ordre d'attribution aux joueurs
+let paquet = [];       // cartes mélangées, dans l'ordre de tirage
+let indexCourant = 0;  // combien de cartes ont déjà été tirées
+let rankCounts = {};   // { rang: nombre de cartes de ce rang dans le paquet }
 
 async function initPage() {
   const access = await getCurrentAccess();
   const deniedPanel = document.getElementById('deniedPanel');
-  const content = document.getElementById('content');
+  const main = document.getElementById('cartesMain');
 
   const hasAccess = !!access && access.pages.includes('administration');
   if (!hasAccess) {
     deniedPanel.hidden = false;
-    content.hidden = true;
+    main.hidden = true;
     return;
   }
 
   deniedPanel.hidden = true;
-  content.hidden = false;
+  main.hidden = false;
 
-  document.getElementById('creerJoueursBtn').addEventListener('click', creerJoueurs);
-  document.getElementById('tirerToutBtn').addEventListener('click', tirerToutesLesCartes);
-  document.getElementById('nouveauTirageBtn').addEventListener('click', () => creerJoueurs(true));
+  document.getElementById('creerSessionBtn').addEventListener('click', creerSession);
+  document.getElementById('carteBtn').addEventListener('click', tirerCarteSuivante);
 }
 
 function melanger(tableau) {
@@ -49,157 +50,134 @@ function melanger(tableau) {
   return copie;
 }
 
-/** Construit un paquet de n cartes : nbQuadruples rangs complets (4 couleurs
- *  chacun) + un rang distinct supplémentaire pour les joueurs en surplus. */
+/** Construit le paquet pour n joueurs. Le reste (1, 2 ou 3 joueurs non
+ *  casés dans un quadruple complet) est géré ainsi :
+ *  - reste = 1 → cette personne reçoit un Joker (passe son tour), ne
+ *    consomme pas de numéro de terrain.
+ *  - reste = 2 ou 3 → un terrain supplémentaire, distinct des quadruples,
+ *    leur est dédié (avec 2 ou 3 cartes de ce rang).
+ */
 function construireCartes(n) {
   const nbQuadruples = Math.floor(n / 4);
   const reste = n % 4;
+
+  if (nbQuadruples > RANGS.length) {
+    return { erreur: `Trop de joueurs pour le nombre de terrains disponibles (max ${RANGS.length * 4 + 1} joueurs).` };
+  }
 
   const rangsDisponibles = melanger(RANGS);
   const rangsQuadruples = rangsDisponibles.slice(0, nbQuadruples);
 
   let cartes = [];
   rangsQuadruples.forEach(rang => {
-    COULEURS.forEach(c => cartes.push({ rang, couleur: c }));
+    COULEURS.forEach(c => cartes.push({ rang, couleur: c, estJoker: false }));
   });
 
-  if (reste > 0) {
+  if (reste === 1) {
+    cartes.push({ rang: null, couleur: null, estJoker: true });
+  } else if (reste === 2 || reste === 3) {
+    if (nbQuadruples >= RANGS.length) {
+      return { erreur: `Trop de joueurs pour le nombre de terrains disponibles (max ${RANGS.length * 4 + 1} joueurs).` };
+    }
     const rangReste = rangsDisponibles[nbQuadruples];
     const couleursReste = melanger(COULEURS).slice(0, reste);
-    couleursReste.forEach(c => cartes.push({ rang: rangReste, couleur: c }));
+    couleursReste.forEach(c => cartes.push({ rang: rangReste, couleur: c, estJoker: false }));
   }
 
-  return melanger(cartes);
+  return { cartes: melanger(cartes) };
 }
 
-function creerJoueurs(conserverNoms) {
-  const n = Math.max(1, Math.min(52, parseInt(document.getElementById('nbJoueursInput').value, 10) || 0));
+function creerSession() {
+  const hint = document.getElementById('setupHint');
+  const n = Math.max(1, Math.min(41, parseInt(document.getElementById('nbJoueursInput').value, 10) || 0));
 
-  const anciensNoms = conserverNoms ? joueurs.map(j => j.nom) : [];
-  joueurs = Array.from({ length: n }, (_, i) => ({
-    nom: anciensNoms[i] || `Joueur ${i + 1}`,
-    carte: null,
-  }));
-  paquet = construireCartes(n);
+  const resultat = construireCartes(n);
+  if (resultat.erreur) {
+    hint.textContent = resultat.erreur;
+    document.getElementById('jeuZone').hidden = true;
+    document.getElementById('cartesBottombar').hidden = true;
+    return;
+  }
 
-  document.getElementById('joueursSection').hidden = false;
-  document.getElementById('resultatsSection').hidden = true;
-  renderJoueurs();
-}
+  hint.textContent = '';
+  paquet = resultat.cartes;
+  indexCourant = 0;
 
-function renderJoueurs() {
-  const grid = document.getElementById('joueursGrid');
-  grid.innerHTML = joueurs.map((j, i) => `
-    <div class="joueur-slot">
-      <input type="text" class="joueur-nom-input" data-index="${i}" value="${escapeHtml(j.nom)}">
-      ${j.carte
-        ? renderCarteHtml(j.carte)
-        : `<button type="button" class="btn btn-primary btn-small tirer-carte-btn" data-index="${i}">Tirer</button>`}
-    </div>
-  `).join('');
-
-  grid.querySelectorAll('.joueur-nom-input').forEach(input => {
-    input.addEventListener('change', (e) => {
-      const idx = Number(e.target.getAttribute('data-index'));
-      joueurs[idx].nom = e.target.value.trim() || `Joueur ${idx + 1}`;
-      if (document.getElementById('resultatsSection').hidden === false) afficherResultats();
-    });
-  });
-  grid.querySelectorAll('.tirer-carte-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = Number(e.target.getAttribute('data-index'));
-      tirerCarte(idx);
-    });
-  });
-}
-
-function tirerCarte(index) {
-  if (joueurs[index].carte || paquet.length === 0) return;
-  joueurs[index].carte = paquet.shift();
-  renderJoueurs();
-  if (joueurs.every(j => j.carte)) afficherResultats();
-}
-
-function tirerToutesLesCartes() {
-  joueurs.forEach((j, i) => { if (!j.carte) tirerCarte(i); });
-}
-
-function renderCarteHtml(carte) {
-  const classe = carte.couleur.couleur === 'rouge' ? 'carte-rouge' : 'carte-noire';
-  return `<div class="carte ${classe}"><span class="carte-rang">${carte.rang}</span><span class="carte-symbole">${carte.couleur.symbole}</span></div>`;
-}
-
-// ============================================================
-// Calcul et affichage des matchs
-// ============================================================
-
-function afficherResultats() {
-  const container = document.getElementById('resultatsContainer');
-  document.getElementById('resultatsSection').hidden = false;
-
-  const parRang = {};
-  joueurs.forEach(j => {
-    if (!j.carte) return;
-    if (!parRang[j.carte.rang]) parRang[j.carte.rang] = [];
-    parRang[j.carte.rang].push(j);
+  rankCounts = {};
+  paquet.forEach(c => {
+    if (c.estJoker) return;
+    rankCounts[c.rang] = (rankCounts[c.rang] || 0) + 1;
   });
 
-  const blocs = Object.entries(parRang).map(([rang, joueursRang]) => {
-    if (joueursRang.length === 4) {
-      const rouges = joueursRang.filter(j => j.carte.couleur.couleur === 'rouge');
-      const noirs = joueursRang.filter(j => j.carte.couleur.couleur === 'noir');
-      return `
-        <div class="match-bloc">
-          <h3 class="match-bloc-title">Rang "${escapeHtml(rang)}" — Match en double</h3>
-          <div class="match-versus">
-            <div class="match-equipe match-equipe--rouge">
-              <span class="match-equipe-label">Équipe Rouge (♥ ♦)</span>
-              ${rouges.map(j => `<span class="match-joueur">${escapeHtml(j.nom)}</span>`).join('')}
-            </div>
-            <div class="match-vs">VS</div>
-            <div class="match-equipe match-equipe--noire">
-              <span class="match-equipe-label">Équipe Noire (♠ ♣)</span>
-              ${noirs.map(j => `<span class="match-joueur">${escapeHtml(j.nom)}</span>`).join('')}
-            </div>
-          </div>
-        </div>`;
-    }
+  document.getElementById('jeuZone').hidden = false;
+  document.getElementById('cartesBottombar').hidden = false;
+  document.getElementById('carteBtn').disabled = false;
+  document.getElementById('carteBtn').textContent = 'Carte';
 
-    if (joueursRang.length === 1) {
-      return `
-        <div class="match-bloc match-bloc--info">
-          <h3 class="match-bloc-title">Rang "${escapeHtml(rang)}" — Joueur seul</h3>
-          <p>${escapeHtml(joueursRang[0].nom)} passe son tour ce round.</p>
-        </div>`;
-    }
-
-    if (joueursRang.length === 2) {
-      return `
-        <div class="match-bloc match-bloc--info">
-          <h3 class="match-bloc-title">Rang "${escapeHtml(rang)}" — Match en simple</h3>
-          <p>${escapeHtml(joueursRang[0].nom)} affronte ${escapeHtml(joueursRang[1].nom)} en simple.</p>
-        </div>`;
-    }
-
-    if (joueursRang.length === 3) {
-      const noms = joueursRang.map(j => escapeHtml(j.nom)).join(', ');
-      return `
-        <div class="match-bloc match-bloc--info">
-          <h3 class="match-bloc-title">Rang "${escapeHtml(rang)}" — Trio</h3>
-          <p>${noms} s'organisent pour jouer 2 matchs en 11 points entre eux.</p>
-        </div>`;
-    }
-
-    return '';
-  });
-
-  container.innerHTML = blocs.join('');
+  resetAffichageCarte();
+  majProgression();
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str === null || str === undefined ? '' : String(str);
-  return div.innerHTML;
+function resetAffichageCarte() {
+  const carteEl = document.getElementById('carteGeante');
+  carteEl.className = 'carte-geante carte-dos';
+  carteEl.innerHTML = '<span class="carte-dos-motif">🏸</span>';
+  document.getElementById('carteMessage').textContent = 'Appuyez sur "Carte" pour commencer le tirage.';
+}
+
+function majProgression() {
+  document.getElementById('carteProgress').textContent = `${indexCourant} / ${paquet.length} cartes tirées`;
+}
+
+function tirerCarteSuivante() {
+  if (indexCourant >= paquet.length) return;
+
+  const carte = paquet[indexCourant];
+  indexCourant++;
+  majProgression();
+  afficherCarte(carte);
+
+  if (indexCourant >= paquet.length) {
+    const btn = document.getElementById('carteBtn');
+    btn.textContent = 'Terminé';
+    btn.disabled = true;
+  }
+}
+
+function afficherCarte(carte) {
+  const carteEl = document.getElementById('carteGeante');
+  const messageEl = document.getElementById('carteMessage');
+
+  carteEl.classList.remove('carte-anim');
+  void carteEl.offsetWidth; // force le recalcul pour rejouer l'animation
+  carteEl.classList.add('carte-anim');
+
+  if (carte.estJoker) {
+    carteEl.className = 'carte-geante carte-joker carte-anim';
+    carteEl.innerHTML = `<span class="carte-joker-texte">JOKER</span>`;
+    messageEl.innerHTML = `Tu passes ton tour ce round ! 👋`;
+    return;
+  }
+
+  const classeCouleur = carte.couleur.couleur === 'rouge' ? 'carte-rouge' : 'carte-noire';
+  carteEl.className = `carte-geante ${classeCouleur} carte-anim`;
+  carteEl.innerHTML = `
+    <span class="carte-geante-rang">${carte.rang}</span>
+    <span class="carte-geante-symbole">${carte.couleur.symbole}</span>
+  `;
+
+  const nbMemeRang = rankCounts[carte.rang];
+  let message;
+  if (nbMemeRang === 4) {
+    message = `🎾 Terrain ${carte.rang} — trouve les 3 autres avec ce chiffre.<br>Rouge (♥♦) contre Noir (♠♣) !`;
+  } else if (nbMemeRang === 2) {
+    message = `🎾 Terrain ${carte.rang} — trouve l'autre joueur avec ce chiffre.<br>Un match en simple vous attend !`;
+  } else if (nbMemeRang === 3) {
+    message = `🎾 Terrain ${carte.rang} — trouvez les 2 autres avec ce chiffre.<br>Organisez 2 matchs à 11 points entre vous !`;
+  } else {
+    message = `🎾 Terrain ${carte.rang}`;
+  }
+  messageEl.innerHTML = message;
 }
 
 document.addEventListener('DOMContentLoaded', initPage);
