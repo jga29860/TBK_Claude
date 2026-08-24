@@ -292,6 +292,20 @@ Sur `admin.html` → Utilisateurs, un bouton **"Supprimer"** apparaît en bout d
 
 **Ce que ça fait réellement** : cela supprime le *profil* (rôle, droits d'accès) de la personne — elle perd immédiatement tout accès au site, comme si son compte n'existait plus pour l'application. **Cela ne supprime pas son compte de connexion Supabase sous-jacent** (ses identifiants email/mot de passe), ce qui nécessiterait une clé secrète jamais exposée dans le code du site. Si vous voulez aussi supprimer complètement ce compte de connexion, faites-le depuis Supabase → Authentication → Users → cet utilisateur → Delete.
 
+## Agenda du club (page `agenda.html`)
+
+Exécutez `supabase/migration_agenda.sql` pour accorder l'accès au profil admin existant.
+
+Affiche l'agenda Google du club en vue mensuelle, avec ajout/modification/suppression d'événements directement depuis le site, via l'API Google Calendar.
+
+- **Réservé au profil administrateur** pour l'instant (nouveau droit de page `agenda`, extensible à d'autres profils comme les autres pages).
+- **Calendrier utilisé** : celui de l'adresse email de contact du club, paramétrée dans Admin → Paramètres du site (pas de configuration séparée à maintenir).
+- **Connexion Google** : un bouton "Se connecter à Google Agenda" ouvre la fenêtre de consentement standard Google. La session dure environ 1h ; passé ce délai, il suffit de recliquer sur le bouton pour se reconnecter (aucune donnée n'est perdue, c'est juste une contrainte technique de sécurité OAuth).
+- **Ajout d'événement** : bouton "+" sur n'importe quel jour de la grille. **Modifier/supprimer** : cliquez sur un événement existant.
+- Champs disponibles : titre, journée entière ou horaires précis, lieu, description.
+
+**Prérequis technique (déjà fait pour vous)** : un identifiant client OAuth Google a été configuré dans `js/google-config.js`. Si vous changez un jour de projet Google Cloud, il faudra régénérer cet identifiant et l'y remplacer.
+
 ## Email de contact paramétrable
 
 Exécutez `supabase/migration_parametres_site.sql` pour activer cette évolution.

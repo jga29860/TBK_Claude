@@ -12,6 +12,7 @@ const PAGE_CATALOG = [
   { key: 'tournois_admin', label: 'Tournois - Administration' },
   { key: 'tournois_gestion', label: 'Tournois - Gestion' },
   { key: 'tournois_emargement', label: 'Tournois - Émargement' },
+  { key: 'agenda', label: 'Agenda du club' },
   { key: 'administration', label: 'Administration' },
 ];
 

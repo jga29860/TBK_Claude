@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Agenda du club — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'administrateur</p>
+  <h1>Agenda du club</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée au profil administrateur.</p>
+  </div>
+
+  <div id="mainPanel" hidden>
+
+    <!-- ===== Connexion à Google ===== -->
+    <section class="admin-section" id="connectPanel">
+      <h2>Connexion à Google Agenda</h2>
+      <p class="section-lead">L'agenda affiché est celui associé à l'email de contact du club (<span id="calendarEmailLabel">…</span>), modifiable depuis <a href="admin.html">Administration → Paramètres du site</a>.</p>
+      <button type="button" class="btn btn-primary" id="connectBtn">Se connecter à Google Agenda</button>
+      <p class="form-hint" id="connectHint"></p>
+    </section>
+
+    <!-- ===== Calendrier mensuel ===== -->
+    <div id="calendarContent" hidden>
+
+      <section class="admin-section">
+        <div class="cal-toolbar">
+          <button type="button" class="btn btn-ghost btn-small" id="prevMonthBtn">◀ Mois précédent</button>
+          <h2 id="monthLabel" style="margin:0;"></h2>
+          <button type="button" class="btn btn-ghost btn-small" id="nextMonthBtn">Mois suivant ▶</button>
+        </div>
+        <div class="cal-grid" id="calendarGrid"></div>
+        <p class="form-hint" id="calendarHint"></p>
+      </section>
+
+      <!-- ===== Formulaire ajout / modification ===== -->
+      <section class="admin-section" id="eventFormSection" hidden>
+        <h2 id="eventFormTitle">Nouvel événement</h2>
+        <form id="eventForm">
+          <div class="field-grid">
+            <label>Titre
+              <input type="text" name="titre" required>
+            </label>
+            <label>Journée entière
+              <select name="journee_entiere" id="journeeEntiereInput">
+                <option value="false">Non</option>
+                <option value="true">Oui</option>
+              </select>
+            </label>
+            <label>Date de début
+              <input type="date" name="date_debut" required>
+            </label>
+            <label id="heureDebutLabel">Heure de début
+              <input type="time" name="heure_debut" value="09:00">
+            </label>
+            <label>Date de fin
+              <input type="date" name="date_fin">
+            </label>
+            <label id="heureFinLabel">Heure de fin
+              <input type="time" name="heure_fin" value="10:00">
+            </label>
+            <label>Lieu (facultatif)
+              <input type="text" name="lieu">
+            </label>
+          </div>
+          <div class="field-grid">
+            <label style="grid-column: 1 / -1;">Description (facultatif)
+              <textarea name="description" rows="3"></textarea>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="eventSubmitBtn">Enregistrer</button>
+            <button type="button" class="btn btn-danger" id="eventDeleteBtn" hidden>Supprimer l'événement</button>
+            <button type="button" class="btn btn-ghost" id="eventCancelBtn">Annuler</button>
+          </div>
+          <p class="form-hint" id="eventFormHint"></p>
+        </form>
+      </section>
+
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/google-config.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script src="js/agenda.js"></script>
+</body>
+</html>
