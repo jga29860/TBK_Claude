@@ -360,6 +360,8 @@ Exécutez `supabase/migration_jeu_cartes_droit.sql` pour activer le nouveau droi
 
 Accès désormais **paramétrable par profil** (nouveau droit "Jeu de cartes" dans le catalogue des pages, Admin → Profils), pré-accordé au profil admin par défaut. Peut donc être ouvert à d'autres profils (ex. Bureau, Gestion tournoi) sans leur donner accès à toute l'administration.
 
+- **Terrains minimisés** : les rangs utilisés pour les quadruples sont toujours les premiers dans l'ordre (1, 2, 3…), jamais choisis au hasard parmi les 10 — pour 16 joueurs, seuls les terrains 1 à 4 sont mobilisés, jamais un terrain 7 ou 9 par exemple. Seul l'ordre de tirage (qui reçoit quelle carte) reste aléatoire.
+
 - **En-tête compact** : titre + nombre de joueurs + bouton "Créer la session" sur une seule ligne.
 - **Cartes numérotées de 1 à 10** — le chiffre correspond directement au numéro de terrain (plus pratique qu'un jeu de cartes classique à 13 rangs). Toujours 4 couleurs par chiffre (♠♥♦♣) pour former les équipes Rouge/Noir dans les quadruples.
 - **Tirage séquentiel plein écran** : un gros bouton "Carte" fixé en bas de l'écran révèle, à chaque appui, la carte du joueur suivant en grand, avec une petite animation. Le joueur regarde son terrain et sa couleur, passe le téléphone au suivant.

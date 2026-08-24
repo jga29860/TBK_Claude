@@ -50,12 +50,17 @@ function melanger(tableau) {
   return copie;
 }
 
-/** Construit le paquet pour n joueurs. Le reste (1, 2 ou 3 joueurs non
- *  casés dans un quadruple complet) est géré ainsi :
+/** Construit le paquet pour n joueurs. Les rangs utilisés pour les
+ *  quadruples sont toujours les premiers dans l'ordre (1, 2, 3…), afin
+ *  de minimiser le nombre de terrains mobilisés — ce n'est que l'ordre
+ *  de TIRAGE (qui reçoit quelle carte) qui reste aléatoire, pas le choix
+ *  des rangs utilisés.
+ *  Le reste (1, 2 ou 3 joueurs non casés dans un quadruple complet) est
+ *  géré ainsi :
  *  - reste = 1 → cette personne reçoit un Joker (passe son tour), ne
  *    consomme pas de numéro de terrain.
- *  - reste = 2 ou 3 → un terrain supplémentaire, distinct des quadruples,
- *    leur est dédié (avec 2 ou 3 cartes de ce rang).
+ *  - reste = 2 ou 3 → le rang suivant immédiatement après les quadruples
+ *    (donc le terrain minimal disponible) leur est dédié.
  */
 function construireCartes(n) {
   const nbQuadruples = Math.floor(n / 4);
@@ -65,8 +70,7 @@ function construireCartes(n) {
     return { erreur: `Trop de joueurs pour le nombre de terrains disponibles (max ${RANGS.length * 4 + 1} joueurs).` };
   }
 
-  const rangsDisponibles = melanger(RANGS);
-  const rangsQuadruples = rangsDisponibles.slice(0, nbQuadruples);
+  const rangsQuadruples = RANGS.slice(0, nbQuadruples);
 
   let cartes = [];
   rangsQuadruples.forEach(rang => {
@@ -79,7 +83,7 @@ function construireCartes(n) {
     if (nbQuadruples >= RANGS.length) {
       return { erreur: `Trop de joueurs pour le nombre de terrains disponibles (max ${RANGS.length * 4 + 1} joueurs).` };
     }
-    const rangReste = rangsDisponibles[nbQuadruples];
+    const rangReste = RANGS[nbQuadruples];
     const couleursReste = melanger(COULEURS).slice(0, reste);
     couleursReste.forEach(c => cartes.push({ rang: rangReste, couleur: c, estJoker: false }));
   }
