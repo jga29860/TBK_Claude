@@ -319,6 +319,12 @@ Exécutez `supabase/migration_parametres_site.sql` pour activer cette évolution
 
 Pour les profils dont la clé est exactement `bureau` ou `admin`, un badge rouge **"X demande(s) en attente"** apparaît automatiquement dans le bandeau, sur **toutes les pages du site** dès qu'au moins une inscription saison a le statut "En attente". Cliquer dessus mène directement à `inscriptions.html`. Le badge disparaît de lui-même dès qu'il n'y a plus de demande en attente.
 
+## Gestion des annonces du club depuis le site (Admin + Bureau)
+
+Exécutez `supabase/migration_gestion_annonces.sql` pour activer cette évolution.
+
+Sur `membres.html`, un panneau **"Gérer les annonces"** apparaît désormais pour tout profil ayant le nouveau droit de page **"Annonces du club"** — pré-accordé automatiquement aux profils `admin` et `bureau` s'ils existent déjà, modifiable ensuite comme n'importe quel autre droit depuis Admin → Profils. Permet de publier, modifier et supprimer des annonces directement depuis le site, sans passer par Supabase.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
