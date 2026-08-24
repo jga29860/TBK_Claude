@@ -86,7 +86,21 @@
             <label>Lieu (facultatif)
               <input type="text" name="lieu">
             </label>
+            <label id="periodiciteLabel">Périodicité
+              <select name="periodicite" id="periodiciteInput">
+                <option value="none">Aucune (ponctuel)</option>
+                <option value="daily">Tous les jours</option>
+                <option value="weekly">Toutes les semaines</option>
+                <option value="biweekly">Toutes les 2 semaines</option>
+                <option value="monthly">Tous les mois</option>
+                <option value="yearly">Tous les ans</option>
+              </select>
+            </label>
+            <label id="periodiciteFinLabel" hidden>Se répète jusqu'au (facultatif)
+              <input type="date" name="periodicite_fin">
+            </label>
           </div>
+          <p class="form-hint" id="recurrenceNote" hidden>Cet événement fait partie d'une série récurrente : pour changer sa périodicité, modifiez-la directement dans Google Agenda.</p>
           <div class="field-grid">
             <label style="grid-column: 1 / -1;">Description (facultatif)
               <textarea name="description" rows="3"></textarea>

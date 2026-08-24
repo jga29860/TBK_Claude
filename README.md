@@ -302,7 +302,7 @@ Affiche l'agenda Google du club en vue mensuelle, avec ajout/modification/suppre
 - **Calendrier utilisé** : celui de l'adresse email de contact du club, paramétrée dans Admin → Paramètres du site (pas de configuration séparée à maintenir).
 - **Connexion Google** : un bouton "Se connecter à Google Agenda" ouvre la fenêtre de consentement standard Google. La session dure environ 1h ; passé ce délai, il suffit de recliquer sur le bouton pour se reconnecter (aucune donnée n'est perdue, c'est juste une contrainte technique de sécurité OAuth).
 - **Ajout d'événement** : bouton "+" sur n'importe quel jour de la grille. **Modifier/supprimer** : cliquez sur un événement existant.
-- Champs disponibles : titre, journée entière ou horaires précis, lieu, description.
+- Champs disponibles : titre, journée entière ou horaires précis, lieu, description, **périodicité** (aucune, tous les jours, toutes les semaines, toutes les 2 semaines, tous les mois, tous les ans — avec une date de fin facultative). La périodicité ne se règle qu'à la création : pour modifier la récurrence d'une série déjà existante, faites-le directement dans Google Agenda (édition d'une série récurrente = cas particulier volontairement non géré ici, pour rester simple et fiable).
 
 **Prérequis technique (déjà fait pour vous)** : un identifiant client OAuth Google a été configuré dans `js/google-config.js`. Si vous changez un jour de projet Google Cloud, il faudra régénérer cet identifiant et l'y remplacer.
 

@@ -197,6 +197,10 @@ function openForm(event, presetDate) {
   form.reset();
   section.hidden = false;
 
+  const periodiciteLabel = document.getElementById('periodiciteLabel');
+  const periodiciteFinLabel = document.getElementById('periodiciteFinLabel');
+  const recurrenceNote = document.getElementById('recurrenceNote');
+
   if (event) {
     editingEventId = event.id;
     document.getElementById('eventFormTitle').textContent = 'Modifier l\'événement';
@@ -219,12 +223,23 @@ function openForm(event, presetDate) {
       form.date_fin.value = event.end.dateTime.slice(0, 10);
       form.heure_fin.value = event.end.dateTime.slice(11, 16);
     }
+
+    // La périodicité ne se règle qu'à la création : un événement déjà
+    // récurrent (ou faisant partie d'une série) se modifie dans Google Agenda.
+    const faitPartieDuneSerie = !!event.recurringEventId || (event.recurrence && event.recurrence.length > 0);
+    periodiciteLabel.hidden = true;
+    periodiciteFinLabel.hidden = true;
+    recurrenceNote.hidden = !faitPartieDuneSerie;
   } else {
     editingEventId = null;
     document.getElementById('eventFormTitle').textContent = 'Nouvel événement';
     document.getElementById('eventDeleteBtn').hidden = true;
     form.date_debut.value = presetDate || new Date().toISOString().slice(0, 10);
     form.date_fin.value = presetDate || new Date().toISOString().slice(0, 10);
+
+    periodiciteLabel.hidden = false;
+    recurrenceNote.hidden = true;
+    togglePeriodiciteFin();
   }
 
   toggleHeureFields();
@@ -243,6 +258,27 @@ function toggleHeureFields() {
   document.getElementById('heureFinLabel').hidden = journee;
 }
 
+function togglePeriodiciteFin() {
+  const periodicite = document.getElementById('periodiciteInput').value;
+  document.getElementById('periodiciteFinLabel').hidden = periodicite === 'none';
+}
+
+function buildRRule(periodicite, finDate) {
+  if (!periodicite || periodicite === 'none') return null;
+  const freqMap = {
+    daily: 'DAILY',
+    weekly: 'WEEKLY',
+    biweekly: 'WEEKLY;INTERVAL=2',
+    monthly: 'MONTHLY',
+    yearly: 'YEARLY',
+  };
+  let rule = `FREQ=${freqMap[periodicite]}`;
+  if (finDate) {
+    rule += `;UNTIL=${finDate.replace(/-/g, '')}T235959Z`;
+  }
+  return [`RRULE:${rule}`];
+}
+
 function bindStaticEvents() {
   document.getElementById('connectBtn').addEventListener('click', connect);
 
@@ -256,6 +292,7 @@ function bindStaticEvents() {
   });
 
   document.getElementById('journeeEntiereInput').addEventListener('change', toggleHeureFields);
+  document.getElementById('periodiciteInput').addEventListener('change', togglePeriodiciteFin);
   document.getElementById('eventCancelBtn').addEventListener('click', closeForm);
   document.getElementById('eventDeleteBtn').addEventListener('click', deleteEvent);
   document.getElementById('eventForm').addEventListener('submit', submitEvent);
@@ -287,6 +324,14 @@ async function submitEvent(e) {
     const heureFin = form.heure_fin.value || '10:00';
     body.start = { dateTime: `${dateDebut}T${heureDebut}:00`, timeZone: 'Europe/Paris' };
     body.end = { dateTime: `${dateFin}T${heureFin}:00`, timeZone: 'Europe/Paris' };
+  }
+
+  // Périodicité : seulement à la création d'un nouvel événement
+  if (!editingEventId) {
+    const periodicite = form.periodicite.value;
+    const periodiciteFin = form.periodicite_fin.value;
+    const rrule = buildRRule(periodicite, periodiciteFin);
+    if (rrule) body.recurrence = rrule;
   }
 
   const base = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`;
