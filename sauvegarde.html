@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Sauvegarde — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'administrateur</p>
+  <h1>Sauvegarde des données</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée au profil administrateur.</p>
+  </div>
+
+  <div id="sauvegardeContent" hidden>
+
+    <section class="admin-section">
+      <p class="section-lead" style="margin-bottom:0;">Génère un fichier SQL contenant les instructions nécessaires pour réinjecter les données sélectionnées (une commande "insert" par ligne). Ce fichier s'exécute ensuite depuis Supabase → SQL Editor, en cas de besoin de restauration.</p>
+      <p class="form-hint" style="margin-top:10px;">Les tables sont toujours exportées dans un ordre qui respecte leurs dépendances (ex. les profils avant les utilisateurs), quel que soit l'ordre de sélection. Le fichier neutralise temporairement les contraintes pendant la réinjection, pour éviter tout problème d'ordre.</p>
+    </section>
+
+    <section class="admin-section">
+      <h2>Tables disponibles</h2>
+      <div class="inline-form" style="margin-bottom:14px;">
+        <button type="button" class="btn btn-ghost btn-small" id="selectAllBtn">Tout sélectionner</button>
+        <button type="button" class="btn btn-ghost btn-small" id="selectNoneBtn">Tout désélectionner</button>
+      </div>
+      <div class="table-wrap">
+        <table class="schedule" id="tablesTable">
+          <thead>
+            <tr><th></th><th>Table</th><th>Description</th><th>Lignes</th></tr>
+          </thead>
+          <tbody id="tablesTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="form-actions" style="margin-top:20px;">
+        <button type="button" class="btn btn-primary" id="genererBtn">Générer et télécharger le fichier SQL</button>
+      </div>
+      <p class="form-hint" id="sauvegardeHint"></p>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/sauvegarde.js"></script>
+</body>
+</html>

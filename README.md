@@ -343,6 +343,17 @@ Le bouton "Se connecter à Google Agenda" ne repasse plus systématiquement par 
 
 Le bouton "Valider" n'est activable que si les 3 conditions sont réunies : cotisation payée, santé différente de "En Attente", et date de certificat renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis au survol (ex. "Validation impossible : cotisation non payée, santé en attente"). La confirmation avant suppression d'une inscription existait déjà (vérifié, aucune modification nécessaire sur ce point).
 
+## Sauvegarde manuelle des données (page `sauvegarde.html`)
+
+Exécutez `supabase/migration_lecture_admin_sauvegarde.sql` pour garantir un export toujours complet.
+
+Réservée au profil administrateur. Liste toutes les tables du modèle avec leur nombre de lignes actuel, permet d'en sélectionner une ou plusieurs, puis génère et télécharge un fichier `.sql` contenant les instructions `insert` nécessaires pour réinjecter les données sélectionnées.
+
+- **Ordre des tables toujours respecté** (indépendamment de l'ordre de sélection) pour éviter les problèmes de contraintes entre tables liées (ex. profils avant utilisateurs, tournois avant équipes).
+- Le fichier généré neutralise temporairement les contraintes pendant la réinjection (`session_replication_role`), en filet de sécurité supplémentaire.
+- **Important** : le plan gratuit de Supabase n'inclut aucune sauvegarde automatique native. Cette page comble ce manque via un export à la demande — pensez à l'utiliser régulièrement (par exemple avant/après la période d'inscriptions ou un tournoi), et à conserver les fichiers générés dans un endroit sûr (ils contiennent des données personnelles de membres).
+- Pour restaurer : ouvrez Supabase → SQL Editor, collez ou importez le contenu du fichier, exécutez.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

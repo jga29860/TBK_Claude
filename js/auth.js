@@ -147,6 +147,7 @@ const TOOL_LINKS = [
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'planning.html', label: 'Planning', group: 'Tournoi' },
   { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },
   { pageKeys: ['administration'], href: 'documentation.html', label: 'Documentation', group: 'Administration' },
+  { pageKeys: ['administration'], href: 'sauvegarde.html', label: 'Sauvegarde', group: 'Administration' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda du club', group: 'Administration' },
 ];
 const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];
