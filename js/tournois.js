@@ -153,7 +153,7 @@ async function loadTournois() {
 
   const { data, error } = await sbClient
     .from('tournois')
-    .select('id, nom, cotisation, nb_terrains, created_at, tournoi_competitions(id, nb_poules, taille_poule, types_competition(nom))')
+    .select('id, nom, cotisation, nb_terrains, statut, created_at, tournoi_competitions(id, nb_poules, taille_poule, types_competition(nom))')
     .order('created_at', { ascending: false });
 
   if (error) {
