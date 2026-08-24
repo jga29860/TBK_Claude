@@ -325,6 +325,12 @@ Exécutez `supabase/migration_gestion_annonces.sql` pour activer cette évolutio
 
 Sur `membres.html`, un panneau **"Gérer les annonces"** apparaît désormais pour tout profil ayant le nouveau droit de page **"Annonces du club"** — pré-accordé automatiquement aux profils `admin` et `bureau` s'ils existent déjà, modifiable ensuite comme n'importe quel autre droit depuis Admin → Profils. Permet de publier, modifier et supprimer des annonces directement depuis le site, sans passer par Supabase.
 
+## Documentation fonctionnelle en ligne (page `documentation.html`)
+
+Réservée au profil administrateur (même droit que `admin.html`). Reprend le contenu du document Word de documentation fonctionnelle, mis en forme dans le style du site, avec sommaire à ancres pour naviguer rapidement dans les 10 sections (vue d'ensemble, comptes/profils, pages publiques, espace membres, inscriptions saison, gestion des tournois en détail, administration, agenda, base de données, glossaire).
+
+**Mise à jour** : cette page est un contenu statique, tenu à jour manuellement à chaque nouvelle fonctionnalité construite — comme le README technique, mais formulé pour un public non-développeur. Pas de mise à jour automatique possible sur un site statique.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

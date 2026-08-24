@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Documentation fonctionnelle — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'administrateur</p>
+  <h1>Documentation fonctionnelle du site</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée au profil administrateur.</p>
+  </div>
+
+  <div id="docContent" hidden>
+
+    <section class="admin-section">
+      <p class="section-lead" style="margin-bottom:0;">Cette page décrit le fonctionnement du site internet du club TBK, ses fonctionnalités, le système de comptes et de droits d'accès, et la structure de la base de données. Une version imprimable existe aussi au format Word.</p>
+      <p class="form-hint" style="margin-top:12px;">Dernière mise à jour : 24 août 2026. Ce document est tenu à jour manuellement à chaque évolution du site — aucune mise à jour automatique n'est possible sur un site statique.</p>
+    </section>
+
+    <!-- ===== Sommaire ===== -->
+    <section class="admin-section">
+      <h2>Sommaire</h2>
+      <div class="field-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px,1fr));">
+        <div><a href="#intro">1. Introduction et vue d'ensemble</a></div>
+        <div><a href="#comptes">2. Comptes et système de profils</a></div>
+        <div><a href="#pages-publiques">3. Pages publiques du site</a></div>
+        <div><a href="#espace-membres">4. Espace membres</a></div>
+        <div><a href="#inscriptions-saison">5. Inscriptions à la saison</a></div>
+        <div><a href="#tournois">6. Gestion des tournois</a></div>
+        <div><a href="#administration">7. Administration du site</a></div>
+        <div><a href="#agenda">8. Agenda du club</a></div>
+        <div><a href="#base-donnees">9. Structure de la base de données</a></div>
+        <div><a href="#glossaire">10. Glossaire</a></div>
+      </div>
+    </section>
+
+    <!-- ===== 1. INTRODUCTION ===== -->
+    <section class="admin-section" id="intro">
+      <h2>1. Introduction et vue d'ensemble</h2>
+
+      <h3 class="admin-subheading">1.1 Objectif de ce document</h3>
+      <p>Ce document décrit le fonctionnement du site internet du club TBK : ses pages, ses fonctionnalités, le système de comptes et de droits d'accès, ainsi que la structure de la base de données qui les alimente. Il s'adresse aux membres du bureau qui administrent le site au quotidien et sert de référence en cas de reprise en main ou de passation.</p>
+
+      <h3 class="admin-subheading">1.2 Architecture générale</h3>
+      <p>Le site est un site statique (HTML / CSS / JavaScript), hébergé gratuitement sur GitHub Pages. Il n'y a pas de serveur applicatif : toute la logique métier (comptes, données, sécurité) est gérée par <strong>Supabase</strong>, une plateforme qui fournit une base de données PostgreSQL, un système d'authentification, et un système de règles de sécurité au niveau des lignes (Row Level Security).</p>
+      <p>Le navigateur communique directement avec Supabase via une clé publique ("anon key"), sans intermédiaire serveur. La sécurité ne repose donc pas sur le fait de cacher des pages, mais sur ces règles définies en base : une page peut être techniquement ouverte par n'importe qui, mais les données qu'elle affiche restent filtrées selon les droits de la personne connectée.</p>
+
+      <h3 class="admin-subheading">1.3 Services externes utilisés</h3>
+      <ul>
+        <li><strong>GitHub Pages</strong> — hébergement du site (gratuit, fichiers statiques).</li>
+        <li><strong>Supabase</strong> — base de données, authentification, sécurité.</li>
+        <li><strong>Google Calendar API</strong> — pour la page Agenda du club (lecture/écriture des événements, via connexion OAuth de l'administrateur).</li>
+        <li><strong>api.qrserver.com</strong> — génération du QR code d'inscription sur la page d'accueil.</li>
+      </ul>
+
+      <h3 class="admin-subheading">1.4 Grandes familles de fonctionnalités</h3>
+      <ul>
+        <li>Le site vitrine public (présentation du club, tournoi à venir, forum des associations, demande d'inscription).</li>
+        <li>La gestion des adhésions à la saison (inscriptions, cotisations, validation par le bureau).</li>
+        <li>La gestion complète des tournois (inscriptions, poules, émargement, planning, phases finales).</li>
+        <li>L'administration du site (comptes, droits d'accès, paramètres).</li>
+        <li>L'agenda du club, relié à Google Calendar.</li>
+      </ul>
+    </section>
+
+    <!-- ===== 2. COMPTES ET PROFILS ===== -->
+    <section class="admin-section" id="comptes">
+      <h2>2. Comptes et système de profils</h2>
+
+      <h3 class="admin-subheading">2.1 Se connecter</h3>
+      <p>La connexion se fait sur la page "Connexion" (membres.html), accessible depuis le bandeau du haut sur toutes les pages. Deux façons de s'identifier : avec une vraie adresse email, ou avec un simple nom d'utilisateur (un email technique invisible est généré automatiquement).</p>
+      <p>L'inscription est libre. Par défaut, un nouveau compte reçoit le profil "Visiteur", qui ne donne accès à aucune page protégée. C'est un membre du bureau ou l'administrateur qui doit ensuite lui attribuer le bon profil.</p>
+
+      <h3 class="admin-subheading">2.2 Le système de profils configurables</h3>
+      <p>Plutôt que des rôles figés dans le code, le site utilise des profils entièrement configurables depuis l'administration. Un profil est composé d'une clé technique, d'un nom affiché, et d'une liste de pages autorisées.</p>
+
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead><tr><th>Droit de page</th><th>Page(s) concernée(s)</th><th>Usage typique</th></tr></thead>
+          <tbody>
+            <tr><td>espace_membres</td><td>membres.html (contenu réservé)</td><td>Consultation des annonces du club</td></tr>
+            <tr><td>annonces</td><td>membres.html (panneau de gestion)</td><td>Publier / modifier / supprimer les annonces</td></tr>
+            <tr><td>inscriptions</td><td>inscriptions.html</td><td>Gérer les adhésions à la saison</td></tr>
+            <tr><td>tournois_admin</td><td>tournois.html, tournoi-inscriptions.html, poules.html, phase-finale.html, planning.html</td><td>Administration complète des tournois</td></tr>
+            <tr><td>tournois_gestion</td><td>mêmes pages que ci-dessus</td><td>Gestion des tournois (hors suppression)</td></tr>
+            <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
+            <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar)</td></tr>
+            <tr><td>administration</td><td>admin.html, documentation.html</td><td>Gestion des comptes, profils, paramètres</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="admin-subheading">2.3 Profils recommandés pour un club</h3>
+      <ul>
+        <li><strong>Visiteur</strong> (par défaut) — aucun accès particulier.</li>
+        <li><strong>Membre</strong> — accès à l'espace membres (annonces).</li>
+        <li><strong>Bureau</strong> — validation des inscriptions saison, gestion des annonces, et éventuellement gestion des tournois.</li>
+        <li><strong>Administrateur tournoi</strong> (tournois_admin) — création/suppression des tournois, types de compétition.</li>
+        <li><strong>Gestion tournoi</strong> (tournois_gestion) — organisation des tournois au quotidien, sans droit de suppression.</li>
+        <li><strong>Émargement</strong> (tournois_emargement) — accès limité à la feuille d'émargement.</li>
+        <li><strong>Admin</strong> — tous les droits, y compris l'administration du site.</li>
+      </ul>
+
+      <h3 class="admin-subheading">2.4 Gestion des utilisateurs</h3>
+      <p>Depuis Administration → Utilisateurs, un administrateur peut changer le profil de n'importe quel compte, envoyer un email de réinitialisation de mot de passe (comptes email uniquement), ou supprimer le profil d'un utilisateur (celui-ci perd alors tout accès au site, mais son compte de connexion technique reste géré depuis Supabase). Un système d'invitations permet de pré-attribuer un profil à un email avant même la création du compte.</p>
+    </section>
+
+    <!-- ===== 3. PAGES PUBLIQUES ===== -->
+    <section class="admin-section" id="pages-publiques">
+      <h2>3. Pages publiques du site</h2>
+
+      <h3 class="admin-subheading">3.1 Page d'accueil (index.html)</h3>
+      <p>Accessible à tous sans connexion : présentation du club, compte à rebours vers le tournoi à venir, affiche du forum des associations, QR code et lien vers le formulaire public de demande d'inscription.</p>
+
+      <h3 class="admin-subheading">3.2 Demande d'inscription publique (inscription-publique.html)</h3>
+      <p>Formulaire accessible sans connexion. Les champs administratifs (WhatsApp, statut de paiement, santé, date de certificat) ne sont volontairement pas proposés : ils sont réservés au bureau, complétés au moment de la validation. Chaque demande arrive avec le statut "En attente".</p>
+    </section>
+
+    <!-- ===== 4. ESPACE MEMBRES ===== -->
+    <section class="admin-section" id="espace-membres">
+      <h2>4. Espace membres</h2>
+      <p>Page réservée aux comptes ayant le droit "espace_membres" : affiche les annonces publiées par le bureau. Les comptes ayant le droit "annonces" (par défaut : admin et bureau) voient en plus un panneau de gestion permettant de publier, modifier ou supprimer des annonces directement depuis le site.</p>
+    </section>
+
+    <!-- ===== 5. INSCRIPTIONS SAISON ===== -->
+    <section class="admin-section" id="inscriptions-saison">
+      <h2>5. Inscriptions à la saison (inscriptions.html)</h2>
+
+      <h3 class="admin-subheading">5.1 Principe général</h3>
+      <p>Deux façons d'alimenter la liste : saisie directe par un membre du bureau connecté (automatiquement marquée "Validée"), ou demande soumise via le formulaire public (statut "En attente" jusqu'à validation).</p>
+
+      <h3 class="admin-subheading">5.2 Champs de l'inscription</h3>
+      <p><strong>Champs fixes</strong> : Nom, Prénom, Catégorie (Jeune / Adulte), Bad/Ping, UFOLEP/FSGT, Membre Bureau, Cotisation.</p>
+      <p><strong>Champs personnalisables</strong> (configurables par l'administrateur) : WhatsApp, Cotisation payée, Santé, Date certificat, Téléphone, Adresse, Email, Date de naissance, Commentaire. Un administrateur peut ajouter, modifier ou supprimer ces champs à tout moment (texte, nombre, date, oui/non, liste de choix).</p>
+
+      <h3 class="admin-subheading">5.3 Calcul automatique de la cotisation</h3>
+      <ul>
+        <li>Adhésion club adulte : 40 € par défaut</li>
+        <li>Adhésion club enfant : 30 € par défaut</li>
+        <li>Supplément double licence (Bad + Ping) : +10 € par défaut</li>
+        <li>Supplément UFOLEP / FSGT : +20 € par défaut</li>
+        <li>Réduction membre du bureau : −10 € par défaut</li>
+      </ul>
+      <p>Recalculé automatiquement à chaque changement, mais modifiable manuellement avant l'enregistrement.</p>
+
+      <h3 class="admin-subheading">5.4 Validation par le bureau</h3>
+      <p>Seuls les profils dont la clé est exactement "bureau", ou un profil ayant accès à l'administration, peuvent valider une demande. La validation enregistre qui l'a validée et à quelle date. Un badge rouge apparaît automatiquement dans le bandeau, sur toutes les pages, pour les profils bureau et admin, dès qu'au moins une demande est en attente.</p>
+
+      <h3 class="admin-subheading">5.5 Colonnes affichées</h3>
+      <p>Un administrateur choisit quelles colonnes apparaissent dans le tableau des inscrits (la colonne "Nom" est toujours visible).</p>
+    </section>
+
+    <!-- ===== 6. TOURNOIS ===== -->
+    <section class="admin-section" id="tournois">
+      <h2>6. Gestion des tournois</h2>
+      <p>Le module le plus riche du site : configuration, collecte des inscriptions, répartition en poules, émargement le jour J, suivi des matchs de poule, planification en temps réel, puis phases finales.</p>
+
+      <h3 class="admin-subheading">6.1 Un seul tournoi actif à la fois</h3>
+      <p>Le site ne gère qu'un tournoi "en cours" à la fois — garanti au niveau de la base de données. Toutes les pages de gestion du jour J chargent automatiquement ce tournoi actif, sans sélecteur à utiliser.</p>
+      <ul>
+        <li><strong>Création</strong> — un nouveau tournoi devient automatiquement le tournoi actif ; bloquée si un tournoi est déjà actif.</li>
+        <li><strong>Clôture</strong> — un tournoi actif peut être clôturé une fois terminé.</li>
+        <li><strong>Réactivation</strong> — possible si aucun autre tournoi n'est actif.</li>
+      </ul>
+
+      <h3 class="admin-subheading">6.2 Page Tournois (tournois.html)</h3>
+      <p><strong>Types de compétition</strong> : catalogue réutilisable (Simple Homme, Double Dame…), géré par "Tournois - Administration". Chaque type a un format (simple ou double) déterminant le nombre de joueurs demandé à l'inscription.</p>
+      <p><strong>Création d'un tournoi</strong> : nom, cotisation, nombre de terrains, et une ou plusieurs compétitions avec leur nombre de poules et de participants par poule. La suppression est réservée à "Tournois - Administration".</p>
+
+      <h3 class="admin-subheading">6.3 Inscriptions au tournoi (tournoi-inscriptions.html)</h3>
+      <p>Pour chaque équipe : Nom et Club par joueur (un en simple, deux en double).</p>
+      <ul>
+        <li><strong>Affectation aux poules</strong> — encadrement visuel par poule, compteur d'équipes.</li>
+        <li><strong>Tête de poule</strong> — une seule par poule, garantie en base.</li>
+        <li><strong>Échange entre poules</strong> — direct si la poule cible a de la place, sinon échange obligatoire avec une équipe de cette poule.</li>
+        <li><strong>Compétition complète</strong> — les nouvelles inscriptions sont bloquées automatiquement dès que la capacité est atteinte.</li>
+        <li>Bouton "Répartir automatiquement en poules" pour une distribution équilibrée en un clic.</li>
+      </ul>
+
+      <h3 class="admin-subheading">6.4 Émargement (emargement.html)</h3>
+      <p>Bandeau du haut fixe : cotisation, recherche instantanée, compteur de présents / inscrits, montant réglé — recalculés en direct.</p>
+      <p>L'émargement se fait <strong>par joueur</strong> (et non par équipe) : chaque joueur d'un double a ses propres cases Présent / Absent / Cotisation payée. Par défaut, chaque joueur est "absent" et "non payé" à l'inscription. Nom et club restent modifiables sur cette page. Un filtre permet d'afficher uniquement les équipes avec au moins un absent.</p>
+
+      <h3 class="admin-subheading">6.5 Poules et classement (poules.html)</h3>
+      <p>Page de consultation uniquement, avec filtres compétition/poule. Classement recalculé en direct.</p>
+      <ul>
+        <li>Un match se joue en 2 sets gagnants (jusqu'à 3 sets).</li>
+        <li>Match gagné : 3 points. Match perdu (mais joué) : 1 point.</li>
+        <li>Classement trié par : Points × 1000 + (différence de sets) × 100 + différence de points marqués (valeur visible au survol du numéro de classement).</li>
+      </ul>
+      <p>Les matchs de chaque poule sont masqués par défaut (bouton "Afficher les matchs").</p>
+
+      <h3 class="admin-subheading">6.6 Planning (planning.html)</h3>
+      <p>Page de pilotage du tournoi le jour J.</p>
+      <p><strong>Réglages</strong> : heure de début, rotation (20 min par défaut), temps minimum de repos entre deux matchs — modifiables et enregistrés automatiquement. Durée moyenne des matchs calculée en direct.</p>
+      <p><strong>Matchs de poule par rotation</strong> : une rotation regroupe jusqu'à autant de matchs que de terrains disponibles. Aucune équipe ne joue deux fois dans une même rotation ; les poules les moins avancées sont prioritaires, pour que toutes les compétitions progressent en parallèle. Une fois toutes les poules terminées, la section se replie automatiquement.</p>
+      <p><strong>Terrains</strong> : vert si libre, saumon si occupé. Un match n'est "lançable" que si les deux équipes sont libres et présentes, et qu'un terrain est disponible (bouton "Lancer" grisé sinon, motif au survol). Le terrain se libère dès qu'un score complet est saisi.</p>
+      <p><strong>Avertissement de repos insuffisant</strong> : une confirmation s'affiche si une équipe a terminé son match précédent depuis moins longtemps que le temps minimum configuré.</p>
+      <p><strong>Statut des matchs</strong> : Non lancé, En cours, Terminé (lignes grisées, scores restant modifiables). <strong>Équipe gagnante</strong> mise en évidence en vert sur cette page et sur Poules.</p>
+      <p><strong>Saisie des scores</strong> : un clic sélectionne le contenu existant ; la touche Tabulation enchaîne les cases sans perte, même pendant le rechargement automatique.</p>
+
+      <h3 class="admin-subheading">6.7 Phases finales (Principale / Consolante)</h3>
+      <p>Générées <strong>automatiquement</strong> dès que tous les matchs de poule d'une compétition sont terminés.</p>
+      <ul>
+        <li>1er et 2e de chaque poule → Principale ; 3e et 4e → Consolante (règle fixe).</li>
+        <li>Un 1er affronte un 2e d'une <em>autre</em> poule (jamais la sienne) ; même principe 3e/4e en Consolante.</li>
+        <li>Élimination directe ensuite : le vainqueur est automatiquement inséré dans le match du tour suivant dès la saisie d'un score complet.</li>
+      </ul>
+      <p><em>Limite assumée</em> : tableau propre quand le nombre de poules qualificatives est une puissance de 2 (2, 4, 8, 16…) ; sinon certaines places peuvent rester vides.</p>
+      <p>Les matchs de phase finale sont eux aussi regroupés en rotations équitables, avec une colonne "Compétition" précisant compétition, phase, et tour — nommé selon l'usage (1/8 de finale, 1/4, 1/2 finale, Finale).</p>
+
+      <h3 class="admin-subheading">6.8 Synthèse Phase finale (phase-finale.html)</h3>
+      <p>Page de consultation présentant la phase finale en tableau à élimination directe classique, en colonnes par tour. Se met à jour automatiquement toutes les 20 secondes.</p>
+    </section>
+
+    <!-- ===== 7. ADMINISTRATION ===== -->
+    <section class="admin-section" id="administration">
+      <h2>7. Administration du site (admin.html)</h2>
+      <p>Réservée aux comptes ayant le droit "administration".</p>
+      <ul>
+        <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
+        <li><strong>Paramètres du site</strong> — email de contact du club, utilisé automatiquement sur les pages publiques.</li>
+        <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
+        <li><strong>Utilisateurs</strong> — changement de profil, réinitialisation de mot de passe, suppression.</li>
+        <li><strong>Invitations</strong> — pré-attribution d'un profil à un email.</li>
+      </ul>
+    </section>
+
+    <!-- ===== 8. AGENDA ===== -->
+    <section class="admin-section" id="agenda">
+      <h2>8. Agenda du club (agenda.html)</h2>
+      <p>Réservée pour l'instant au profil administrateur. Affiche l'agenda Google du club en vue mensuelle, avec ajout, modification et suppression d'événements directement depuis le site.</p>
+      <ul>
+        <li>Connexion Google via OAuth, avec tentative de reconnexion automatique et silencieuse à chaque ouverture de page.</li>
+        <li>Ajout d'événement : titre, journée entière ou horaires précis, lieu, description, périodicité (aucune, quotidienne, hebdomadaire, toutes les 2 semaines, mensuelle, annuelle, avec date de fin facultative).</li>
+        <li>Suppression d'un événement récurrent : "Supprimer cette occurrence" ou "Supprimer toute la série".</li>
+      </ul>
+      <p>Aucune donnée de calendrier n'est stockée sur le site : tout est récupéré et modifié en direct via l'API Google Calendar.</p>
+    </section>
+
+    <!-- ===== 9. BASE DE DONNÉES ===== -->
+    <section class="admin-section" id="base-donnees">
+      <h2>9. Structure de la base de données</h2>
+      <p>Base de données hébergée par Supabase (PostgreSQL). Chaque table est protégée par des règles de sécurité (Row Level Security) qui définissent, ligne par ligne, qui peut lire ou modifier quoi.</p>
+
+      <h3 class="admin-subheading">9.1 Comptes et profils</h3>
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td>profiles</td><td>Un profil par utilisateur, lié au compte de connexion Supabase.</td></tr>
+            <tr><td>roles</td><td>Catalogue des profils configurables (clé, nom affiché, pages autorisées).</td></tr>
+            <tr><td>invitations</td><td>Pré-attribution d'un profil à un email avant inscription.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="admin-subheading">9.2 Vie du club</h3>
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres.</td></tr>
+            <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
+            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés).</td></tr>
+            <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
+            <tr><td>bareme_cotisations</td><td>Montants utilisés pour le calcul de la cotisation saison.</td></tr>
+            <tr><td>inscriptions_affichage</td><td>Colonnes choisies pour le tableau des inscriptions saison.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="admin-subheading">9.3 Tournois — cœur du système</h3>
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td>types_competition</td><td>Catalogue des types de compétition, avec leur format (simple/double).</td></tr>
+            <tr><td>tournois</td><td>Nom, cotisation, terrains, statut (en_cours / cloture), réglages de planning.</td></tr>
+            <tr><td>tournoi_competitions</td><td>Compétitions incluses dans un tournoi, avec leur configuration de poules.</td></tr>
+            <tr><td>equipes</td><td>Équipes inscrites : joueurs, club, poule, tête de poule, présence/paiement par joueur.</td></tr>
+            <tr><td>matchs</td><td>Tous les matchs (poule, principale, consolante) : scores, terrain, horodatage, chaînage vers le tour suivant.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="admin-subheading">9.4 Principes de sécurité (RLS)</h3>
+      <ul>
+        <li>Chaque table sensible vérifie le profil de la personne connectée via une fonction "current_user_has_access".</li>
+        <li>Certaines actions (validation d'inscription, suppression de profil, écriture sur les tournois) sont réservées aux profils précis nommés dans ce document.</li>
+        <li>Des déclencheurs (triggers) en base garantissent certaines règles même en cas d'erreur côté site : une seule tête de poule par poule, un seul tournoi actif, blocage au-delà de la capacité, impossibilité de modifier son propre profil.</li>
+        <li>Le formulaire public de demande d'inscription dispose d'un droit d'écriture volontairement restreint : il ne peut créer qu'une inscription "En attente", jamais la valider lui-même.</li>
+      </ul>
+    </section>
+
+    <!-- ===== 10. GLOSSAIRE ===== -->
+    <section class="admin-section" id="glossaire">
+      <h2>10. Glossaire</h2>
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead><tr><th>Terme</th><th>Signification</th></tr></thead>
+          <tbody>
+            <tr><td>Profil</td><td>Ensemble de droits d'accès aux pages, attribué à un compte.</td></tr>
+            <tr><td>Poule</td><td>Groupe d'équipes qui se rencontrent toutes entre elles avant la phase finale.</td></tr>
+            <tr><td>Tête de poule</td><td>Équipe désignée comme prioritaire au sein d'une poule.</td></tr>
+            <tr><td>Rotation</td><td>Ensemble de matchs pouvant se jouer en même temps, un par terrain disponible.</td></tr>
+            <tr><td>Phase Principale</td><td>Tableau à élimination directe réunissant les 1ers et 2es de chaque poule.</td></tr>
+            <tr><td>Phase Consolante</td><td>Tableau à élimination directe réunissant les 3es et 4es de chaque poule.</td></tr>
+            <tr><td>Émargement</td><td>Enregistrement de la présence et du paiement le jour du tournoi.</td></tr>
+            <tr><td>RLS</td><td>Row Level Security — filtre les lignes visibles/modifiables selon l'utilisateur connecté.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/documentation.js"></script>
+</body>
+</html>
