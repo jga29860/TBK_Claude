@@ -388,6 +388,17 @@ Exécutez `supabase/migration_certificat_medical.sql` pour créer le stockage s�
 
 Une fois identifiants et mot de passe validés avec succès sur membres.html, la page redirige désormais automatiquement vers l'accueil (index.html) au lieu de simplement se recharger sur place.
 
+## Mot de passe oublié — auto-service pour les utilisateurs
+
+Sur membres.html, un lien "Mot de passe oublié ?" sous le formulaire de connexion permet à n'importe quel utilisateur (pas seulement l'admin) de demander lui-même un email de réinitialisation, sans intervention du bureau. Fonctionne uniquement pour les comptes créés avec une vraie adresse email (les comptes par nom d'utilisateur restent à réinitialiser par un administrateur, faute d'adresse email réelle à laquelle envoyer le lien).
+
+## Harmonisation vers le nom d'utilisateur comme identifiant principal
+
+- **Libellés des formulaires** : "Nom d'utilisateur (ou email)" au lieu de "Email ou nom d'utilisateur" sur membres.html (connexion et création de compte), pour refléter l'usage réel du site.
+- **Colonne "Identifiant"** (au lieu de "Email") dans le tableau des utilisateurs sur admin.html — reste juste que le compte soit basé sur un email ou un simple nom d'utilisateur.
+- **Message d'erreur clair** à l'inscription si l'identifiant existe déjà ("Ce nom d'utilisateur (ou cet email) existe déjà...") au lieu du message technique brut de Supabase. L'unicité elle-même était déjà garantie nativement par Supabase (aucune migration nécessaire) : cette amélioration ne concerne que la clarté du message affiché.
+- **"Mon compte" accessible à tout utilisateur connecté** (pas seulement l'admin) : nouvelle section sur membres.html permettant à n'importe qui de changer son propre mot de passe, quel que soit son profil (même un simple visiteur). Auparavant, seul un compte avec accès à l'administration pouvait changer son propre mot de passe.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

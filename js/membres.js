@@ -13,16 +13,24 @@ async function initMembresPage() {
   const pendingPanel = document.getElementById('pendingPanel');
   const memberContent = document.getElementById('memberContent');
   const gestionSection = document.getElementById('gestionAnnoncesSection');
+  const monCompteSection = document.getElementById('monCompteSection');
 
   authForms.hidden = true;
   pendingPanel.hidden = true;
   memberContent.hidden = true;
   gestionSection.hidden = true;
+  monCompteSection.hidden = true;
 
   if (!access) {
     authForms.hidden = false;
     return;
   }
+
+  // "Mon compte" (changer son mot de passe) est visible dès qu'on est
+  // connecté, quel que soit le profil (même un simple visiteur).
+  monCompteSection.hidden = false;
+  document.getElementById('monCompteIdentifiant').textContent = access.display_name || afficherIdentifiant(access.email);
+  bindChangePasswordForm();
 
   isGestionnaireAnnonces = access.pages.includes('annonces');
 
@@ -41,6 +49,33 @@ async function initMembresPage() {
   }
 
   await loadAnnonces();
+}
+
+function bindChangePasswordForm() {
+  const form = document.getElementById('changePasswordForm');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = 'true';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById('changePasswordHint');
+    const fd = new FormData(form);
+    const password = fd.get('password');
+    const confirmPwd = fd.get('confirm');
+
+    if (password !== confirmPwd) {
+      hint.textContent = 'Les deux mots de passe ne correspondent pas.';
+      return;
+    }
+
+    hint.textContent = 'Enregistrement…';
+    const { error } = await sbClient.auth.updateUser({ password });
+    if (error) {
+      hint.textContent = 'Erreur : ' + error.message;
+      return;
+    }
+    hint.textContent = 'Mot de passe mis à jour.';
+    form.reset();
+  });
 }
 
 async function loadAnnonces() {
@@ -179,6 +214,34 @@ if (loginForm) {
   });
 }
 
+// ===== Mot de passe oublié (auto-service, comptes email uniquement) =====
+const motDePasseOublieBtn = document.getElementById('motDePasseOublieBtn');
+const resetPasswordRequestForm = document.getElementById('resetPasswordRequestForm');
+if (motDePasseOublieBtn && resetPasswordRequestForm) {
+  motDePasseOublieBtn.addEventListener('click', () => {
+    resetPasswordRequestForm.hidden = !resetPasswordRequestForm.hidden;
+  });
+
+  resetPasswordRequestForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById('resetPasswordHint');
+    const fd = new FormData(resetPasswordRequestForm);
+    const email = fd.get('email').trim();
+
+    hint.textContent = 'Envoi en cours…';
+    const { error } = await sbClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname.replace('membres.html', 'reset-password.html'),
+    });
+
+    if (error) {
+      hint.textContent = 'Erreur : ' + error.message;
+      return;
+    }
+    hint.textContent = "Si un compte existe avec cette adresse, un email de réinitialisation vient d'être envoyé. Vérifiez votre boîte de réception (et vos spams).";
+    resetPasswordRequestForm.reset();
+  });
+}
+
 const signupForm = document.getElementById('signupForm');
 if (signupForm) {
   signupForm.addEventListener('submit', async (e) => {
@@ -189,7 +252,11 @@ if (signupForm) {
     hint.textContent = 'Création du compte…';
     const { data, error } = await signUp(identifiant, fd.get('password'));
     if (error) {
-      hint.textContent = "Échec de l'inscription : " + error.message;
+      if (/already registered|already exists|User already/i.test(error.message)) {
+        hint.textContent = 'Ce nom d\'utilisateur (ou cet email) existe déjà. Choisissez-en un autre, ou connectez-vous si ce compte est le vôtre.';
+      } else {
+        hint.textContent = "Échec de l'inscription : " + error.message;
+      }
       return;
     }
     if (data && data.session) {

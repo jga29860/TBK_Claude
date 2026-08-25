@@ -32,22 +32,45 @@
     <div class="auth-panel">
       <h2>Se connecter</h2>
       <form id="loginForm" class="contact-form">
-        <label>Email ou nom d'utilisateur <input type="text" name="email" required autocomplete="username"></label>
+        <label>Nom d'utilisateur (ou email) <input type="text" name="email" required autocomplete="username"></label>
         <label>Mot de passe <input type="password" name="password" required minlength="6"></label>
         <button type="submit" class="btn btn-primary">Se connecter</button>
         <p class="form-hint" id="loginHint"></p>
+      </form>
+      <button type="button" class="nav-auth-link" id="motDePasseOublieBtn" style="color:var(--slate); margin-top:8px;">Mot de passe oublié ?</button>
+      <form id="resetPasswordRequestForm" class="contact-form" hidden style="margin-top:14px;">
+        <label>Votre adresse email <input type="email" name="email" required></label>
+        <button type="submit" class="btn btn-ghost">Envoyer le lien de réinitialisation</button>
+        <p class="form-hint" id="resetPasswordHint"></p>
+        <p class="form-hint">Fonctionne uniquement pour les comptes créés avec une vraie adresse email. Pour un compte créé par simple nom d'utilisateur, contactez un administrateur du club.</p>
       </form>
     </div>
     <div class="auth-panel">
       <h2>Créer un compte</h2>
       <form id="signupForm" class="contact-form">
-        <label>Email ou nom d'utilisateur <input type="text" name="email" required autocomplete="username"></label>
+        <label>Nom d'utilisateur (ou email) <input type="text" name="email" required autocomplete="username"></label>
         <label>Mot de passe <input type="password" name="password" required minlength="6"></label>
         <button type="submit" class="btn btn-ghost">Créer mon compte</button>
         <p class="form-hint" id="signupHint"></p>
       </form>
-      <p class="auth-note">Un email ou un simple nom d'utilisateur fonctionnent tous les deux. Votre compte est créé avec le statut <strong>visiteur</strong>. Un membre du bureau doit ensuite valider votre statut de <strong>membre</strong> pour débloquer le contenu réservé.</p>
+      <p class="auth-note">Le compte se crée simplement avec un nom d'utilisateur (une vraie adresse email fonctionne aussi si vous préférez). Votre compte est créé avec le statut <strong>visiteur</strong>. Un membre du bureau doit ensuite valider votre statut de <strong>membre</strong> pour débloquer le contenu réservé.</p>
     </div>
+  </section>
+
+  <!-- Affiché dès qu'on est connecté, quel que soit le profil -->
+  <section id="monCompteSection" class="admin-section" hidden>
+    <h2>Mon compte</h2>
+    <p class="section-lead">Connecté en tant que <strong id="monCompteIdentifiant"></strong>.</p>
+    <form id="changePasswordForm" class="inline-form">
+      <label>Nouveau mot de passe
+        <input type="password" name="password" minlength="6" required>
+      </label>
+      <label>Confirmer le mot de passe
+        <input type="password" name="confirm" minlength="6" required>
+      </label>
+      <button type="submit" class="btn btn-primary btn-small">Changer mon mot de passe</button>
+      <p class="form-hint" id="changePasswordHint"></p>
+    </form>
   </section>
 
   <!-- Affiché si connecté mais pas encore "membre" -->
