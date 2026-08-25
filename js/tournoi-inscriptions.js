@@ -158,11 +158,12 @@ function renderPouleBlock(poule, equipes, isDouble) {
     <div class="poule-block">
       <h3 class="poule-block-title">${escapeHtml(titre)} ${compteur}</h3>
       <div class="table-wrap">
-        <table class="schedule">
+        <table class="schedule equipes-table">
           <thead>
             <tr>
-              <th>Joueur 1</th><th>Club 1</th>
-              ${isDouble ? '<th>Joueur 2</th><th>Club 2</th>' : ''}
+              <th>Joueurs</th>
+              <th>Club 1</th>
+              ${isDouble ? '<th>Club 2</th>' : ''}
               <th>Tête de poule</th><th>Poule</th><th></th>
             </tr>
           </thead>
@@ -179,17 +180,26 @@ function renderEquipeRow(e, isDouble) {
   const pouleOptions = `<option value="" ${!e.poule ? 'selected' : ''}>—</option>` +
     poules.map(p => `<option value="${p}" ${e.poule === p ? 'selected' : ''}>Poule ${p}</option>`).join('');
 
+  const nomEquipe = isDouble
+    ? `${escapeHtml(e.joueur1_nom)} / ${escapeHtml(e.joueur2_nom || '?')}`
+    : escapeHtml(e.joueur1_nom);
+  const pouleLabel = e.poule ? `Poule ${e.poule}` : 'Non assignée';
+
   return `
     <tr data-equipe-id="${e.id}">
-      <td>${escapeHtml(e.joueur1_nom)}</td>
-      <td>${escapeHtml(e.joueur1_club || '—')}</td>
-      ${isDouble ? `<td>${escapeHtml(e.joueur2_nom || '—')}</td><td>${escapeHtml(e.joueur2_club || '—')}</td>` : ''}
-      <td><input type="checkbox" class="tete-poule-checkbox" ${e.tete_de_poule ? 'checked' : ''}></td>
-      <td>
+      <td class="cell-nom">
+        <span class="cell-nom-chevron">▸</span>
+        <span class="cell-nom-texte">${nomEquipe}</span>
+        <span class="cell-nom-statut-mobile"><span class="statut-badge statut-cloture">${escapeHtml(pouleLabel)}</span></span>
+      </td>
+      <td data-label="Club 1">${escapeHtml(e.joueur1_club || '—')}</td>
+      ${isDouble ? `<td data-label="Club 2">${escapeHtml(e.joueur2_club || '—')}</td>` : ''}
+      <td data-label="Tête de poule"><input type="checkbox" class="tete-poule-checkbox" ${e.tete_de_poule ? 'checked' : ''}></td>
+      <td data-label="Poule">
         <select class="poule-select">${pouleOptions}</select>
         <button type="button" class="btn btn-ghost btn-small save-poule-btn">Enregistrer</button>
       </td>
-      <td>
+      <td data-label="Actions">
         <button type="button" class="btn btn-ghost btn-small edit-equipe-btn">Modifier</button>
         <button type="button" class="btn btn-danger btn-small delete-equipe-btn">Supprimer</button>
       </td>
@@ -197,6 +207,12 @@ function renderEquipeRow(e, isDouble) {
 }
 
 function bindEquipesRowEvents() {
+  document.querySelectorAll('.cell-nom').forEach(cell => {
+    cell.addEventListener('click', () => {
+      cell.closest('tr').classList.toggle('row-expanded');
+    });
+  });
+
   document.querySelectorAll('.tete-poule-checkbox').forEach(cb => {
     cb.addEventListener('change', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');

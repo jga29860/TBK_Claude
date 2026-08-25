@@ -184,7 +184,7 @@ function renderCompetitions() {
 
 function renderPouleBlock(poule, equipes, isDouble) {
   const titre = poule ? `Poule ${poule}` : 'Non assignées';
-  const colCount = isDouble ? 10 : 5;
+  const colCount = isDouble ? 2 : 1;
 
   return `
     <div class="poule-block">
@@ -193,8 +193,8 @@ function renderPouleBlock(poule, equipes, isDouble) {
         <table class="schedule table-center">
           <thead>
             <tr>
-              <th>Joueur 1</th><th>Club 1</th><th>Présent</th><th>Absent</th><th>Payée</th>
-              ${isDouble ? '<th>Joueur 2</th><th>Club 2</th><th>Présent</th><th>Absent</th><th>Payée</th>' : ''}
+              <th>Joueur 1</th>
+              ${isDouble ? '<th>Joueur 2</th>' : ''}
             </tr>
           </thead>
           <tbody>
@@ -205,21 +205,35 @@ function renderPouleBlock(poule, equipes, isDouble) {
     </div>`;
 }
 
+function renderJoueurGroupe(eq, n) {
+  return `
+    <div class="joueur-emarg">
+      <div class="joueur-emarg-champs">
+        <input type="text" class="emarg-input" data-field="joueur${n}_nom" value="${escapeHtml(eq[`joueur${n}_nom`] || '')}" placeholder="Nom">
+        <input type="text" class="emarg-input" data-field="joueur${n}_club" value="${escapeHtml(eq[`joueur${n}_club`] || '')}" placeholder="Club">
+      </div>
+      <div class="joueur-emarg-toggles">
+        <label class="emarg-toggle emarg-toggle--present">
+          <input type="checkbox" class="emarg-check" data-player="${n}" data-field="present" ${eq[`joueur${n}_present`] ? 'checked' : ''}>
+          <span>✓ Présent</span>
+        </label>
+        <label class="emarg-toggle emarg-toggle--absent">
+          <input type="checkbox" class="emarg-check" data-player="${n}" data-field="absent" ${eq[`joueur${n}_absent`] ? 'checked' : ''}>
+          <span>✗ Absent</span>
+        </label>
+        <label class="emarg-toggle emarg-toggle--paye">
+          <input type="checkbox" class="emarg-check" data-player="${n}" data-field="cotisation_payee" ${eq[`joueur${n}_cotisation_payee`] ? 'checked' : ''}>
+          <span>💰 Payée</span>
+        </label>
+      </div>
+    </div>`;
+}
+
 function renderEquipeRow(eq, isDouble) {
   return `
     <tr class="equipe-row" data-equipe-id="${eq.id}">
-      <td><input type="text" class="emarg-input" data-field="joueur1_nom" value="${escapeHtml(eq.joueur1_nom)}"></td>
-      <td><input type="text" class="emarg-input" data-field="joueur1_club" value="${escapeHtml(eq.joueur1_club || '')}"></td>
-      <td><input type="checkbox" class="emarg-check" data-player="1" data-field="present" ${eq.joueur1_present ? 'checked' : ''}></td>
-      <td><input type="checkbox" class="emarg-check" data-player="1" data-field="absent" ${eq.joueur1_absent ? 'checked' : ''}></td>
-      <td><input type="checkbox" class="emarg-check" data-player="1" data-field="cotisation_payee" ${eq.joueur1_cotisation_payee ? 'checked' : ''}></td>
-      ${isDouble ? `
-        <td><input type="text" class="emarg-input" data-field="joueur2_nom" value="${escapeHtml(eq.joueur2_nom || '')}"></td>
-        <td><input type="text" class="emarg-input" data-field="joueur2_club" value="${escapeHtml(eq.joueur2_club || '')}"></td>
-        <td><input type="checkbox" class="emarg-check" data-player="2" data-field="present" ${eq.joueur2_present ? 'checked' : ''}></td>
-        <td><input type="checkbox" class="emarg-check" data-player="2" data-field="absent" ${eq.joueur2_absent ? 'checked' : ''}></td>
-        <td><input type="checkbox" class="emarg-check" data-player="2" data-field="cotisation_payee" ${eq.joueur2_cotisation_payee ? 'checked' : ''}></td>
-      ` : ''}
+      <td class="joueur-groupe">${renderJoueurGroupe(eq, 1)}</td>
+      ${isDouble ? `<td class="joueur-groupe">${renderJoueurGroupe(eq, 2)}</td>` : ''}
     </tr>`;
 }
 

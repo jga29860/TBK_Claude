@@ -149,7 +149,7 @@ function collectCompetitionsSelection() {
 
 async function loadTournois() {
   const tbody = document.getElementById('tournoisTableBody');
-  tbody.innerHTML = '<tr><td colspan="6">Chargement…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7">Chargement…</td></tr>';
 
   const { data, error } = await sbClient
     .from('tournois')
@@ -157,14 +157,14 @@ async function loadTournois() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="6">Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7">Erreur : ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
 
   tournoisCache = data || [];
 
   if (tournoisCache.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6">Aucun tournoi pour le moment.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">Aucun tournoi pour le moment.</td></tr>';
     return;
   }
 
@@ -174,15 +174,20 @@ async function loadTournois() {
       .join(', ') || '—';
     const enCours = t.statut === 'en_cours';
     const aUnAutreEnCours = tournoisCache.some(x => x.statut === 'en_cours' && x.id !== t.id);
+    const statutHtml = enCours ? '<span class="statut-badge statut-en-cours">En cours</span>' : '<span class="statut-badge statut-cloture">Clôturé</span>';
     return `
       <tr data-tournoi-id="${t.id}">
-        <td>${escapeHtml(t.nom)}</td>
-        <td>${enCours ? '<span class="statut-badge statut-en-cours">En cours</span>' : '<span class="statut-badge statut-cloture">Clôturé</span>'}</td>
-        <td>${Number(t.cotisation).toFixed(2)} €</td>
-        <td>${t.nb_terrains}</td>
-        <td>${competitionsLabel}</td>
-        <td>${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
-        <td>
+        <td class="cell-nom">
+          <span class="cell-nom-chevron">▸</span>
+          <span class="cell-nom-texte">${escapeHtml(t.nom)}</span>
+          <span class="cell-nom-statut-mobile">${statutHtml}</span>
+        </td>
+        <td data-label="Statut">${statutHtml}</td>
+        <td data-label="Cotisation">${Number(t.cotisation).toFixed(2)} €</td>
+        <td data-label="Terrains">${t.nb_terrains}</td>
+        <td data-label="Compétitions">${competitionsLabel}</td>
+        <td data-label="Créé le">${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
+        <td data-label="Actions">
           <button type="button" class="btn btn-ghost btn-small edit-tournoi-btn">Modifier</button>
           ${enCours ? '<button type="button" class="btn btn-ghost btn-small close-tournoi-btn">Clore</button>' : ''}
           ${!enCours && !aUnAutreEnCours ? '<button type="button" class="btn btn-ghost btn-small reactivate-tournoi-btn">Réactiver</button>' : ''}
@@ -190,6 +195,12 @@ async function loadTournois() {
         </td>
       </tr>`;
   }).join('');
+
+  tbody.querySelectorAll('.cell-nom').forEach(cell => {
+    cell.addEventListener('click', () => {
+      cell.closest('tr').classList.toggle('row-expanded');
+    });
+  });
 
   tbody.querySelectorAll('.close-tournoi-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {

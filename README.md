@@ -450,6 +450,12 @@ Les annonces deviennent un vrai fil d'actualité, dans le style des réseaux soc
 
 L'écran de gestion séparé ("Gérer les annonces") a été fusionné avec l'affichage principal : les personnes autorisées (droit "annonces") voient le formulaire de publication/modification directement au-dessus du fil, sans double affichage.
 
+## Optimisation mobile — Tournois, Inscriptions tournoi, Émargement
+
+- **tournois.html** : le tableau "Tournois existants" devient une liste de fiches sur mobile (Nom + Statut visibles directement) ; un tap sur le nom déplie la fiche pour voir cotisation, terrains, compétitions, date et actions. Comportement identique à celui déjà en place sur inscriptions.html.
+- **tournoi-inscriptions.html** : le tableau des équipes (Équipes inscrites + Non assignées) suit le même principe — les deux joueurs d'une équipe apparaissent combinés en identité de ligne, le reste (clubs, tête de poule, poule, actions) se déplie au tap. Beaucoup plus lisible sur petit écran qu'un tableau à 7 colonnes.
+- **emargement.html** : les champs et cases à cocher de chaque joueur sont désormais regroupés dans un seul bloc compact (au lieu de 5 colonnes séparées par joueur), avec Présent/Absent/Payée sous forme de grands boutons "pilule" à toucher directement — plus besoin de viser une petite case à cocher. Les deux joueurs d'une équipe s'empilent verticalement sur mobile, ce qui supprime le défilement horizontal. La recherche couvrait déjà les deux joueurs et les deux clubs d'une équipe (vérifié, aucune modification nécessaire sur ce point précis).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
