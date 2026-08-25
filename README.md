@@ -413,6 +413,12 @@ Sur téléphone, la grille mensuelle (7 colonnes trop étroites pour rester lisi
 
 Correction : la connexion à Google Agenda passait systématiquement par l'écran de sélection de compte (quand plusieurs comptes Google sont connectés dans le même navigateur), même en cliquant sur "Se connecter". Le compte de l'agenda du club étant déjà connu du site (email de contact paramétré), il est maintenant transmis directement à Google via le paramètre "hint" — la connexion se fait droit sur ce compte, sans repasser par l'étape de sélection à chaque fois (tant que ce compte est déjà connecté sur l'appareil).
 
+## Agenda du club — correction du blocage sur mobile
+
+Correction d'un vrai bug : sur mobile, cliquer sur "Se connecter à Google Agenda" ouvrait un nouvel onglet qui restait parfois bloqué sans jamais revenir sur le site (le mécanisme de Google censé refermer automatiquement cet onglet est peu fiable sur les navigateurs mobiles). La connexion manuelle passe désormais par une redirection de page classique (Google s'affiche sur la même page, puis revient directement sur l'agenda) au lieu d'ouvrir un second onglet — plus aucun risque de rester bloqué. La reconnexion automatique et silencieuse au chargement de la page reste inchangée.
+
+**Réglage Google Cloud requis** : ajoutez l'URL exacte de la page agenda (ex. `https://jga29860.github.io/TBK_Claude/agenda.html`) dans Google Auth Platform → Clients → votre client OAuth → "URI de redirection autorisés".
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

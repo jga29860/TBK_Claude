@@ -43,9 +43,37 @@ async function initPage() {
   calendarId = data.valeur;
   document.getElementById('calendarEmailLabel').textContent = calendarId;
 
-  initGoogleClient();
   bindStaticEvents();
+
+  // Si on revient d'une redirection Google (connexion manuelle sur mobile),
+  // le jeton est directement présent dans l'URL : pas besoin de retenter
+  // quoi que ce soit, on est déjà connecté.
+  if (recupererJetonDepuisRedirection()) {
+    document.getElementById('connectPanel').hidden = true;
+    document.getElementById('calendarContent').hidden = false;
+    loadEvents();
+    return;
+  }
+
+  initGoogleClient();
   tenterConnexionSilencieuse();
+}
+
+/**
+ * Après une connexion Google par redirection de page (utilisée sur mobile
+ * pour éviter le bug du nouvel onglet qui reste bloqué), le jeton d'accès
+ * revient directement dans l'URL de la page. On le récupère ici, puis on
+ * nettoie l'URL pour ne pas le laisser visible dans l'historique.
+ */
+function recupererJetonDepuisRedirection() {
+  if (!window.location.hash) return false;
+  const params = new URLSearchParams(window.location.hash.substring(1));
+  const token = params.get('access_token');
+  if (!token) return false;
+
+  accessToken = token;
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  return true;
 }
 
 // ============================================================
@@ -98,12 +126,21 @@ function tenterConnexionSilencieuse() {
 }
 
 function connect() {
-  if (!tokenClient) { initGoogleClient(); }
   document.getElementById('connectHint').textContent = '';
-  // '' laisse Google décider du minimum nécessaire : s'il y a déjà une
-  // autorisation valide, la connexion se fait en un clic, sans repasser
-  // par l'écran complet de sélection de compte + validation des droits.
-  tokenClient.requestAccessToken({ prompt: '', hint: calendarId });
+  // Redirection de page classique plutôt qu'une fenêtre séparée : sur
+  // mobile, le mécanisme qui referme automatiquement un nouvel onglet
+  // et revient sur le site est peu fiable et peut rester bloqué. La
+  // redirection évite complètement ce problème (pas de second onglet).
+  const redirectUri = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: redirectUri,
+    response_type: 'token',
+    scope: GOOGLE_CALENDAR_SCOPE,
+    include_granted_scopes: 'true',
+    login_hint: calendarId || '',
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
 // ============================================================
