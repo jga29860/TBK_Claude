@@ -31,6 +31,11 @@ html{ scroll-behavior: smooth; }
   *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
 
+/* Garantit que l'attribut hidden l'emporte toujours, même sur un élément
+   dont une classe définit son propre display (ex. display:grid/flex) —
+   sans cette règle, ce genre de classe peut empêcher hidden de fonctionner. */
+[hidden]{ display: none !important; }
+
 body{
   margin:0;
   background: var(--bg);

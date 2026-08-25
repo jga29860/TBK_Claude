@@ -419,6 +419,10 @@ Correction d'un vrai bug : sur mobile, cliquer sur "Se connecter à Google Agend
 
 **Réglage Google Cloud requis** (uniquement pour que la connexion manuelle fonctionne sur mobile) : ajoutez l'URL exacte de la page agenda (ex. `https://jga29860.github.io/TBK_Claude/agenda.html`, sans slash final) dans Google Auth Platform → Clients → votre client OAuth → "URI de redirection autorisés".
 
+## Correction d'un bug d'affichage global (attribut "hidden" ignoré)
+
+Bug identifié sur membres.html : la section Connexion/Créer un compte restait visible même une fois connecté, alors que le code JavaScript la masquait correctement. Cause réelle : certaines classes CSS du site (ex. `.auth-panels{ display:grid; }`) prenaient le pas sur la règle par défaut du navigateur pour l'attribut `hidden`, qui n'a normalement pas priorité sur les styles définis par le site. Une règle globale (`[hidden]{ display:none !important; }`) garantit désormais que `hidden` fonctionne partout sur le site, quelle que soit la classe présente sur l'élément — corrige ce problème sur membres.html et prévient qu'il se reproduise ailleurs.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
