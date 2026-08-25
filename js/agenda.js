@@ -173,6 +173,8 @@ function renderMonth() {
   }
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  let htmlListe = '';
+  let auMoinsUnJourAvecEvenement = false;
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateObj = new Date(year, month, d);
@@ -192,9 +194,30 @@ function renderMonth() {
           `).join('')}
         </div>
       </div>`;
+
+    if (dayEvents.length > 0) {
+      auMoinsUnJourAvecEvenement = true;
+      htmlListe += `
+        <div class="cal-jour-liste ${isToday ? 'cal-jour-liste--today' : ''}">
+          <div class="cal-jour-liste-entete">
+            <span class="cal-jour-liste-date">${dateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+            <button type="button" class="cal-add-btn" data-date="${dateStr}" title="Ajouter un événement">+</button>
+          </div>
+          ${dayEvents.map(e => `
+            <button type="button" class="cal-event-liste" data-event-id="${e.id}">
+              <span class="cal-event-liste-titre">${escapeHtml(e.summary || '(sans titre)')}</span>
+              ${e.start.dateTime ? `<span class="cal-event-liste-heure">${e.start.dateTime.slice(11, 16)}${e.end && e.end.dateTime ? ' – ' + e.end.dateTime.slice(11, 16) : ''}</span>` : '<span class="cal-event-liste-heure">Journée entière</span>'}
+              ${e.location ? `<span class="cal-event-liste-lieu">📍 ${escapeHtml(e.location)}</span>` : ''}
+            </button>
+          `).join('')}
+        </div>`;
+    }
   }
 
   document.getElementById('calendarGrid').innerHTML = html;
+  document.getElementById('calendarListe').innerHTML = auMoinsUnJourAvecEvenement
+    ? htmlListe
+    : '<p class="section-lead">Aucun événement ce mois-ci.</p>';
   bindGridEvents();
 }
 
@@ -207,7 +230,7 @@ function bindGridEvents() {
   document.querySelectorAll('.cal-add-btn').forEach(btn => {
     btn.addEventListener('click', () => openForm(null, btn.getAttribute('data-date')));
   });
-  document.querySelectorAll('.cal-event').forEach(btn => {
+  document.querySelectorAll('.cal-event, .cal-event-liste').forEach(btn => {
     btn.addEventListener('click', () => {
       const event = eventsCache.find(e => e.id === btn.getAttribute('data-event-id'));
       if (event) openForm(event);

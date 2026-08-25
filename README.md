@@ -405,6 +405,10 @@ Sur membres.html, un lien "Mot de passe oublié ?" sous le formulaire de connexi
 - **Mot de passe oublié** : le formulaire accepte maintenant nom d'utilisateur ou email. Avec une vraie adresse email : lien de réinitialisation envoyé automatiquement, comme avant. Avec un simple nom d'utilisateur (pas d'email associé) : la messagerie de la personne s'ouvre avec un email pré-rempli adressé au contact du club (paramétré dans Admin → Paramètres du site), prêt à envoyer — le bureau reçoit la demande et réinitialise manuellement depuis Supabase.
 - **Réinitialisation depuis admin.html pour les comptes techniques** : le message texte a été remplacé par un bouton "Réinitialiser via Supabase →", qui ouvre directement la fiche du bon utilisateur dans Supabase (recherche pré-remplie), en un clic depuis la page Utilisateurs. La modification effective du mot de passe reste une action Supabase (bouton "Reset password" une fois sur place) : aucune clé secrète n'est ni ne sera exposée dans le navigateur pour des raisons de sécurité — voir la documentation (section 2.5) pour le mode opératoire complet.
 
+## Agenda du club — vue liste sur mobile
+
+Sur téléphone, la grille mensuelle (7 colonnes trop étroites pour rester lisible) est remplacée par une **liste verticale** : seuls les jours ayant des événements sont affichés, chacun avec son titre en taille normale, ses horaires, et son lieu si renseigné. La grille classique reste inchangée sur PC, où l'espace disponible la rend parfaitement lisible. Le formulaire d'ajout/modification et le bouton "+" par jour fonctionnent identiquement dans les deux vues.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

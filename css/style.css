@@ -707,10 +707,31 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .cal-event:hover{ background:var(--green); color:var(--white); border-color:var(--green); }
+
+/* ===== Vue liste (mobile) — masquée sur PC, la grille reste affichée là ===== */
+.cal-liste-mobile{ display:none; }
+
+.cal-jour-liste{
+  border:1px solid var(--border); border-radius:10px; margin-bottom:12px; overflow:hidden; background:var(--white);
+}
+.cal-jour-liste--today{ border-color:var(--green); box-shadow: 0 0 0 1px var(--green); }
+.cal-jour-liste-entete{
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--pale); padding:10px 14px; font-weight:700; text-transform:capitalize; font-size:0.95rem;
+}
+.cal-event-liste{
+  display:flex; flex-direction:column; gap:2px; width:100%; text-align:left; background:none;
+  border:none; border-top:1px solid var(--border); padding:12px 14px; cursor:pointer;
+}
+.cal-event-liste:first-of-type{ border-top:none; }
+.cal-event-liste:active, .cal-event-liste:hover{ background:var(--pale); }
+.cal-event-liste-titre{ font-weight:700; font-size:1rem; color:var(--dark); }
+.cal-event-liste-heure{ font-size:0.85rem; color:var(--green); font-weight:600; }
+.cal-event-liste-lieu{ font-size:0.82rem; color:var(--ink-soft); }
+
 @media (max-width: 760px){
-  .cal-grid{ grid-template-columns: repeat(7, minmax(38px, 1fr)); gap:3px; }
-  .cal-cell{ min-height:70px; padding:3px; font-size:0.8rem; }
-  .cal-weekday{ font-size:0.65rem; }
+  .cal-grid{ display:none; }
+  .cal-liste-mobile{ display:block; }
 }
 
 /* ===== Planning ===== */
