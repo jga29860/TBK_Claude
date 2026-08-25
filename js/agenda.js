@@ -125,22 +125,33 @@ function tenterConnexionSilencieuse() {
   tokenClient.requestAccessToken({ prompt: 'none', hint: calendarId });
 }
 
+function estMobile() {
+  return window.innerWidth <= 760 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 function connect() {
   document.getElementById('connectHint').textContent = '';
-  // Redirection de page classique plutôt qu'une fenêtre séparée : sur
-  // mobile, le mécanisme qui referme automatiquement un nouvel onglet
-  // et revient sur le site est peu fiable et peut rester bloqué. La
-  // redirection évite complètement ce problème (pas de second onglet).
-  const redirectUri = window.location.origin + window.location.pathname;
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: redirectUri,
-    response_type: 'token',
-    scope: GOOGLE_CALENDAR_SCOPE,
-    include_granted_scopes: 'true',
-    login_hint: calendarId || '',
-  });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+
+  if (estMobile()) {
+    // Redirection de page classique, uniquement sur mobile : le mécanisme
+    // qui referme automatiquement un nouvel onglet et revient sur le site
+    // est peu fiable sur les navigateurs mobiles et peut rester bloqué.
+    const redirectUri = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: redirectUri,
+      response_type: 'token',
+      scope: GOOGLE_CALENDAR_SCOPE,
+      include_granted_scopes: 'true',
+      login_hint: calendarId || '',
+    });
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    return;
+  }
+
+  // Sur PC : fenêtre de connexion classique (fonctionne bien, inchangé).
+  if (!tokenClient) { initGoogleClient(); }
+  tokenClient.requestAccessToken({ prompt: '', hint: calendarId });
 }
 
 // ============================================================

@@ -415,9 +415,9 @@ Correction : la connexion à Google Agenda passait systématiquement par l'écra
 
 ## Agenda du club — correction du blocage sur mobile
 
-Correction d'un vrai bug : sur mobile, cliquer sur "Se connecter à Google Agenda" ouvrait un nouvel onglet qui restait parfois bloqué sans jamais revenir sur le site (le mécanisme de Google censé refermer automatiquement cet onglet est peu fiable sur les navigateurs mobiles). La connexion manuelle passe désormais par une redirection de page classique (Google s'affiche sur la même page, puis revient directement sur l'agenda) au lieu d'ouvrir un second onglet — plus aucun risque de rester bloqué. La reconnexion automatique et silencieuse au chargement de la page reste inchangée.
+Correction d'un vrai bug : sur mobile, cliquer sur "Se connecter à Google Agenda" ouvrait un nouvel onglet qui restait parfois bloqué sans jamais revenir sur le site (le mécanisme de Google censé refermer automatiquement cet onglet est peu fiable sur les navigateurs mobiles). **Sur mobile uniquement**, la connexion manuelle passe désormais par une redirection de page classique (Google s'affiche sur la même page, puis revient directement sur l'agenda) au lieu d'ouvrir un second onglet. **Sur PC, le comportement reste inchangé** (fenêtre de connexion classique, qui fonctionnait déjà bien). La reconnexion automatique et silencieuse au chargement de la page reste également inchangée, sur les deux.
 
-**Réglage Google Cloud requis** : ajoutez l'URL exacte de la page agenda (ex. `https://jga29860.github.io/TBK_Claude/agenda.html`) dans Google Auth Platform → Clients → votre client OAuth → "URI de redirection autorisés".
+**Réglage Google Cloud requis** (uniquement pour que la connexion manuelle fonctionne sur mobile) : ajoutez l'URL exacte de la page agenda (ex. `https://jga29860.github.io/TBK_Claude/agenda.html`, sans slash final) dans Google Auth Platform → Clients → votre client OAuth → "URI de redirection autorisés".
 
 ## Autres changements de ce tour
 
