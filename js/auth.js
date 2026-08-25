@@ -98,9 +98,8 @@ async function renderAuthState() {
     return;
   }
 
-  let html = `<span class="nav-auth-name">${escapeHtml(access.display_name || afficherIdentifiant(access.email))} <small>(${escapeHtml(access.roleLabel)})</small></span>`;
+  let html = `<a href="membres.html" class="nav-auth-name" title="Mon compte">${escapeHtml(access.display_name || afficherIdentifiant(access.email))} <small>(${escapeHtml(access.roleLabel)})</small></a>`;
   html += await renderPendingInscriptionsBadge(access);
-  html += ' <a href="membres.html" class="nav-auth-link">Connexion</a>';
   html += ' <button id="logoutBtn" class="nav-auth-link nav-auth-btn" type="button">Se déconnecter</button>';
   el.innerHTML = html;
 

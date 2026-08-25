@@ -399,6 +399,12 @@ Sur membres.html, un lien "Mot de passe oublié ?" sous le formulaire de connexi
 - **Message d'erreur clair** à l'inscription si l'identifiant existe déjà ("Ce nom d'utilisateur (ou cet email) existe déjà...") au lieu du message technique brut de Supabase. L'unicité elle-même était déjà garantie nativement par Supabase (aucune migration nécessaire) : cette amélioration ne concerne que la clarté du message affiché.
 - **"Mon compte" accessible à tout utilisateur connecté** (pas seulement l'admin) : nouvelle section sur membres.html permettant à n'importe qui de changer son propre mot de passe, quel que soit son profil (même un simple visiteur). Auparavant, seul un compte avec accès à l'administration pouvait changer son propre mot de passe.
 
+## Bandeau simplifié une fois connecté + réinitialisation de mot de passe repensée
+
+- **Bandeau une fois connecté** : le lien "Connexion" a disparu (inutile une fois connecté), ne reste que "Se déconnecter". Cliquer sur son propre nom/profil dans le bandeau mène directement à "Mon compte" (membres.html), pour ne rien perdre en accessibilité.
+- **Mot de passe oublié** : le formulaire accepte maintenant nom d'utilisateur ou email. Avec une vraie adresse email : lien de réinitialisation envoyé automatiquement, comme avant. Avec un simple nom d'utilisateur (pas d'email associé) : la messagerie de la personne s'ouvre avec un email pré-rempli adressé au contact du club (paramétré dans Admin → Paramètres du site), prêt à envoyer — le bureau reçoit la demande et réinitialise manuellement depuis Supabase.
+- **Réinitialisation depuis admin.html pour les comptes techniques** : le message texte a été remplacé par un bouton "Réinitialiser via Supabase →", qui ouvre directement la fiche du bon utilisateur dans Supabase (recherche pré-remplie), en un clic depuis la page Utilisateurs. La modification effective du mot de passe reste une action Supabase (bouton "Reset password" une fois sur place) : aucune clé secrète n'est ni ne sera exposée dans le navigateur pour des raisons de sécurité — voir la documentation (section 2.5) pour le mode opératoire complet.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

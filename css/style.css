@@ -265,7 +265,9 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   display:inline-flex; align-items:center; gap:6px;
   background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
   color: var(--white); border-radius: 6px; padding: 6px 12px; font-weight:700;
+  text-decoration:none; cursor:pointer; transition: background .15s ease;
 }
+.nav-auth-name:hover{ background: rgba(255,255,255,0.3); }
 .nav-auth-name small{ color: rgba(255,255,255,0.75); font-weight:500; }
 .pending-badge{
   display:inline-block; background:#c00000; color:#fff !important; font-weight:700;

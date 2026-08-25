@@ -22,6 +22,20 @@ const PAGE_CATALOG = [
 let rolesCache = [];
 let currentUserId = null;
 
+/**
+ * Construit un lien direct vers la fiche de cet utilisateur dans Supabase
+ * (Authentication → Users, recherche pré-remplie), pour rapprocher au
+ * maximum la réinitialisation manuelle du geste "depuis la page admin"
+ * — la clé secrète nécessaire pour le faire vraiment depuis le site
+ * n'est jamais exposée dans le navigateur, pour des raisons de sécurité.
+ */
+function lienSupabaseUtilisateur(email) {
+  const match = SUPABASE_URL.match(/^https:\/\/([^.]+)\.supabase\.co/);
+  const projectRef = match ? match[1] : '';
+  const recherche = encodeURIComponent(email || '');
+  return `https://supabase.com/dashboard/project/${projectRef}/auth/users?search=${recherche}`;
+}
+
 async function initAdminPage() {
   const access = await getCurrentAccess();
 
@@ -227,7 +241,7 @@ async function loadUsers() {
       <td>${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
       <td><button type="button" class="btn btn-ghost btn-small save-user-btn">Enregistrer</button></td>
       <td>${technique
-        ? '<span style="font-size:0.8rem; color:var(--ink-soft);">Pas de vraie adresse email : réinitialisation impossible depuis cette page. Utilisez Supabase → Authentication → Users → cet utilisateur → "Reset password".</span>'
+        ? `<a href="${lienSupabaseUtilisateur(u.email)}" target="_blank" rel="noopener" class="btn btn-ghost btn-small">Réinitialiser via Supabase →</a>`
         : '<button type="button" class="btn btn-ghost btn-small reset-pass-btn">Réinitialiser le mot de passe</button>'}</td>
       <td>${u.id !== currentUserId ? '<button type="button" class="btn btn-danger btn-small delete-user-btn">Supprimer</button>' : ''}</td>
     </tr>`;

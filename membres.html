@@ -39,10 +39,10 @@
       </form>
       <button type="button" class="nav-auth-link" id="motDePasseOublieBtn" style="color:var(--slate); margin-top:8px;">Mot de passe oublié ?</button>
       <form id="resetPasswordRequestForm" class="contact-form" hidden style="margin-top:14px;">
-        <label>Votre adresse email <input type="email" name="email" required></label>
-        <button type="submit" class="btn btn-ghost">Envoyer le lien de réinitialisation</button>
+        <label>Votre nom d'utilisateur (ou email) <input type="text" name="identifiant" required></label>
+        <button type="submit" class="btn btn-ghost">Demander la réinitialisation</button>
         <p class="form-hint" id="resetPasswordHint"></p>
-        <p class="form-hint">Fonctionne uniquement pour les comptes créés avec une vraie adresse email. Pour un compte créé par simple nom d'utilisateur, contactez un administrateur du club.</p>
+        <p class="form-hint">Avec une vraie adresse email : un lien de réinitialisation vous est envoyé directement. Avec un simple nom d'utilisateur (pas d'email associé) : votre messagerie s'ouvre pour envoyer une demande au bureau du club, qui réinitialisera votre mot de passe.</p>
       </form>
     </div>
     <div class="auth-panel">

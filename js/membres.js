@@ -214,7 +214,7 @@ if (loginForm) {
   });
 }
 
-// ===== Mot de passe oublié (auto-service, comptes email uniquement) =====
+// ===== Mot de passe oublié (email : auto-service ; nom d'utilisateur : demande au bureau) =====
 const motDePasseOublieBtn = document.getElementById('motDePasseOublieBtn');
 const resetPasswordRequestForm = document.getElementById('resetPasswordRequestForm');
 if (motDePasseOublieBtn && resetPasswordRequestForm) {
@@ -226,19 +226,41 @@ if (motDePasseOublieBtn && resetPasswordRequestForm) {
     e.preventDefault();
     const hint = document.getElementById('resetPasswordHint');
     const fd = new FormData(resetPasswordRequestForm);
-    const email = fd.get('email').trim();
+    const identifiant = fd.get('identifiant').trim();
 
-    hint.textContent = 'Envoi en cours…';
-    const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname.replace('membres.html', 'reset-password.html'),
-    });
-
-    if (error) {
-      hint.textContent = 'Erreur : ' + error.message;
+    if (identifiant.includes('@')) {
+      // Vraie adresse email : réinitialisation en auto-service, comme avant.
+      hint.textContent = 'Envoi en cours…';
+      const { error } = await sbClient.auth.resetPasswordForEmail(identifiant, {
+        redirectTo: window.location.origin + window.location.pathname.replace('membres.html', 'reset-password.html'),
+      });
+      if (error) {
+        hint.textContent = 'Erreur : ' + error.message;
+        return;
+      }
+      hint.textContent = "Si un compte existe avec cette adresse, un email de réinitialisation vient d'être envoyé. Vérifiez votre boîte de réception (et vos spams).";
+      resetPasswordRequestForm.reset();
       return;
     }
-    hint.textContent = "Si un compte existe avec cette adresse, un email de réinitialisation vient d'être envoyé. Vérifiez votre boîte de réception (et vos spams).";
-    resetPasswordRequestForm.reset();
+
+    // Nom d'utilisateur (pas de vraie adresse email) : on ouvre la
+    // messagerie de la personne pour qu'elle envoie elle-même une demande
+    // au bureau, à l'adresse de contact paramétrée du club.
+    hint.textContent = 'Préparation de votre demande…';
+    const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
+    const emailContact = (!error && data && data.valeur) ? data.valeur : null;
+
+    if (!emailContact) {
+      hint.textContent = "Impossible de trouver l'adresse de contact du club. Contactez directement un administrateur.";
+      return;
+    }
+
+    const sujet = encodeURIComponent('Demande de réinitialisation de mot de passe — TBK');
+    const corps = encodeURIComponent(
+      `Bonjour,\n\nJ'ai oublié le mot de passe de mon compte sur le site TBK.\n\nMon nom d'utilisateur : ${identifiant}\n\nPouvez-vous réinitialiser mon mot de passe ?\n\nMerci !`
+    );
+    window.location.href = `mailto:${emailContact}?subject=${sujet}&body=${corps}`;
+    hint.textContent = "Votre messagerie s'est ouverte avec une demande pré-remplie : il ne reste qu'à l'envoyer.";
   });
 }
 
