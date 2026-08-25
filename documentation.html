@@ -111,7 +111,9 @@
             <tr><td>tournois_gestion</td><td>mêmes pages que ci-dessus</td><td>Gestion des tournois (hors suppression)</td></tr>
             <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
             <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar)</td></tr>
-            <tr><td>administration</td><td>admin.html, documentation.html</td><td>Gestion des comptes, profils, paramètres</td></tr>
+            <tr><td>jeu_cartes</td><td>jeu-de-cartes.html</td><td>Composition aléatoire d'équipes par tirage de cartes</td></tr>
+            <tr><td>documentation</td><td>documentation.html</td><td>Consultation de la documentation fonctionnelle</td></tr>
+            <tr><td>administration</td><td>admin.html, sauvegarde.html</td><td>Gestion des comptes, profils, paramètres, sauvegarde</td></tr>
           </tbody>
         </table>
       </div>
@@ -129,6 +131,21 @@
 
       <h3 class="admin-subheading">2.4 Gestion des utilisateurs</h3>
       <p>Depuis Administration → Utilisateurs, un administrateur peut changer le profil de n'importe quel compte, envoyer un email de réinitialisation de mot de passe (comptes email uniquement), ou supprimer le profil d'un utilisateur (celui-ci perd alors tout accès au site, mais son compte de connexion technique reste géré depuis Supabase). Un système d'invitations permet de pré-attribuer un profil à un email avant même la création du compte.</p>
+
+      <h3 class="admin-subheading">2.5 Supprimer un compte complètement ou réinitialiser un mot de passe (via Supabase)</h3>
+      <p><strong>Pourquoi cette étape manuelle est nécessaire</strong> : pour des raisons de sécurité, le site (qui tourne entièrement dans le navigateur) n'a jamais accès à la clé secrète qui permettrait de supprimer un compte de connexion ou de fixer directement le mot de passe d'un autre utilisateur. Le bouton "Supprimer" d'admin.html ne retire donc que le <em>profil</em> (les droits d'accès) — pas le compte de connexion lui-même. Concrètement, si vous supprimez un profil puis essayez de recréer un compte avec le même email ou nom d'utilisateur, vous obtiendrez l'erreur <em>"User already registered"</em> tant que l'ancien compte de connexion existe encore.</p>
+      <p><strong>Pour supprimer un compte complètement</strong> (connexion incluse) :</p>
+      <ol style="margin-left:20px;">
+        <li>Dans Supabase, menu ☰ → Authentication → Users.</li>
+        <li>Recherchez l'email ou l'identifiant technique de la personne (ex. "nomutilisateur@tbk-club.interne" pour un compte créé par simple nom d'utilisateur).</li>
+        <li>Cliquez sur le menu ⋮ à droite de la ligne correspondante → "Delete user", puis confirmez.</li>
+      </ol>
+      <p><strong>Pour réinitialiser le mot de passe de n'importe quel compte</strong> (y compris les comptes par nom d'utilisateur, pour lesquels le bouton de réinitialisation par email d'admin.html ne fonctionne pas) :</p>
+      <ol style="margin-left:20px;">
+        <li>Dans Supabase, Authentication → Users → cliquez sur le compte concerné.</li>
+        <li>Dans le panneau qui s'ouvre, bouton "Reset password" : permet de définir directement un nouveau mot de passe, sans passer par un email.</li>
+      </ol>
+      <p>Ces deux actions restent réservées au titulaire du projet Supabase (pas à n'importe quel administrateur du site) : c'est un accès distinct, plus large, que celui donné par le profil "administration".</p>
     </section>
 
     <!-- ===== 3. PAGES PUBLIQUES ===== -->
