@@ -384,6 +384,10 @@ Exécutez `supabase/migration_certificat_medical.sql` pour créer le stockage s�
 - **Accès au stockage réservé** aux mêmes personnes qui ont déjà accès à la page Inscriptions (même droit de page, aucune configuration supplémentaire à faire).
 - **Actions en colonne verticale** sur toutes les tailles d'écran (Valider, 📷 Certificat, Voir le certificat, Modifier, Supprimer) au lieu d'une rangée compressée horizontalement — boutons plus grands et plus faciles à toucher sur mobile.
 
+## Connexion — redirection directe vers l'accueil
+
+Une fois identifiants et mot de passe validés avec succès sur membres.html, la page redirige désormais automatiquement vers l'accueil (index.html) au lieu de simplement se recharger sur place.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -174,7 +174,8 @@ if (loginForm) {
       hint.textContent = "Échec de connexion : " + error.message;
       return;
     }
-    window.location.reload();
+    hint.textContent = 'Connexion réussie, redirection…';
+    window.location.href = 'index.html';
   });
 }
 
