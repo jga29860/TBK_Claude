@@ -423,6 +423,17 @@ Correction d'un vrai bug : sur mobile, cliquer sur "Se connecter à Google Agend
 
 Bug identifié sur membres.html : la section Connexion/Créer un compte restait visible même une fois connecté, alors que le code JavaScript la masquait correctement. Cause réelle : certaines classes CSS du site (ex. `.auth-panels{ display:grid; }`) prenaient le pas sur la règle par défaut du navigateur pour l'attribut `hidden`, qui n'a normalement pas priorité sur les styles définis par le site. Une règle globale (`[hidden]{ display:none !important; }`) garantit désormais que `hidden` fonctionne partout sur le site, quelle que soit la classe présente sur l'élément — corrige ce problème sur membres.html et prévient qu'il se reproduise ailleurs.
 
+## Inscriptions saison — optimisation de l'affichage PC
+
+- La 1ère colonne du tableau (déjà "Nom Prénom" combinés) est désormais intitulée "Nom Prénom" au lieu de "Nom".
+- La colonne "Prénom" séparée a été retirée (devenue redondante depuis qu'elle apparaît déjà combinée en 1ère colonne).
+- La colonne "Whatsapp" ne s'affiche plus par défaut (reste sélectionnable à nouveau depuis Configuration si besoin).
+- Nécessite `supabase/migration_retrait_colonnes_inscriptions.sql` pour que le changement s'applique sans repasser par l'écran Configuration.
+
+## Agenda du club — filet de sécurité si la connexion automatique reste bloquée
+
+Correction d'un cas où la reconnexion automatique restait bloquée indéfiniment sur "Connexion automatique en cours…" sans jamais rien afficher d'autre (Google ne répondant parfois jamais, par exemple si les cookies tiers sont bloqués par le navigateur). Un délai de 6 secondes force désormais la réapparition du bouton de connexion manuelle si Google ne répond pas à temps, avec un message explicite.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

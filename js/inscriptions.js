@@ -5,9 +5,9 @@
 const SAISON = '2026-2027';
 
 // Colonnes "fixes" pouvant être affichées dans le tableau des inscrits
-// (Nom est toujours affiché, il n'apparaît pas dans cette liste).
+// (Nom + Prénom sont toujours affichés ensemble en 1ère colonne, ils
+// n'apparaissent donc pas séparément dans cette liste).
 const FIXED_COLUMNS = [
-  { key: 'prenom', label: 'Prénom' },
   { key: 'categorie', label: 'Catégorie' },
   { key: 'bad_ping', label: 'Bad / Ping' },
   { key: 'ufolep_fsgt', label: 'UFOLEP / FSGT' },
@@ -463,7 +463,7 @@ async function loadInscriptions() {
 
 function renderInscriptionsTableHead(columns) {
   const theadRow = document.querySelector('#inscriptionsTable thead tr');
-  theadRow.innerHTML = `<th>Nom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
+  theadRow.innerHTML = `<th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
 }
 
 function conditionsValidationOk(record) {

@@ -89,6 +89,7 @@ function initGoogleClient() {
     client_id: GOOGLE_CLIENT_ID,
     scope: GOOGLE_CALENDAR_SCOPE,
     callback: (response) => {
+      annulerDelaiSecurite();
       document.getElementById('connectBtn').hidden = false;
       document.getElementById('connectBtn').textContent = 'Se connecter à Google Agenda';
       if (response.error) {
@@ -110,6 +111,15 @@ function initGoogleClient() {
   });
 }
 
+let delaiSecuriteId = null;
+
+function annulerDelaiSecurite() {
+  if (delaiSecuriteId) {
+    clearTimeout(delaiSecuriteId);
+    delaiSecuriteId = null;
+  }
+}
+
 /**
  * Tentative de reconnexion silencieuse (sans fenêtre, sans clic) au chargement
  * de la page : fonctionne tant que la session Google du navigateur est active
@@ -123,6 +133,16 @@ function tenterConnexionSilencieuse() {
   // "hint" indique directement à Google le compte à utiliser (celui de
   // l'agenda du club), pour éviter l'écran de sélection de compte à chaque fois.
   tokenClient.requestAccessToken({ prompt: 'none', hint: calendarId });
+
+  // Filet de sécurité : il arrive (cookies tiers bloqués, navigateur
+  // particulier...) que Google ne réponde jamais du tout. Sans ce délai,
+  // la page resterait bloquée indéfiniment sur "Connexion automatique en
+  // cours…", sans jamais proposer le bouton de connexion manuelle.
+  annulerDelaiSecurite();
+  delaiSecuriteId = setTimeout(() => {
+    document.getElementById('connectBtn').hidden = false;
+    document.getElementById('connectHint').textContent = 'La connexion automatique met trop de temps : cliquez sur le bouton ci-dessus pour vous connecter manuellement.';
+  }, 6000);
 }
 
 function estMobile() {
@@ -130,6 +150,7 @@ function estMobile() {
 }
 
 function connect() {
+  annulerDelaiSecurite();
   document.getElementById('connectHint').textContent = '';
 
   if (estMobile()) {
