@@ -82,30 +82,26 @@
   <!-- Affiché si membre ou admin -->
   <section id="memberContent" class="status-panel" hidden>
     <h2>Annonces du club</h2>
-    <div id="annoncesList" class="annonces-list"></div>
-  </section>
 
-  <!-- Gestion des annonces : visible uniquement pour les profils autorisés (Admin, Bureau) -->
-  <section id="gestionAnnoncesSection" class="admin-section" hidden>
-    <h2>Gérer les annonces</h2>
-    <div id="annoncesGestionList"></div>
-
-    <h3 class="admin-subheading">Nouvelle annonce</h3>
-    <form id="annonceForm">
-      <div class="field-grid">
-        <label style="grid-column: 1 / -1;">Titre
-          <input type="text" name="titre" required>
-        </label>
-        <label style="grid-column: 1 / -1;">Contenu
-          <textarea name="contenu" rows="4" required></textarea>
-        </label>
-      </div>
+    <!-- Publier une annonce : visible uniquement pour les profils autorisés (Admin, Bureau) -->
+    <form id="annonceForm" class="contact-form" hidden style="margin-bottom:28px;">
+      <label>Titre
+        <input type="text" name="titre" required>
+      </label>
+      <label>Contenu
+        <textarea name="contenu" rows="3" required></textarea>
+      </label>
+      <label>Pièce jointe (image ou fichier, facultatif)
+        <input type="file" name="fichier" id="annonceFichierInput">
+      </label>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" id="annonceSubmitBtn">Publier l'annonce</button>
         <button type="button" class="btn btn-ghost" id="annonceCancelBtn" hidden>Annuler la modification</button>
       </div>
       <p class="form-hint" id="annonceFormHint"></p>
     </form>
+
+    <div id="annoncesFeed" class="annonces-feed"></div>
   </section>
 </main>
 

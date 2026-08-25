@@ -434,6 +434,22 @@ Bug identifié sur membres.html : la section Connexion/Créer un compte restait 
 
 Correction d'un cas où la reconnexion automatique restait bloquée indéfiniment sur "Connexion automatique en cours…" sans jamais rien afficher d'autre (Google ne répondant parfois jamais, par exemple si les cookies tiers sont bloqués par le navigateur). Un délai de 6 secondes force désormais la réapparition du bouton de connexion manuelle si Google ne répond pas à temps, avec un message explicite.
 
+## Refonte complète des annonces du club — fil d'actualité
+
+Exécutez `supabase/migration_annonces_v2.sql` pour créer les nouvelles tables et le stockage.
+
+Les annonces deviennent un vrai fil d'actualité, dans le style des réseaux sociaux :
+
+- **Auteur et date** sur chaque annonce (et chaque commentaire), avec avatar (initiales).
+- **Commentaires en fil de discussion indenté** : tout membre peut réagir à une annonce par un commentaire, et répondre à un commentaire existant (réponses imbriquées, indentation visuelle progressive).
+- **Suppression individuelle** : chaque personne peut retirer ses propres annonces/commentaires (le bureau/admin peut aussi tout retirer, pour la modération).
+- **Réactions** : 👍 like, 👎 dislike, ❤️ coup de cœur, sur une annonce ou un commentaire — une seule réaction active par personne et par élément (recliquer la retire, cliquer une autre la remplace). Compteur affiché à côté de chaque réaction.
+- **Pièces jointes** : image ou fichier joignable à une annonce comme à un commentaire, stockées dans un espace privé réservé aux membres (accès temporaire généré à la demande, jamais d'URL publique).
+- **Plier/déplier les commentaires** : chaque annonce affiche un bouton "💬 X commentaires ▼/▲" pour révéler ou masquer le fil, en gardant l'affichage compact par défaut.
+- **Tri du plus récent au plus ancien**, en haut de la liste.
+
+L'écran de gestion séparé ("Gérer les annonces") a été fusionné avec l'affichage principal : les personnes autorisées (droit "annonces") voient le formulaire de publication/modification directement au-dessus du fil, sans double affichage.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
