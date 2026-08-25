@@ -409,6 +409,10 @@ Sur membres.html, un lien "Mot de passe oublié ?" sous le formulaire de connexi
 
 Sur téléphone, la grille mensuelle (7 colonnes trop étroites pour rester lisible) est remplacée par une **liste verticale** : seuls les jours ayant des événements sont affichés, chacun avec son titre en taille normale, ses horaires, et son lieu si renseigné. La grille classique reste inchangée sur PC, où l'espace disponible la rend parfaitement lisible. Le formulaire d'ajout/modification et le bouton "+" par jour fonctionnent identiquement dans les deux vues.
 
+## Agenda du club — connexion directe au bon compte Google
+
+Correction : la connexion à Google Agenda passait systématiquement par l'écran de sélection de compte (quand plusieurs comptes Google sont connectés dans le même navigateur), même en cliquant sur "Se connecter". Le compte de l'agenda du club étant déjà connu du site (email de contact paramétré), il est maintenant transmis directement à Google via le paramètre "hint" — la connexion se fait droit sur ce compte, sans repasser par l'étape de sélection à chaque fois (tant que ce compte est déjà connecté sur l'appareil).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

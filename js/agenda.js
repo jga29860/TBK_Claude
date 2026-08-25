@@ -92,7 +92,9 @@ function tenterConnexionSilencieuse() {
   if (!tokenClient) return;
   document.getElementById('connectBtn').hidden = true;
   document.getElementById('connectHint').textContent = 'Connexion automatique en cours…';
-  tokenClient.requestAccessToken({ prompt: 'none' });
+  // "hint" indique directement à Google le compte à utiliser (celui de
+  // l'agenda du club), pour éviter l'écran de sélection de compte à chaque fois.
+  tokenClient.requestAccessToken({ prompt: 'none', hint: calendarId });
 }
 
 function connect() {
@@ -101,7 +103,7 @@ function connect() {
   // '' laisse Google décider du minimum nécessaire : s'il y a déjà une
   // autorisation valide, la connexion se fait en un clic, sans repasser
   // par l'écran complet de sélection de compte + validation des droits.
-  tokenClient.requestAccessToken({ prompt: '' });
+  tokenClient.requestAccessToken({ prompt: '', hint: calendarId });
 }
 
 // ============================================================
