@@ -267,6 +267,15 @@
 
       <h3 class="admin-subheading">6.8 Synthèse Phase finale (phase-finale.html)</h3>
       <p>Page de consultation présentant la phase finale en tableau à élimination directe classique, en colonnes par tour. Se met à jour automatiquement toutes les 20 secondes.</p>
+
+      <h3 class="admin-subheading">6.9 Bénévoles (tournoi-benevoles.html)</h3>
+      <p><strong>Accessible sans connexion</strong> — c'est la seule page du site conçue pour être ouverte à des visiteurs qui n'ont pas de compte (partageable largement, par exemple via un lien ou une affiche). Elle affiche les postes de bénévoles du tournoi actif.</p>
+      <ul>
+        <li><strong>Postes configurables</strong> par les organisateurs (droits "Tournois - Administration" ou "Tournois - Gestion") : nom, horaire facultatif, description facultative, nombre de places nécessaires.</li>
+        <li><strong>Inscription libre</strong>, avec ou sans compte : un simple champ "Nom et prénom" suffit. Une personne connectée peut se désinscrire elle-même ; une inscription anonyme ne peut être retirée que par un organisateur.</li>
+        <li><strong>Gestion complète par les organisateurs</strong> : ajout manuel d'un bénévole (même sans compte), modification du nom affiché, suppression de n'importe quelle inscription.</li>
+        <li><strong>Fil de discussion</strong> propre au tournoi, ouvert lui aussi sans connexion en lecture et en écriture (avec un champ "Votre nom" facultatif pour les visiteurs anonymes) : messages, réponses indentées, pièces jointes. Les réactions (👍 👎 ❤️) restent réservées aux comptes connectés, une identité stable étant nécessaire pour appliquer la règle "une seule réaction par personne".</li>
+      </ul>
     </section>
 
     <!-- ===== 7. ADMINISTRATION ===== -->
@@ -340,7 +349,9 @@
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
           <tbody>
-            <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres.</td></tr>
+            <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres (avec auteur, date, pièce jointe facultative).</td></tr>
+            <tr><td>annonces_commentaires</td><td>Fil de discussion indenté sous chaque annonce (réponses imbriquées).</td></tr>
+            <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
             <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
@@ -360,6 +371,9 @@
             <tr><td>tournoi_competitions</td><td>Compétitions incluses dans un tournoi, avec leur configuration de poules.</td></tr>
             <tr><td>equipes</td><td>Équipes inscrites : joueurs, club, poule, tête de poule, présence/paiement par joueur.</td></tr>
             <tr><td>matchs</td><td>Tous les matchs (poule, principale, consolante) : scores, terrain, horodatage, chaînage vers le tour suivant.</td></tr>
+            <tr><td>benevoles_postes</td><td>Postes de bénévoles définis pour un tournoi (nom, horaire, description, places).</td></tr>
+            <tr><td>benevoles_inscriptions</td><td>Inscriptions des bénévoles sur les postes (avec ou sans compte utilisateur).</td></tr>
+            <tr><td>tournoi_messages</td><td>Fil de discussion propre à un tournoi (accessible sans connexion).</td></tr>
           </tbody>
         </table>
       </div>

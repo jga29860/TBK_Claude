@@ -26,13 +26,8 @@
 </header>
 
 <main class="wrap page-section page-section--wide">
-  <p class="section-eyebrow">Organisation du tournoi</p>
+  <p class="section-eyebrow">Ouvert à tous — pas besoin de créer un compte</p>
   <h1 id="pageTitle">Bénévoles</h1>
-
-  <div id="deniedPanel" class="status-panel" hidden>
-    <h2>Accès refusé</h2>
-    <p>Vous n'avez pas accès à cette page. Un administrateur peut vous y donner accès depuis Administration → Profils.</p>
-  </div>
 
   <div id="pasDeTournoiMessage" class="status-panel" hidden>
     <h2>Aucun tournoi en cours</h2>
@@ -73,6 +68,11 @@
     <section class="admin-section">
       <h2>Discussion</h2>
       <form id="messageForm" class="contact-form" style="margin-bottom:20px;">
+        <div id="messageNomZone" hidden>
+          <label>Votre nom (facultatif)
+            <input type="text" id="messageAuteurInput" placeholder="Pour que les autres sachent qui a écrit">
+          </label>
+        </div>
         <label>Écrire un message
           <textarea name="contenu" rows="2" required placeholder="Une question, une info à partager…"></textarea>
         </label>

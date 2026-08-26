@@ -473,6 +473,17 @@ Exécutez `supabase/migration_correction_droits_benevoles.sql` et `supabase/migr
 - **Correction d'un bug bloquant l'inscription à un poste de bénévoles** : les droits de lecture et d'inscription n'étaient pas cohérents (un organisateur sans le droit "Bénévoles tournoi" explicitement coché ne pouvait pas s'inscrire lui-même, alors qu'il pouvait voir la page). Alignés désormais sur la même règle.
 - **Sauvegarde mise à jour** : la page `sauvegarde.html` couvre maintenant aussi les tables ajoutées depuis sa création (commentaires et réactions des annonces, postes/inscriptions bénévoles, discussion des tournois), avec la garantie de lecture complète pour l'admin étendue à ces nouvelles tables.
 
+## Bénévoles — accès public sans connexion + gestion complète
+
+Exécutez `supabase/migration_benevoles_public_et_gestion.sql`.
+
+- **La page `tournoi-benevoles.html` est désormais accessible sans authentification** — c'est la seule page du site conçue pour être ouverte à des visiteurs sans compte (utile pour recruter des bénévoles au-delà des seuls membres inscrits sur le site). Un lien "Devenir bénévole" a été ajouté sur la page d'accueil, section Tournoi.
+- **Inscription et fil de discussion accessibles à tous**, avec ou sans compte : un simple champ "Nom et prénom" (ou "Votre nom" pour un message de discussion) suffit pour un visiteur non connecté.
+- **Limite assumée** : les réactions (👍👎❤️) restent réservées aux comptes connectés, une identité stable étant nécessaire pour appliquer la règle "une seule réaction par personne" — un visiteur anonyme voit les réactions existantes mais ne peut pas cliquer dessus.
+- **Désinscription** : une personne connectée peut se désinscrire elle-même à tout moment ; une inscription anonyme ne peut être retirée que par un organisateur (aucune identité stable à vérifier côté serveur pour un visiteur sans compte).
+- **Gestion complète par les organisateurs** (droits "Tournois - Administration" ou "Tournois - Gestion") sur chaque poste : ajout manuel d'un bénévole (même sans compte, ex. quelqu'un recruté par téléphone), modification du nom affiché d'une inscription existante, suppression de n'importe quelle inscription.
+- Sécurité : les pièces jointes du chat tournoi partagent le même espace de stockage privé que les annonces du club, mais avec un accès public strictement limité aux fichiers du tournoi (préfixe technique dédié) — les pièces jointes des annonces du club restent, elles, réservées aux membres.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
