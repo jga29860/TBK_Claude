@@ -128,11 +128,12 @@ function renderPostes() {
           : complet
             ? `<button type="button" class="btn btn-ghost btn-small" disabled>Poste complet</button>`
             : `<button type="button" class="btn btn-primary btn-small poste-inscrire-btn" data-poste-id="${p.id}">M'inscrire</button>`}
+        <div class="poste-inscription-form-zone" data-poste-id="${p.id}"></div>
       </div>`;
   }).join('');
 
   container.querySelectorAll('.poste-inscrire-btn').forEach(btn => {
-    btn.addEventListener('click', () => sInscrire(btn.dataset.posteId));
+    btn.addEventListener('click', () => toggleFormulaireInscription(btn.dataset.posteId));
   });
   container.querySelectorAll('.poste-desinscrire-btn').forEach(btn => {
     btn.addEventListener('click', () => seDesinscrire(btn.dataset.posteId));
@@ -145,9 +146,37 @@ function renderPostes() {
   });
 }
 
-async function sInscrire(posteId) {
+function toggleFormulaireInscription(posteId) {
+  const zone = document.querySelector(`.poste-inscription-form-zone[data-poste-id="${posteId}"]`);
+  if (!zone) return;
+  if (zone.innerHTML.trim()) {
+    zone.innerHTML = '';
+    return;
+  }
+  zone.innerHTML = `
+    <form class="poste-inscription-form" data-poste-id="${posteId}">
+      <input type="text" name="nom" value="${escapeHtml(currentUserNom)}" placeholder="Votre nom et prénom" required>
+      <div class="poste-inscription-form-actions">
+        <button type="submit" class="btn btn-primary btn-small">Confirmer</button>
+        <button type="button" class="btn btn-ghost btn-small poste-inscription-annuler-btn">Annuler</button>
+      </div>
+    </form>`;
+
+  const form = zone.querySelector('form');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nom = form.nom.value.trim();
+    if (!nom) return;
+    await sInscrire(posteId, nom);
+  });
+  zone.querySelector('.poste-inscription-annuler-btn').addEventListener('click', () => { zone.innerHTML = ''; });
+  form.querySelector('input').focus();
+  form.querySelector('input').select();
+}
+
+async function sInscrire(posteId, nomAffiche) {
   const { error } = await sbClient.from('benevoles_inscriptions').insert({
-    poste_id: posteId, user_id: currentUserId, nom_affiche: currentUserNom,
+    poste_id: posteId, user_id: currentUserId, nom_affiche: nomAffiche,
   });
   if (error) { alert('Erreur : ' + error.message); return; }
   await chargerPostes();

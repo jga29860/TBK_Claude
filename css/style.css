@@ -455,6 +455,14 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 .poste-inscrits-liste{ margin:0; padding-left:18px; font-size:0.85rem; color: var(--ink); }
 .poste-aucun-inscrit{ list-style:none; margin-left:-18px; font-style:italic; color: var(--ink-soft); }
 
+.poste-inscription-form-zone:empty{ display:none; }
+.poste-inscription-form{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+.poste-inscription-form input[type="text"]{
+  border:1px solid var(--border); border-radius:6px; padding:8px 10px;
+  font-family: var(--font-body); font-size:0.88rem;
+}
+.poste-inscription-form-actions{ display:flex; gap:8px; }
+
 @media (max-width: 760px){
   .annonce-card{ padding:14px; }
 }

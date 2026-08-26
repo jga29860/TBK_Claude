@@ -463,7 +463,7 @@ Exécutez `supabase/migration_benevoles.sql` pour créer les tables et étendre 
 Nouvelle page dédiée au tournoi actif, avec un nouveau droit de page **"Bénévoles tournoi"** paramétrable comme les autres (Admin → Profils).
 
 - **Postes configurables** : les organisateurs (droits "Tournois - Administration" ou "Tournois - Gestion") peuvent ajouter, modifier, supprimer des postes (nom, horaire facultatif, description facultative, nombre de places nécessaires) — ex. "Mise en place de la salle", "Buvette", "Gérer les arrivées".
-- **Inscription libre** : toute personne ayant accès à la page peut s'inscrire ou se désinscrire d'un poste tant qu'il reste des places ; la liste des inscrits est visible par tous.
+- **Inscription libre** : toute personne ayant accès à la page peut s'inscrire ou se désinscrire d'un poste tant qu'il reste des places ; la liste des inscrits est visible par tous. Au moment de s'inscrire, un petit champ de saisie (pré-rempli avec le nom du compte connecté, modifiable) permet d'indiquer le nom et prénom réels à afficher — pratique pour les comptes créés par simple nom d'utilisateur.
 - **Fil de discussion identique aux annonces du club** : messages avec auteur et date, réponses indentées en fil de discussion, réactions (👍 like, 👎 dislike, ❤️ coup de cœur) avec compteurs, pièces jointes (image/fichier), suppression par l'auteur ou un organisateur. Réutilise directement le mécanisme de réactions déjà construit pour les annonces (même table, juste un type de cible supplémentaire), pour éviter toute duplication.
 
 ## Corrections — Bénévoles et Sauvegarde
