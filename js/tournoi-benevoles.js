@@ -28,7 +28,7 @@ async function initPage() {
 
   currentUserId = access ? access.id : null;
   currentUserNom = access ? (access.display_name || afficherIdentifiant(access.email)) : null;
-  isOrganisateur = !!access && (access.pages.includes('tournois_admin') || access.pages.includes('tournois_gestion'));
+  isOrganisateur = !!access && (access.pages.includes('tournois_admin') || access.pages.includes('tournois_gestion') || access.pages.includes('administration'));
 
   tournoi = await getTournoiEnCours();
   if (!tournoi) {

@@ -484,6 +484,12 @@ Exécutez `supabase/migration_benevoles_public_et_gestion.sql`.
 - **Gestion complète par les organisateurs** (droits "Tournois - Administration" ou "Tournois - Gestion") sur chaque poste : ajout manuel d'un bénévole (même sans compte, ex. quelqu'un recruté par téléphone), modification du nom affiché d'une inscription existante, suppression de n'importe quelle inscription.
 - Sécurité : les pièces jointes du chat tournoi partagent le même espace de stockage privé que les annonces du club, mais avec un accès public strictement limité aux fichiers du tournoi (préfixe technique dédié) — les pièces jointes des annonces du club restent, elles, réservées aux membres.
 
+## Correction — le profil admin doit avoir les droits d'organisateur sur les bénévoles
+
+Exécutez `supabase/migration_admin_organisateur_benevoles.sql`.
+
+Le profil admin (droit "administration") n'avait pas les mêmes capacités que "Tournois - Administration"/"Tournois - Gestion" sur la page Bénévoles (gérer les postes, modifier/supprimer une inscription, ajouter un bénévole manuellement) — ces deux catégories de droits étaient vérifiées séparément par erreur. Corrigé : un admin a maintenant systématiquement les mêmes capacités d'organisateur sur cette page, sans avoir besoin de cocher en plus les droits tournoi spécifiques.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
