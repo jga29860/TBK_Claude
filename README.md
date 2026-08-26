@@ -466,6 +466,13 @@ Nouvelle page dédiée au tournoi actif, avec un nouveau droit de page **"Béné
 - **Inscription libre** : toute personne ayant accès à la page peut s'inscrire ou se désinscrire d'un poste tant qu'il reste des places ; la liste des inscrits est visible par tous.
 - **Fil de discussion identique aux annonces du club** : messages avec auteur et date, réponses indentées en fil de discussion, réactions (👍 like, 👎 dislike, ❤️ coup de cœur) avec compteurs, pièces jointes (image/fichier), suppression par l'auteur ou un organisateur. Réutilise directement le mécanisme de réactions déjà construit pour les annonces (même table, juste un type de cible supplémentaire), pour éviter toute duplication.
 
+## Corrections — Bénévoles et Sauvegarde
+
+Exécutez `supabase/migration_correction_droits_benevoles.sql` et `supabase/migration_lecture_admin_sauvegarde_v2.sql`.
+
+- **Correction d'un bug bloquant l'inscription à un poste de bénévoles** : les droits de lecture et d'inscription n'étaient pas cohérents (un organisateur sans le droit "Bénévoles tournoi" explicitement coché ne pouvait pas s'inscrire lui-même, alors qu'il pouvait voir la page). Alignés désormais sur la même règle.
+- **Sauvegarde mise à jour** : la page `sauvegarde.html` couvre maintenant aussi les tables ajoutées depuis sa création (commentaires et réactions des annonces, postes/inscriptions bénévoles, discussion des tournois), avec la garantie de lecture complète pour l'admin étendue à ces nouvelles tables.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
