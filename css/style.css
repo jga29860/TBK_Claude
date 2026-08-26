@@ -436,6 +436,25 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 .commentaire-form-hint{ margin-top:4px; }
 .commentaire-reponse-form-zone:empty{ display:none; }
 
+/* ===== Bénévoles : cartes de postes ===== */
+.postes-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:16px; margin-top:16px; }
+.poste-card{
+  border:1px solid var(--border); border-radius:12px; padding:16px; background:var(--white);
+  display:flex; flex-direction:column; gap:8px;
+}
+.poste-card--complet{ background: var(--pale); }
+.poste-card-entete{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.poste-card-entete h3{ margin:0; font-size:1.02rem; }
+.poste-places-badge{
+  background: var(--green); color:#fff; font-weight:800; font-size:0.75rem;
+  padding:3px 9px; border-radius:12px; white-space:nowrap;
+}
+.poste-card--complet .poste-places-badge{ background:#888; }
+.poste-horaire{ margin:0; font-size:0.85rem; color: var(--slate); font-weight:600; }
+.poste-description{ margin:0; font-size:0.85rem; color: var(--ink-soft); }
+.poste-inscrits-liste{ margin:0; padding-left:18px; font-size:0.85rem; color: var(--ink); }
+.poste-aucun-inscrit{ list-style:none; margin-left:-18px; font-style:italic; color: var(--ink-soft); }
+
 @media (max-width: 760px){
   .annonce-card{ padding:14px; }
 }

@@ -13,6 +13,7 @@ const PAGE_CATALOG = [
   { key: 'tournois_admin', label: 'Tournois - Administration' },
   { key: 'tournois_gestion', label: 'Tournois - Gestion' },
   { key: 'tournois_emargement', label: 'Tournois - Émargement' },
+  { key: 'benevoles', label: 'Bénévoles tournoi' },
   { key: 'agenda', label: 'Agenda du club' },
   { key: 'jeu_cartes', label: 'Jeu de cartes' },
   { key: 'documentation', label: 'Documentation' },

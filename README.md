@@ -456,6 +456,16 @@ L'écran de gestion séparé ("Gérer les annonces") a été fusionné avec l'af
 - **tournoi-inscriptions.html** : le tableau des équipes (Équipes inscrites + Non assignées) suit le même principe — les deux joueurs d'une équipe apparaissent combinés en identité de ligne, le reste (clubs, tête de poule, poule, actions) se déplie au tap. Beaucoup plus lisible sur petit écran qu'un tableau à 7 colonnes.
 - **emargement.html** : les champs et cases à cocher de chaque joueur sont désormais regroupés dans un seul bloc compact (au lieu de 5 colonnes séparées par joueur), avec Présent/Absent/Payée sous forme de grands boutons "pilule" à toucher directement — plus besoin de viser une petite case à cocher. Les deux joueurs d'une équipe s'empilent verticalement sur mobile, ce qui supprime le défilement horizontal. La recherche couvrait déjà les deux joueurs et les deux clubs d'une équipe (vérifié, aucune modification nécessaire sur ce point précis).
 
+## Bénévoles du tournoi (page `tournoi-benevoles.html`)
+
+Exécutez `supabase/migration_benevoles.sql` pour créer les tables et étendre les droits nécessaires.
+
+Nouvelle page dédiée au tournoi actif, avec un nouveau droit de page **"Bénévoles tournoi"** paramétrable comme les autres (Admin → Profils).
+
+- **Postes configurables** : les organisateurs (droits "Tournois - Administration" ou "Tournois - Gestion") peuvent ajouter, modifier, supprimer des postes (nom, horaire facultatif, description facultative, nombre de places nécessaires) — ex. "Mise en place de la salle", "Buvette", "Gérer les arrivées".
+- **Inscription libre** : toute personne ayant accès à la page peut s'inscrire ou se désinscrire d'un poste tant qu'il reste des places ; la liste des inscrits est visible par tous.
+- **Fil de discussion identique aux annonces du club** : messages avec auteur et date, réponses indentées en fil de discussion, réactions (👍 like, 👎 dislike, ❤️ coup de cœur) avec compteurs, pièces jointes (image/fichier), suppression par l'auteur ou un organisateur. Réutilise directement le mécanisme de réactions déjà construit pour les annonces (même table, juste un type de cible supplémentaire), pour éviter toute duplication.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

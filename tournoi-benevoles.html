@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Bénévoles — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Organisation du tournoi</p>
+  <h1 id="pageTitle">Bénévoles</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Vous n'avez pas accès à cette page. Un administrateur peut vous y donner accès depuis Administration → Profils.</p>
+  </div>
+
+  <div id="pasDeTournoiMessage" class="status-panel" hidden>
+    <h2>Aucun tournoi en cours</h2>
+    <p>Créez ou réactivez un tournoi depuis <a href="tournois.html">la page Tournois</a>.</p>
+  </div>
+
+  <div id="content" hidden>
+
+    <!-- ===== Gestion des postes : réservé aux organisateurs ===== -->
+    <section class="admin-section" id="gestionPostesSection" hidden>
+      <h2>Gérer les postes de bénévoles</h2>
+      <form id="posteForm" class="inline-form">
+        <label>Nom du poste
+          <input type="text" name="nom" required placeholder="Ex. Buvette">
+        </label>
+        <label>Horaire (facultatif)
+          <input type="text" name="horaire" placeholder="Ex. 10h-12h">
+        </label>
+        <label>Places nécessaires
+          <input type="number" name="nb_places" min="1" value="1" required style="width:80px;">
+        </label>
+        <label style="flex:1; min-width:200px;">Description (facultatif)
+          <input type="text" name="description" placeholder="Détails du poste">
+        </label>
+        <button type="submit" class="btn btn-primary btn-small" id="posteSubmitBtn">Ajouter le poste</button>
+        <button type="button" class="btn btn-ghost btn-small" id="posteCancelBtn" hidden>Annuler</button>
+      </form>
+      <p class="form-hint" id="posteFormHint"></p>
+    </section>
+
+    <!-- ===== Postes à pourvoir ===== -->
+    <section class="admin-section">
+      <h2>Postes à pourvoir</h2>
+      <div id="postesContainer" class="postes-grid"></div>
+    </section>
+
+    <!-- ===== Fil de discussion du tournoi ===== -->
+    <section class="admin-section">
+      <h2>Discussion</h2>
+      <form id="messageForm" class="contact-form" style="margin-bottom:20px;">
+        <label>Écrire un message
+          <textarea name="contenu" rows="2" required placeholder="Une question, une info à partager…"></textarea>
+        </label>
+        <label>Pièce jointe (facultatif)
+          <input type="file" name="fichier">
+        </label>
+        <button type="submit" class="btn btn-primary btn-small">Envoyer</button>
+        <p class="form-hint" id="messageFormHint"></p>
+      </form>
+      <div id="messagesFeed"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/tournoi-benevoles.js"></script>
+</body>
+</html>
