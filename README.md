@@ -490,6 +490,29 @@ Exécutez `supabase/migration_admin_organisateur_benevoles.sql`.
 
 Le profil admin (droit "administration") n'avait pas les mêmes capacités que "Tournois - Administration"/"Tournois - Gestion" sur la page Bénévoles (gérer les postes, modifier/supprimer une inscription, ajouter un bénévole manuellement) — ces deux catégories de droits étaient vérifiées séparément par erreur. Corrigé : un admin a maintenant systématiquement les mêmes capacités d'organisateur sur cette page, sans avoir besoin de cocher en plus les droits tournoi spécifiques.
 
+## Correction — accès au tournoi actif depuis la page Bénévoles
+
+Exécutez `supabase/migration_tournois_lecture_publique.sql`.
+
+La table `tournois` était restreinte aux profils ayant des droits tournoi spécifiques (tournois_admin/gestion/émargement), ce qui empêchait la page Bénévoles (accessible sans connexion) de savoir quel tournoi est actif pour un visiteur non connecté ou un membre sans ces droits précis — la page affichait "Aucun tournoi en cours" à tort. La lecture de cette table (nom, statut, nombre de terrains — rien de sensible) est désormais ouverte à tous.
+
+## Correction — droit UPDATE manquant sur les inscriptions bénévoles
+
+Exécutez `supabase/migration_droit_update_inscriptions_benevoles.sql`.
+
+La migration initiale des bénévoles accordait select/insert/delete sur `benevoles_inscriptions`, mais oubliait le droit update — nécessaire pour modifier le nom d'une personne déjà inscrite. La règle de sécurité (RLS) elle-même était correcte, mais sans ce droit de base, Postgres bloquait l'opération avant même de la vérifier ("permission denied", différent d'un refus de règle de sécurité).
+
+## Suivi des connexions (page `suivi-connexions.html`)
+
+Exécutez `supabase/migration_suivi_connexions.sql`.
+
+Réservée au profil administrateur. Journalise automatiquement chaque tentative de connexion (réussie ou échouée) : identifiant utilisé, date/heure, appareil/navigateur, motif en cas d'échec — utile pour repérer une activité suspecte ou vérifier qui utilise le site.
+
+- **KPI en un coup d'œil** : total, réussies, échouées.
+- **Recherche par identifiant**, filtres Réussies/Échouées.
+- **Purge en un clic** des entrées de plus de 90 jours, pour ne pas conserver ces données indéfiniment.
+- **Non collecté volontairement** : l'adresse IP (nécessiterait un service tiers externe, pour un intérêt limité face à la sensibilité de cette donnée sur un site de club).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

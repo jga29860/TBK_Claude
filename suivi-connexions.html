@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Suivi des connexions — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'administrateur</p>
+  <h1>Suivi des connexions</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée au profil administrateur.</p>
+  </div>
+
+  <div id="content" hidden>
+
+    <section class="admin-section">
+      <div class="field-grid">
+        <div class="kpi-card"><span class="kpi-value" id="kpiTotal">–</span><span class="kpi-label">Connexions journalisées</span></div>
+        <div class="kpi-card"><span class="kpi-value" id="kpiReussies">–</span><span class="kpi-label">Réussies</span></div>
+        <div class="kpi-card"><span class="kpi-value" id="kpiEchouees">–</span><span class="kpi-label">Échouées</span></div>
+      </div>
+
+      <div class="inline-form" style="margin-top:20px;">
+        <label>Rechercher un identifiant
+          <input type="text" id="searchInput" placeholder="Nom d'utilisateur ou email">
+        </label>
+        <button type="button" class="btn btn-ghost btn-small" id="filterAllBtn">Tout</button>
+        <button type="button" class="btn btn-ghost btn-small" id="filterSuccesBtn">Réussies</button>
+        <button type="button" class="btn btn-ghost btn-small" id="filterEchecBtn">Échouées</button>
+        <button type="button" class="btn btn-danger btn-small" id="purgerBtn" style="margin-left:auto;">Purger les entrées de + de 90 jours</button>
+      </div>
+      <p class="form-hint" id="pageHint"></p>
+    </section>
+
+    <section class="admin-section">
+      <h2>Journal <span id="resultCount" class="count-badge"></span></h2>
+      <div class="table-wrap">
+        <table class="schedule" id="connexionsTable">
+          <thead>
+            <tr><th>Date / heure</th><th>Identifiant</th><th>Statut</th><th>Détail</th><th>Appareil</th></tr>
+          </thead>
+          <tbody id="connexionsTableBody">
+            <tr><td colspan="5">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/suivi-connexions.js"></script>
+</body>
+</html>

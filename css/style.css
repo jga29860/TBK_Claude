@@ -477,6 +477,16 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   font-family: var(--font-body); font-size:0.85rem; margin-right:4px;
 }
 
+/* ===== Suivi des connexions : cartes KPI génériques + bouton actif générique ===== */
+.kpi-card{
+  border:1px solid var(--border); border-radius:10px; padding:16px; background:var(--white);
+  display:flex; flex-direction:column; gap:4px; text-align:center;
+}
+.kpi-value{ font-size:1.8rem; font-weight:900; color: var(--green); }
+.kpi-label{ font-size:0.8rem; color: var(--ink-soft); font-weight:600; }
+.btn.is-active{ background: var(--green) !important; color: var(--white) !important; border-color: var(--green) !important; }
+.connexion-appareil{ font-size:0.82rem; color: var(--ink-soft); }
+
 @media (max-width: 760px){
   .annonce-card{ padding:14px; }
 }

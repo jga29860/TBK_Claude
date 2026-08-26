@@ -74,7 +74,29 @@ async function signUp(identifiant, password) {
 }
 
 async function signIn(identifiant, password) {
-  return sbClient.auth.signInWithPassword({ email: toAuthEmail(identifiant), password });
+  const result = await sbClient.auth.signInWithPassword({ email: toAuthEmail(identifiant), password });
+  logConnexion(identifiant, result); // journalisation best-effort, ne bloque jamais la connexion
+  return result;
+}
+
+/** Journalise une tentative de connexion (réussie ou échouée), pour le
+ *  suivi des connexions consultable par l'administrateur. Échoue en
+ *  silence si l'insertion elle-même échoue : ça ne doit jamais empêcher
+ *  quelqu'un de se connecter. */
+async function logConnexion(identifiant, result) {
+  try {
+    const succes = !result.error;
+    const userId = succes && result.data && result.data.user ? result.data.user.id : null;
+    await sbClient.from('connexions_log').insert({
+      user_id: userId,
+      identifiant: (identifiant || '').trim(),
+      succes,
+      motif_echec: result.error ? result.error.message : null,
+      user_agent: navigator.userAgent,
+    });
+  } catch (e) {
+    // silencieux : la journalisation ne doit jamais impacter l'utilisateur.
+  }
 }
 
 async function signOut() {
@@ -148,6 +170,7 @@ const TOOL_LINKS = [
   { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },
   { pageKeys: ['documentation'], href: 'documentation.html', label: 'Documentation', group: 'Administration' },
   { pageKeys: ['administration'], href: 'sauvegarde.html', label: 'Sauvegarde', group: 'Administration' },
+  { pageKeys: ['administration'], href: 'suivi-connexions.html', label: 'Suivi des connexions', group: 'Administration' },
   { pageKeys: ['jeu_cartes'], href: 'jeu-de-cartes.html', label: 'Jeu de cartes', group: 'Club' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda du club', group: 'Administration' },
 ];
