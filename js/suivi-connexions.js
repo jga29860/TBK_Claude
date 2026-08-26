@@ -21,6 +21,7 @@ async function initPage() {
 
   bindEvents();
   await chargerLogs();
+  await chargerVisites();
 }
 
 async function chargerLogs() {
@@ -102,6 +103,99 @@ function bindEvents() {
   document.getElementById('filterEchecBtn').addEventListener('click', () => setFiltreStatut('echec'));
 
   document.getElementById('purgerBtn').addEventListener('click', purgerAnciennesEntrees);
+  document.getElementById('purgerVisitesBtn').addEventListener('click', purgerAnciennesVisites);
+}
+
+// ============================================================
+// Visites des pages publiques (sans connexion requise)
+// ============================================================
+
+let visitesCache = [];
+
+const NOMS_PAGES = {
+  'index.html': 'Accueil',
+  '': 'Accueil',
+  'inscription-publique.html': "Demande d'inscription",
+  'tournoi-benevoles.html': 'Bénévoles',
+  'membres.html': 'Connexion / Inscription',
+  'reset-password.html': 'Réinitialisation mot de passe',
+  'politique-confidentialite.html': 'Politique de confidentialité',
+};
+
+async function chargerVisites() {
+  const tbody = document.getElementById('visitesTableBody');
+  tbody.innerHTML = '<tr><td colspan="4">Chargement…</td></tr>';
+
+  const { data, error } = await sbClient
+    .from('visites_pages_log')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="4">Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    return;
+  }
+
+  visitesCache = data || [];
+  renderRepartitionParPage();
+  renderVisitesTable();
+}
+
+function renderRepartitionParPage() {
+  const container = document.getElementById('repartitionParPage');
+  const compteurs = {};
+  visitesCache.forEach(v => {
+    const nom = NOMS_PAGES[v.page] || v.page;
+    compteurs[nom] = (compteurs[nom] || 0) + 1;
+  });
+
+  const entrees = Object.entries(compteurs).sort((a, b) => b[1] - a[1]);
+  if (entrees.length === 0) {
+    container.innerHTML = '<p class="section-lead">Aucune visite journalisée pour le moment.</p>';
+    return;
+  }
+
+  container.innerHTML = entrees.map(([nom, count]) => `
+    <div class="kpi-card">
+      <span class="kpi-value">${count}</span>
+      <span class="kpi-label">${escapeHtml(nom)}</span>
+    </div>
+  `).join('');
+}
+
+function renderVisitesTable() {
+  const tbody = document.getElementById('visitesTableBody');
+
+  if (visitesCache.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4">Aucune visite journalisée.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = visitesCache.slice(0, 200).map(v => `
+    <tr>
+      <td>${new Date(v.created_at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+      <td>${escapeHtml(NOMS_PAGES[v.page] || v.page)}</td>
+      <td>${v.referrer ? escapeHtml(hostnameDepuisUrl(v.referrer)) : '—'}</td>
+      <td class="connexion-appareil">${escapeHtml(resumeAppareil(v.user_agent))}</td>
+    </tr>
+  `).join('');
+}
+
+async function purgerAnciennesVisites() {
+  if (!confirm('Supprimer définitivement toutes les visites journalisées de plus de 90 jours ?')) return;
+
+  const hint = document.getElementById('visitesHint');
+  hint.textContent = 'Purge en cours…';
+
+  const seuil = new Date();
+  seuil.setDate(seuil.getDate() - 90);
+
+  const { error } = await sbClient.from('visites_pages_log').delete().lt('created_at', seuil.toISOString());
+  if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+
+  hint.textContent = 'Purge effectuée.';
+  await chargerVisites();
 }
 
 function setFiltreStatut(statut) {
@@ -132,6 +226,14 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str === null || str === undefined ? '' : String(str);
   return div.innerHTML;
+}
+
+function hostnameDepuisUrl(url) {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    return url;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initPage);

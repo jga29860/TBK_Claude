@@ -25,6 +25,7 @@ const TABLES = [
   { key: 'inscriptions_affichage', label: 'Colonnes affichées (inscriptions)', description: 'Préférence d\'affichage du tableau des inscriptions.' },
   { key: 'inscriptions', label: 'Inscriptions saison', description: 'Adhésions à la saison en cours.' },
   { key: 'connexions_log', label: 'Journal des connexions', description: 'Historique des tentatives de connexion (réussies et échouées) au site.' },
+  { key: 'visites_pages_log', label: 'Journal des visites publiques', description: 'Visites des pages ne nécessitant pas de connexion (accueil, inscription publique, bénévoles...).' },
 ];
 
 let rowCounts = {};

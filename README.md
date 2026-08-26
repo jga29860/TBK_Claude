@@ -513,6 +513,14 @@ Réservée au profil administrateur. Journalise automatiquement chaque tentative
 - **Purge en un clic** des entrées de plus de 90 jours, pour ne pas conserver ces données indéfiniment.
 - **Non collecté volontairement** : l'adresse IP (nécessiterait un service tiers externe, pour un intérêt limité face à la sensibilité de cette donnée sur un site de club).
 
+## Suivi des visites sur les pages sans connexion requise
+
+Exécutez `supabase/migration_suivi_visites_publiques.sql`.
+
+Complète le suivi des connexions : journalise aussi automatiquement les visites sur les pages accessibles sans compte (accueil, demande d'inscription publique, bénévoles, connexion/inscription, réinitialisation de mot de passe, politique de confidentialité). Visible sur la même page `suivi-connexions.html`, avec une répartition par page en un coup d'œil, un journal détaillé (date, provenance, appareil), et une purge en un clic des entrées de plus de 90 jours.
+
+Technique : un petit script autonome (`js/visite-log.js`), indépendant de `auth.js`/`main.js`, ajouté sur ces 6 pages spécifiquement (certaines d'entre elles ne chargent pas ces fichiers).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

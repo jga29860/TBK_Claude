@@ -338,6 +338,9 @@
         <li>Purge en un clic des entrées de plus de 90 jours, pour ne pas conserver ces données indéfiniment.</li>
       </ul>
       <p><em>Note de conception</em> : l'adresse IP n'est volontairement pas collectée (nécessiterait un service tiers externe, pour un intérêt limité sur un site de club face à la sensibilité de cette donnée).</p>
+
+      <h3 class="admin-subheading">11.1 Visites des pages sans connexion requise</h3>
+      <p>Cette même page journalise aussi automatiquement les visites sur les pages accessibles à tous, sans compte : accueil, demande d'inscription publique, bénévoles, connexion/inscription, réinitialisation de mot de passe, politique de confidentialité. Répartition par page en un coup d'œil, journal détaillé (date, provenance, appareil), et purge en un clic des entrées de plus de 90 jours.</p>
     </section>
 
     <!-- ===== 12. BASE DE DONNÉES ===== -->
@@ -354,6 +357,7 @@
             <tr><td>roles</td><td>Catalogue des profils configurables (clé, nom affiché, pages autorisées).</td></tr>
             <tr><td>invitations</td><td>Pré-attribution d'un profil à un email avant inscription.</td></tr>
             <tr><td>connexions_log</td><td>Historique des tentatives de connexion (réussies et échouées) au site.</td></tr>
+            <tr><td>visites_pages_log</td><td>Visites des pages ne nécessitant pas de connexion.</td></tr>
           </tbody>
         </table>
       </div>

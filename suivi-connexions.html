@@ -69,6 +69,30 @@
       </div>
     </section>
 
+    <!-- ===== Visites des pages publiques (sans connexion requise) ===== -->
+    <section class="admin-section">
+      <h2>Visites des pages sans connexion requise</h2>
+      <p class="section-lead">Pages concernées : accueil, demande d'inscription publique, bénévoles, connexion/inscription, politique de confidentialité.</p>
+
+      <div class="field-grid" id="repartitionParPage" style="margin-top:16px;"></div>
+
+      <div class="inline-form" style="margin-top:20px;">
+        <button type="button" class="btn btn-danger btn-small" id="purgerVisitesBtn">Purger les visites de + de 90 jours</button>
+      </div>
+      <p class="form-hint" id="visitesHint"></p>
+
+      <div class="table-wrap" style="margin-top:16px;">
+        <table class="schedule" id="visitesTable">
+          <thead>
+            <tr><th>Date / heure</th><th>Page</th><th>Provenance</th><th>Appareil</th></tr>
+          </thead>
+          <tbody id="visitesTableBody">
+            <tr><td colspan="4">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
 </main>
 
