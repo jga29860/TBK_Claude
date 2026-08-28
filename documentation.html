@@ -206,7 +206,7 @@
       <p>Un administrateur choisit quelles colonnes apparaissent dans le tableau des inscrits (la colonne "Nom" est toujours visible).</p>
 
       <h3 class="admin-subheading">5.6 Conditions requises pour valider une demande</h3>
-      <p>Le bouton "Valider" n'est activable que si 3 conditions sont réunies : la cotisation est marquée payée, le champ Santé est différent de "En Attente", et une date de certificat est renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée, santé en attente").</p>
+      <p>Le bouton "Valider" n'est activable que si 3 conditions sont réunies : le champ Cotisation payée est renseigné et différent de "Non" (peu importe la casse — utile si ce champ liste un mode de paiement plutôt qu'un simple Oui/Non), le champ Santé est différent de "En Attente", et une date de certificat est renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée, santé en attente").</p>
 
       <h3 class="admin-subheading">5.7 Notification des demandes en attente</h3>
       <p>Pour les profils "bureau" et "admin", un badge rouge "X demande(s) en attente" apparaît automatiquement dans le bandeau du site, sur <strong>toutes les pages</strong>, dès qu'au moins une inscription a le statut "En attente". Un clic dessus mène directement à la page Inscriptions. Le badge disparaît de lui-même une fois qu'il n'y a plus de demande en attente.</p>
@@ -217,15 +217,16 @@
       <h3 class="admin-subheading">5.9 Affichage optimisé pour mobile</h3>
       <p>Sur petit écran, le tableau des inscriptions devient une liste de fiches compactes : seul le nom et le prénom sont visibles. Un tap sur une fiche la déplie verticalement, affichant chaque information avec son libellé, suivie des boutons d'action empilés pleine largeur — bien plus lisible qu'un tableau large à faire défiler horizontalement. Sur grand écran, l'affichage reste un tableau classique, avec les boutons d'action regroupés en ligne compacte.</p>
 
-      <h3 class="admin-subheading">5.10 Rattachement automatique de l'espace membre</h3>
+      <h3 class="admin-subheading">5.10 Rattachement de l'espace membre (automatique et manuel)</h3>
       <p>Quand une inscription est validée, le site relie automatiquement l'inscription au compte du site de la personne (même adresse email) et l'élève au profil "membre" — jamais de rétrogradation si elle a déjà un profil supérieur (bureau, admin).</p>
       <ul>
         <li>Si la personne a déjà un compte au moment de la validation : rattachement et élévation immédiats.</li>
         <li>Si elle n'en a pas encore : le rattachement se fait automatiquement le jour où elle crée son compte avec la même adresse email, sans action supplémentaire de personne.</li>
         <li><strong>Aucun compte de connexion n'est créé à la place de la personne</strong> — ce serait techniquement impossible sans clé secrète serveur, et pas souhaitable : la personne doit toujours choisir elle-même son mot de passe.</li>
         <li>Bouton "Relier automatiquement les comptes existants" sur la page Inscriptions : rattrapage ponctuel pour les inscriptions déjà validées avant la mise en place de cette fonctionnalité.</li>
-        <li>Sur membres.html, une fois connectée, la personne voit ses informations d'inscription (saison, statut, catégorie, pratique, cotisation, validité du certificat médical) directement sous "Mon compte", avant les annonces.</li>
       </ul>
+      <p><strong>Rattachement manuel</strong> — mode plus simple, ne dépendant pas d'une correspondance par email : sur chaque demande, le bureau/admin peut choisir un compte existant dans une liste déroulante et cliquer "Rattacher" (élève aussi le profil à "membre"). Un bouton "Délier" permet d'annuler un rattachement fait par erreur.</p>
+      <p>Une fois relié (automatiquement ou manuellement), sur membres.html, la personne voit ses informations d'inscription (saison, statut, catégorie, pratique, cotisation, validité du certificat médical) directement sous "Mon compte", avant les annonces — uniquement les siennes, jamais celles des autres.</p>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->
@@ -393,7 +394,7 @@
             <tr><td>annonces_commentaires</td><td>Fil de discussion indenté sous chaque annonce (réponses imbriquées).</td></tr>
             <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
-            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part).</td></tr>
+            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
             <tr><td>bareme_cotisations</td><td>Montants utilisés pour le calcul de la cotisation saison.</td></tr>
             <tr><td>inscriptions_affichage</td><td>Colonnes choisies pour le tableau des inscriptions saison.</td></tr>
