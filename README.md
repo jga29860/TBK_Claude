@@ -555,6 +555,13 @@ Exécutez `supabase/migration_rattachement_manuel_inscription.sql`.
 
 Mode plus simple que le rattachement automatique par email : sur chaque demande d'inscription (page inscriptions.html), le bureau/admin peut désormais choisir un compte existant dans une liste déroulante et cliquer "Rattacher" — l'inscription est reliée à ce compte, et son profil est élevé à "membre" (jamais de rétrogradation si déjà bureau/admin). Un bouton "Délier" permet d'annuler un rattachement fait par erreur. La section "Mes informations" sur membres.html (déjà en place) fonctionne automatiquement dès qu'un rattachement — manuel ou automatique — est effectué.
 
+## Corrections — colonne manquante + validation trop stricte
+
+Exécutez `supabase/migration_correction_colonne_user_id_manquante.sql`.
+
+- **Colonne `user_id` manquante** : la migration qui la créait avait été mise de côté lors du passage au rattachement manuel, alors qu'elle reste indispensable dans les deux approches — d'où l'erreur "column user_id does not exist" lors du rattachement.
+- **Validation d'inscription trop stricte** : le contrôle n'acceptait que la valeur JavaScript stricte `true` pour "Cotisation payée", alors que selon la configuration du champ, la valeur réellement enregistrée peut être la chaîne "Oui" — empêchant la validation même une fois la cotisation cochée comme payée. Le contrôle accepte désormais plusieurs représentations équivalentes (true, "Oui", "oui", 1, "1").
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

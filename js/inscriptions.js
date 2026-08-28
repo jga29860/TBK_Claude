@@ -502,10 +502,14 @@ function renderInscriptionsTableHead(columns) {
   theadRow.innerHTML = `<th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
 }
 
+function estValeurAffirmative(val) {
+  return val === true || val === 'true' || val === 'Oui' || val === 'oui' || val === 1 || val === '1';
+}
+
 function conditionsValidationOk(record) {
   const champs = record.champs || {};
   const motifs = [];
-  if (champs.cotisation_payee !== true) motifs.push('cotisation non payée');
+  if (!estValeurAffirmative(champs.cotisation_payee)) motifs.push('cotisation non payée');
   if (!champs.sante || champs.sante === 'En Attente') motifs.push('santé en attente');
   if (!champs.date_certif) motifs.push('date de certificat non renseignée');
   return { ok: motifs.length === 0, motifs };
