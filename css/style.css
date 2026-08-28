@@ -698,17 +698,31 @@ table.schedule .role-label-input{
   font-family: var(--font-body); font-size:0.95rem; padding: 10px 12px;
   border-radius:8px; border:1px solid #a9d18e; background: var(--white); color: var(--ink);
 }
-.emargement-header{ position: sticky; top: 68px; z-index: 20; }
-.search-label{
-  display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:700; color: var(--slate);
-  background: #f2f8ff; border-left:5px solid var(--slate); padding:10px 14px; border-radius:8px; margin-top:10px;
-}
+.emargement-header{ position: sticky; top: 68px; z-index: 20; padding: 12px 16px; }
+
+.emarg-resume{ display:flex; gap:18px; flex-wrap:wrap; align-items:baseline; margin-bottom:10px; }
+.emarg-resume-item{ font-size:0.95rem; color: var(--dark); white-space:nowrap; }
+.emarg-resume-item strong{ font-size:1.05rem; color: var(--green); }
+.emarg-resume-label{ font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.02em; color: var(--ink-soft); }
+
+.emarg-recherche-row{ display:flex; gap:8px; align-items:center; }
+.emarg-recherche-row .search-input{ flex:1; min-width:0; max-width:none; margin:0; }
+.emarg-recherche-row .absent-filter-btn{ margin:0; flex-shrink:0; white-space:nowrap; }
+
 .search-input{
   font-family: var(--font-body); font-size:0.95rem; padding: 10px 12px; max-width: 340px;
   border-radius:8px; border:1px solid #a9d18e;
 }
-.absent-filter-btn{ margin-top:10px; }
 .absent-filter-btn.is-active{ background: #c00000 !important; color: var(--white) !important; border-color:#c00000 !important; }
+
+@media (max-width: 760px){
+  .emargement-header{ padding: 10px 12px; }
+  .emarg-resume{ gap:12px; margin-bottom:8px; }
+  .emarg-resume-item{ font-size:0.82rem; }
+  .emarg-resume-item strong{ font-size:0.9rem; }
+  .search-input{ padding: 8px 10px; font-size:0.88rem; }
+  .absent-filter-btn{ padding: 8px 10px; font-size:0.8rem; }
+}
 table.schedule .emarg-input{
   font-family: var(--font-body); font-size:0.9rem; padding: 6px 8px; border-radius:6px;
   border:1px solid #a9d18e; width: 130px;

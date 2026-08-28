@@ -571,6 +571,10 @@ Bug d'ordre de chargement : la liste des comptes existants se chargeait après l
 - **Cause du bug** : `membres.html` affichait "✅ Payée" dès que le champ était non vide — y compris pour la valeur littérale "Non", qui est une chaîne de texte non vide donc considérée "vraie" par un simple test JavaScript. `inscriptions.html`, elle, appliquait déjà la bonne règle. Résultat : une même fiche pouvait afficher "payée" sur une page et "non payée" sur l'autre.
 - **Correction** : la règle ("payé" = renseigné et différent de "Non", peu importe la casse) est désormais centralisée dans `auth.js` (chargé par les deux pages), pour garantir qu'inscriptions.html et membres.html appliquent toujours exactement la même logique.
 
+## Émargement — bandeau du haut compacté sur mobile
+
+Le bandeau du haut de emargement.html (cotisation/présents/réglé + recherche + filtre absents) prenait beaucoup trop de place sur mobile, en restant fixé en haut d'écran en permanence. Condensé en 2 lignes compactes au lieu de 5+ : les 3 indicateurs tiennent maintenant sur une seule ligne (libellés courts), et la recherche + le bouton "Absents" sont côte à côte au lieu d'être empilés. Le bandeau reste "collé" en haut pendant le défilement (pratique pour rechercher un joueur en pleine liste), mais occupe une fraction de l'espace qu'avant, laissant beaucoup plus de place aux données en dessous.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

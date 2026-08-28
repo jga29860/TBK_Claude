@@ -45,15 +45,15 @@
 
       <!-- ===== Bandeau d'informations (haut de page) ===== -->
       <section class="admin-section emargement-header">
-        <div class="kpi-row">
-          <div class="kpi"><span class="small">Cotisation</span><br><strong id="kpiCotisation">0 €</strong></div>
-          <div class="kpi"><span class="small">Présents</span><br><strong id="kpiPresents">0 / 0</strong></div>
-          <div class="kpi"><span class="small">Total réglé</span><br><strong id="kpiRegle">0 €</strong></div>
+        <div class="emarg-resume">
+          <span class="emarg-resume-item"><span class="emarg-resume-label">Cotis.</span> <strong id="kpiCotisation">0 €</strong></span>
+          <span class="emarg-resume-item"><span class="emarg-resume-label">Présents</span> <strong id="kpiPresents">0 / 0</strong></span>
+          <span class="emarg-resume-item"><span class="emarg-resume-label">Réglé</span> <strong id="kpiRegle">0 €</strong></span>
         </div>
-        <label class="search-label">Rechercher un joueur (nom ou club)
-          <input type="text" id="searchInput" class="search-input" placeholder="Tapez un nom ou un club…">
-        </label>
-        <button type="button" id="absentFilterBtn" class="btn btn-ghost btn-small absent-filter-btn">Afficher uniquement les absents</button>
+        <div class="emarg-recherche-row">
+          <input type="text" id="searchInput" class="search-input" placeholder="Nom ou club…" aria-label="Rechercher un joueur">
+          <button type="button" id="absentFilterBtn" class="btn btn-ghost btn-small absent-filter-btn">🔍 Absents</button>
+        </div>
       </section>
 
       <!-- ===== Listes par compétition ===== -->
