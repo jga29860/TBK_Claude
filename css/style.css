@@ -487,6 +487,12 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 .btn.is-active{ background: var(--green) !important; color: var(--white) !important; border-color: var(--green) !important; }
 .connexion-appareil{ font-size:0.82rem; color: var(--ink-soft); }
 
+/* ===== Mes informations (membres.html) ===== */
+.mes-infos-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:14px; margin-top:14px; }
+.info-ligne{ display:flex; flex-direction:column; gap:3px; }
+.info-label{ font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color: var(--ink-soft); }
+.info-valeur{ font-weight:700; color: var(--dark); font-size:0.98rem; }
+
 @media (max-width: 760px){
   .annonce-card{ padding:14px; }
 }
@@ -573,6 +579,13 @@ table.schedule .role-label-input{
 .actions-stack{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-width:240px; }
 .actions-stack .btn{ flex: 0 0 auto; white-space:nowrap; }
 .certificat-date{ font-size:0.72rem; color:var(--ink-soft); width:100%; }
+
+.rattachement-widget{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; width:100%; }
+.rattachement-widget--relie{ font-size:0.85rem; color: var(--dark); }
+.rattachement-select{
+  border:1px solid var(--border); border-radius:6px; padding:6px 8px;
+  font-family: var(--font-body); font-size:0.82rem; max-width:200px;
+}
 
 @media (max-width: 760px){
   .actions-stack{ flex-direction:column; align-items:stretch; min-width:150px; }

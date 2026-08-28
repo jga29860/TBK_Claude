@@ -529,6 +529,32 @@ Nouveau droit de page dédié à `tournoi-inscriptions.html` (Admin → Profils)
 
 Vérification complète : les 21 tables du modèle de données sont confirmées toutes couvertes par `sauvegarde.html`, dans un ordre respectant toutes les dépendances entre tables (clés étrangères) — aucune table manquante, aucune correction nécessaire. La documentation (page et Word) a été mise à jour avec le nouveau droit de page.
 
+## Correction — le droit "Tournois - Inscriptions" ne donnait pas accès aux données
+
+Exécutez `supabase/migration_droit_tournois_inscriptions_rls.sql`.
+
+Le nouveau droit de page avait été ajouté côté affichage (menu, accès à la page) mais pas dans les règles de sécurité protégeant les données elles-mêmes (types de compétition, compétitions du tournoi, équipes) — un profil n'ayant que ce droit voyait la page mais aucune donnée. Corrigé : ces 3 tables reconnaissent désormais aussi ce droit.
+
+## Rattachement automatique de l'espace membre à la validation d'une inscription
+
+Exécutez `supabase/migration_espace_membre_auto.sql`.
+
+**Contrainte technique importante** : il est impossible de créer un vrai compte de connexion pour quelqu'un depuis le navigateur (nécessiterait la clé secrète serveur, mise de côté à deux reprises pour la suppression de compte et la réinitialisation de mot de passe) — et ce n'est de toute façon pas souhaitable, la personne doit toujours choisir elle-même son mot de passe. La solution retenue : relier automatiquement l'inscription au compte existant de la personne.
+
+- **Au moment de la validation** : si la personne a déjà un compte sur le site (même email), rattachement immédiat et élévation au profil "membre" (jamais de rétrogradation si elle est déjà bureau/admin).
+- **Rattachement différé** : si elle n'a pas encore de compte, le rattachement se fait automatiquement le jour où elle en crée un avec la même adresse email — aucune action supplémentaire nécessaire.
+- **Rattrapage** : bouton "Relier automatiquement les comptes existants" sur inscriptions.html, pour traiter en une fois les inscriptions déjà validées avant cette fonctionnalité.
+- **Nouvelle section "Mes informations"** sur membres.html, entre "Mon compte" et les annonces : affiche la saison, le statut de l'inscription, la catégorie, la pratique, la cotisation, et la validité du certificat médical de la personne connectée (si une inscription lui est reliée).
+- Une personne peut désormais lire sa propre inscription (nouvelle règle de sécurité dédiée), sans accès aux inscriptions des autres.
+
+Documentation mise à jour (page + Word), avec au passage la correction d'un oubli : la section "Espace membres" n'avait jamais été actualisée depuis la refonte du fil d'actualité des annonces (commentaires, réactions, pièces jointes).
+
+## Rattachement manuel d'une inscription à un compte existant
+
+Exécutez `supabase/migration_rattachement_manuel_inscription.sql`.
+
+Mode plus simple que le rattachement automatique par email : sur chaque demande d'inscription (page inscriptions.html), le bureau/admin peut désormais choisir un compte existant dans une liste déroulante et cliquer "Rattacher" — l'inscription est reliée à ce compte, et son profil est élevé à "membre" (jamais de rétrogradation si déjà bureau/admin). Un bouton "Délier" permet d'annuler un rattachement fait par erreur. La section "Mes informations" sur membres.html (déjà en place) fonctionne automatiquement dès qu'un rattachement — manuel ou automatique — est effectué.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -165,7 +165,17 @@
     <!-- ===== 4. ESPACE MEMBRES ===== -->
     <section class="admin-section" id="espace-membres">
       <h2>4. Espace membres</h2>
-      <p>Page réservée aux comptes ayant le droit "espace_membres" : affiche les annonces publiées par le bureau. Les comptes ayant le droit "annonces" (par défaut : admin et bureau) voient en plus un panneau de gestion permettant de publier, modifier ou supprimer des annonces directement depuis le site.</p>
+      <p>Page réservée aux comptes ayant le droit "espace_membres" : affiche les annonces du club sous forme de fil d'actualité. Les comptes ayant le droit "annonces" (par défaut : admin et bureau) voient en plus un formulaire de publication au-dessus du fil, permettant de créer, modifier ou supprimer des annonces directement depuis le site.</p>
+      <ul>
+        <li><strong>Auteur et date</strong> sur chaque annonce et chaque commentaire, avec avatar (initiales).</li>
+        <li><strong>Commentaires en fil de discussion indenté</strong> : tout membre peut commenter une annonce et répondre à un commentaire existant (réponses imbriquées).</li>
+        <li><strong>Suppression individuelle</strong> : chaque personne peut retirer ses propres annonces/commentaires ; le bureau/admin peut tout retirer, pour la modération.</li>
+        <li><strong>Réactions</strong> 👍 like, 👎 dislike, ❤️ coup de cœur, sur une annonce ou un commentaire — une seule réaction active par personne et par élément, avec compteur.</li>
+        <li><strong>Pièces jointes</strong> (image ou fichier) sur une annonce comme sur un commentaire, stockées dans un espace privé réservé aux membres.</li>
+        <li><strong>Plier/déplier les commentaires</strong> : bouton "💬 X commentaires ▼/▲" par annonce, affichage compact par défaut.</li>
+        <li>Tri du plus récent au plus ancien, en haut du fil.</li>
+      </ul>
+      <p>Toute personne connectée, quel que soit son profil (même un simple visiteur), voit aussi une section "Mon compte" pour changer son mot de passe, et — si une inscription saison lui est reliée — une section "Mes informations" (voir 5.10) affichant sa catégorie, sa cotisation et la validité de son certificat médical.</p>
     </section>
 
     <!-- ===== 5. INSCRIPTIONS SAISON ===== -->
@@ -206,6 +216,16 @@
 
       <h3 class="admin-subheading">5.9 Affichage optimisé pour mobile</h3>
       <p>Sur petit écran, le tableau des inscriptions devient une liste de fiches compactes : seul le nom et le prénom sont visibles. Un tap sur une fiche la déplie verticalement, affichant chaque information avec son libellé, suivie des boutons d'action empilés pleine largeur — bien plus lisible qu'un tableau large à faire défiler horizontalement. Sur grand écran, l'affichage reste un tableau classique, avec les boutons d'action regroupés en ligne compacte.</p>
+
+      <h3 class="admin-subheading">5.10 Rattachement automatique de l'espace membre</h3>
+      <p>Quand une inscription est validée, le site relie automatiquement l'inscription au compte du site de la personne (même adresse email) et l'élève au profil "membre" — jamais de rétrogradation si elle a déjà un profil supérieur (bureau, admin).</p>
+      <ul>
+        <li>Si la personne a déjà un compte au moment de la validation : rattachement et élévation immédiats.</li>
+        <li>Si elle n'en a pas encore : le rattachement se fait automatiquement le jour où elle crée son compte avec la même adresse email, sans action supplémentaire de personne.</li>
+        <li><strong>Aucun compte de connexion n'est créé à la place de la personne</strong> — ce serait techniquement impossible sans clé secrète serveur, et pas souhaitable : la personne doit toujours choisir elle-même son mot de passe.</li>
+        <li>Bouton "Relier automatiquement les comptes existants" sur la page Inscriptions : rattrapage ponctuel pour les inscriptions déjà validées avant la mise en place de cette fonctionnalité.</li>
+        <li>Sur membres.html, une fois connectée, la personne voit ses informations d'inscription (saison, statut, catégorie, pratique, cotisation, validité du certificat médical) directement sous "Mon compte", avant les annonces.</li>
+      </ul>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->

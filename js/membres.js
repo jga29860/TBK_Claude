@@ -47,6 +47,8 @@ async function initMembresPage() {
   document.getElementById('monCompteIdentifiant').textContent = currentUserNom;
   bindChangePasswordForm();
 
+  await chargerMesInformations();
+
   isGestionnaireAnnonces = access.pages.includes('annonces');
 
   if (!access.pages.includes('espace_membres') && !isGestionnaireAnnonces) {
@@ -89,6 +91,59 @@ function bindChangePasswordForm() {
     hint.textContent = 'Mot de passe mis à jour.';
     form.reset();
   });
+}
+
+// ============================================================
+// Mes informations (inscription saison reliée au compte)
+// ============================================================
+
+async function chargerMesInformations() {
+  const section = document.getElementById('mesInformationsSection');
+  const contenu = document.getElementById('mesInformationsContenu');
+
+  const { data, error } = await sbClient
+    .from('inscriptions')
+    .select('*')
+    .eq('user_id', currentUserId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    section.hidden = true;
+    return;
+  }
+
+  section.hidden = false;
+  contenu.innerHTML = rendreMesInformations(data);
+}
+
+function rendreMesInformations(insc) {
+  const champs = insc.champs || {};
+  const statutBadge = insc.statut === 'validee'
+    ? '<span class="statut-badge statut-en-cours">Validée</span>'
+    : '<span class="statut-badge" style="background:#ffe9d9; color:#8a4a12;">En attente de validation</span>';
+
+  let certifLigne = '';
+  if (champs.date_certif) {
+    const dateCertif = new Date(champs.date_certif);
+    const finValidite = new Date(dateCertif);
+    finValidite.setFullYear(finValidite.getFullYear() + 1);
+    const expire = finValidite.getTime() < Date.now();
+    const expireBientot = !expire && finValidite.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000;
+    const etat = expire ? '⚠️ Expiré' : expireBientot ? '⚠️ À renouveler bientôt' : '✅ Valide';
+    certifLigne = `<div class="info-ligne"><span class="info-label">Certificat médical</span><span class="info-valeur">${etat} — jusqu'au ${finValidite.toLocaleDateString('fr-FR')}</span></div>`;
+  }
+
+  return `
+    <div class="mes-infos-grid">
+      <div class="info-ligne"><span class="info-label">Saison</span><span class="info-valeur">${escapeHtml(insc.saison)}</span></div>
+      <div class="info-ligne"><span class="info-label">Statut de l'inscription</span><span class="info-valeur">${statutBadge}</span></div>
+      <div class="info-ligne"><span class="info-label">Catégorie</span><span class="info-valeur">${escapeHtml(insc.categorie || '—')}</span></div>
+      <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
+      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${champs.cotisation_payee ? '✅ Payée' : '⏳ Non payée'}</span></div>
+      ${certifLigne}
+    </div>`;
 }
 
 // ============================================================

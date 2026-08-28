@@ -21,6 +21,7 @@ let inscriptionsCache = []; // inscriptions de la saison
 let colonnesCache = [];    // clés des colonnes sélectionnées pour le tableau
 let editingId = null;      // id en cours d'édition, ou null pour une nouvelle inscription
 let certificatCibleId = null; // id de l'inscription visée par la prochaine photo de certificat
+let profilesCache = [];    // comptes existants, pour le rattachement manuel d'une inscription
 let isAdminUser = false;
 let isBureau = false;
 let currentAccess = null;
@@ -47,15 +48,23 @@ async function initInscriptionsPage() {
   await loadChamps();
   await loadAffichage();
   await loadInscriptions();
+  await loadProfilesPourRattachement();
 
   bindMainForm();
   bindCertificatInput();
+  bindRelierComptesBtn();
   if (isAdminUser) bindConfigForms();
 }
 
 // ============================================================
 // Barème des cotisations
 // ============================================================
+
+async function loadProfilesPourRattachement() {
+  const { data, error } = await sbClient.from('profiles').select('id, email, display_name').order('display_name', { ascending: true });
+  if (error) { console.error(error.message); return; }
+  profilesCache = data || [];
+}
 
 async function loadBareme() {
   const { data, error } = await sbClient.from('bareme_cotisations').select('key, label, montant');
@@ -395,6 +404,7 @@ async function loadInscriptions() {
             <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${i.id}">Supprimer le certificat</button>
             <span class="certificat-date">${escapeHtml(dateCertificat(i.certificat_photo_url))}</span>
           ` : ''}
+          ${renderRattachementWidget(i)}
           <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
           <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
         </div>
@@ -420,6 +430,10 @@ async function loadInscriptions() {
         valide_le: new Date().toISOString(),
       }).eq('id', id);
       if (error) { alert('Erreur : ' + error.message); return; }
+      // Rattache l'inscription au compte existant de la personne (même
+      // email), et l'élève au profil "membre" — best-effort, ne bloque
+      // jamais la validation elle-même si ça échoue pour une raison ou une autre.
+      sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: id }).catch(() => {});
       await loadInscriptions();
     });
   });
@@ -442,6 +456,28 @@ async function loadInscriptions() {
     btn.addEventListener('click', async (e) => {
       const id = e.target.getAttribute('data-id');
       await supprimerCertificat(id);
+    });
+  });
+
+  tbody.querySelectorAll('.rattacher-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.getAttribute('data-id');
+      const select = tbody.querySelector(`.rattachement-select[data-id="${id}"]`);
+      const profileId = select ? select.value : '';
+      if (!profileId) { alert('Choisissez un compte dans la liste.'); return; }
+      const { error } = await sbClient.rpc('lier_inscription_profil_manuel', { p_inscription_id: id, p_profile_id: profileId });
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadInscriptions();
+    });
+  });
+
+  tbody.querySelectorAll('.delier-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.getAttribute('data-id');
+      if (!confirm('Délier cette inscription de son compte ?')) return;
+      const { error } = await sbClient.rpc('delier_inscription', { p_inscription_id: id });
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadInscriptions();
     });
   });
 
@@ -473,6 +509,31 @@ function conditionsValidationOk(record) {
   if (!champs.sante || champs.sante === 'En Attente') motifs.push('santé en attente');
   if (!champs.date_certif) motifs.push('date de certificat non renseignée');
   return { ok: motifs.length === 0, motifs };
+}
+
+function renderRattachementWidget(record) {
+  if (record.user_id) {
+    const profil = profilesCache.find(p => p.id === record.user_id);
+    const nomCompte = profil ? (profil.display_name || afficherIdentifiant(profil.email)) : 'compte inconnu';
+    return `
+      <div class="rattachement-widget rattachement-widget--relie">
+        <span>🔗 Relié à : ${escapeHtml(nomCompte)}</span>
+        <button type="button" class="btn btn-ghost btn-small delier-btn" data-id="${record.id}">Délier</button>
+      </div>`;
+  }
+
+  const options = profilesCache.map(p =>
+    `<option value="${p.id}">${escapeHtml(p.display_name || afficherIdentifiant(p.email))}</option>`
+  ).join('');
+
+  return `
+    <div class="rattachement-widget">
+      <select class="rattachement-select" data-id="${record.id}">
+        <option value="">— Rattacher à un compte —</option>
+        ${options}
+      </select>
+      <button type="button" class="btn btn-ghost btn-small rattacher-btn" data-id="${record.id}">Rattacher</button>
+    </div>`;
 }
 
 function renderValiderBtn(record) {
@@ -518,6 +579,27 @@ function bindCertificatInput() {
       return;
     }
 
+    await loadInscriptions();
+  });
+}
+
+function bindRelierComptesBtn() {
+  const btn = document.getElementById('relierComptesBtn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const hint = document.getElementById('relierComptesHint');
+    const aTraiter = inscriptionsCache.filter(i => i.statut === 'validee' && !i.user_id);
+
+    if (aTraiter.length === 0) {
+      hint.textContent = 'Aucune inscription validée en attente de rattachement.';
+      return;
+    }
+
+    hint.textContent = `Rattachement en cours (${aTraiter.length} inscription(s))…`;
+    for (const i of aTraiter) {
+      await sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: i.id }).catch(() => {});
+    }
+    hint.textContent = 'Rattachement terminé (seules les personnes ayant déjà un compte sur le site ont pu être reliées).';
     await loadInscriptions();
   });
 }
