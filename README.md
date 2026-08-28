@@ -579,6 +579,19 @@ Le bandeau du haut de emargement.html (cotisation/présents/réglé + recherche 
 
 Les 3 boutons de bascule par joueur (Présent/Absent/Payée) pouvaient forcer un défilement horizontal sur mobile malgré le passage à la ligne prévu. Corrigé en profondeur : sur mobile, ces 3 boutons deviennent des carrés icône-seule (✓ / ✗ / 💰) de largeur égale, garantis de tenir sur une seule ligne quelle que soit la largeur d'écran — plus de texte à faire tenir, plus de risque de débordement. Le texte complet (Présent/Absent/Payée) reste affiché normalement sur PC. Une sécurité supplémentaire (largeur de tableau figée) empêche aussi le tableau HTML sous-jacent d'imposer une largeur minimale qui forcerait un défilement.
 
+## Audit fonctionnel et technique du site + corrections
+
+Exécutez `supabase/migration_nettoyage_reactions_orphelines.sql`.
+
+Aucune faille de sécurité détectée. Corrections apportées suite à l'audit :
+
+- **Requête sans limite corrigée** : le fil d'actualité des annonces (membres.html) chargeait toutes les annonces depuis la création du club, sans limite — plafonné à 100 désormais.
+- **Fonctions dupliquées centralisées** : `formatDate` et `estImage` existaient en double dans membres.js et tournoi-benevoles.js (même risque de divergence que le bug "cotisation payée" précédent) — centralisées dans auth.js.
+- **Nettoyage automatique des réactions orphelines** : supprimer une annonce, un commentaire ou un message de tournoi supprime désormais aussi les réactions (👍👎❤️) qui lui étaient liées, via des déclencheurs SQL. Un nettoyage ponctuel retire aussi les réactions déjà orphelines accumulées avant cette migration.
+- **Documentation** : date de mise à jour actualisée, nouvelle sous-section sur ce mécanisme de nettoyage.
+
+**Pistes identifiées mais non traitées** (améliorations, pas des bugs) : optimisation mobile de planning.html/poules.html/phase-finale.html/admin.html (non encore revues dans cette conversation) ; purge des journaux de connexion/visites toujours manuelle (l'automatiser nécessiterait la même infrastructure serveur que la fonction Edge déjà évoquée et mise de côté).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

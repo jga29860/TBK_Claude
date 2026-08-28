@@ -550,22 +550,8 @@ function bindMessageForm() {
 }
 
 // ============================================================
-// Utilitaires
+// Utilitaires (estImage et formatDate sont centralisés dans auth.js)
 // ============================================================
-
-function estImage(chemin) {
-  return /\.(jpe?g|png|gif|webp|heic|svg)$/i.test(chemin || '');
-}
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  const maintenant = new Date();
-  const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (d.toDateString() === maintenant.toDateString()) {
-    return `Aujourd'hui à ${heure}`;
-  }
-  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${heure}`;
-}
 
 function escapeHtml(str) {
   const div = document.createElement('div');

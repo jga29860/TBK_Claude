@@ -38,6 +38,27 @@ function estValeurAffirmative(val) {
   return String(val).trim().toLowerCase() !== 'non';
 }
 
+/**
+ * Format de date "conversationnel" (Aujourd'hui à HH:MM, ou date complète
+ * sinon) — centralisé ici pour éviter toute divergence entre les pages
+ * qui en ont besoin (annonces du club, discussion des tournois).
+ */
+function formatDate(iso) {
+  const d = new Date(iso);
+  const maintenant = new Date();
+  const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  if (d.toDateString() === maintenant.toDateString()) {
+    return `Aujourd'hui à ${heure}`;
+  }
+  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${heure}`;
+}
+
+/** Détermine si un chemin de fichier correspond à une image, pour choisir
+ *  entre aperçu direct ou simple lien de téléchargement. */
+function estImage(chemin) {
+  return /\.(jpe?g|png|gif|webp|heic|svg)$/i.test(chemin || '');
+}
+
 function afficherIdentifiant(email) {
   if (estIdentifiantTechnique(email)) return email.split('@')[0];
   return email;

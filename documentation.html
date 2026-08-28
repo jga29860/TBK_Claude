@@ -38,7 +38,7 @@
 
     <section class="admin-section">
       <p class="section-lead" style="margin-bottom:0;">Cette page décrit le fonctionnement du site internet du club TBK, ses fonctionnalités, le système de comptes et de droits d'accès, et la structure de la base de données. Une version imprimable existe aussi au format Word.</p>
-      <p class="form-hint" style="margin-top:12px;">Dernière mise à jour : 24 août 2026. Ce document est tenu à jour manuellement à chaque évolution du site — aucune mise à jour automatique n'est possible sur un site statique.</p>
+      <p class="form-hint" style="margin-top:12px;">Dernière mise à jour : 28 août 2026. Ce document est tenu à jour manuellement à chaque évolution du site — aucune mise à jour automatique n'est possible sur un site statique.</p>
     </section>
 
     <!-- ===== Sommaire ===== -->
@@ -429,6 +429,9 @@
 
       <h3 class="admin-subheading">12.5 Stockage de fichiers (Supabase Storage)</h3>
       <p>Au-delà des tables, un espace de stockage de fichiers <strong>privé</strong> nommé <code>certificats-medicaux</code> héberge les photos de certificats médicaux prises depuis la page Inscriptions. Aucune lecture publique n'est possible : l'accès (lecture, dépôt, suppression) est réservé aux comptes ayant le droit de page "inscriptions", exactement comme pour la table correspondante. La consultation d'un fichier se fait via un lien temporaire (2 minutes), généré à la demande à chaque clic sur "Voir le certificat" — jamais via une URL permanente.</p>
+
+      <h3 class="admin-subheading">12.6 Nettoyage automatique des réactions orphelines</h3>
+      <p>La table <code>annonces_reactions</code> pointe vers une annonce, un commentaire ou un message de tournoi sans lien de clé étrangère (elle peut viser l'une ou l'autre de ces 3 tables). Des déclencheurs SQL suppriment automatiquement les réactions correspondantes dès qu'une annonce, un commentaire ou un message de tournoi est supprimé, pour éviter toute accumulation silencieuse de données orphelines.</p>
     </section>
 
     <!-- ===== 12. GLOSSAIRE ===== -->

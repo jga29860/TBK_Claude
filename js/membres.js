@@ -157,7 +157,8 @@ async function chargerAnnonces() {
   const { data: annonces, error: err1 } = await sbClient
     .from('annonces_membres')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(100);
 
   if (err1) {
     container.innerHTML = '<p>Impossible de charger les annonces pour le moment.</p>';
@@ -498,26 +499,12 @@ function bindAnnonceForm() {
 }
 
 // ============================================================
-// Petits utilitaires
+// Petits utilitaires (estImage et formatDate sont centralisés dans auth.js)
 // ============================================================
-
-function estImage(chemin) {
-  return /\.(jpe?g|png|gif|webp|heic|svg)$/i.test(chemin || '');
-}
 
 function initiales(nom) {
   if (!nom) return '?';
   return nom.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('');
-}
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  const maintenant = new Date();
-  const heure = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  if (d.toDateString() === maintenant.toDateString()) {
-    return `Aujourd'hui à ${heure}`;
-  }
-  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })} à ${heure}`;
 }
 
 // ============================================================
