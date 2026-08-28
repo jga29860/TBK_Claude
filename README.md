@@ -560,7 +560,11 @@ Mode plus simple que le rattachement automatique par email : sur chaque demande 
 Exécutez `supabase/migration_correction_colonne_user_id_manquante.sql`.
 
 - **Colonne `user_id` manquante** : la migration qui la créait avait été mise de côté lors du passage au rattachement manuel, alors qu'elle reste indispensable dans les deux approches — d'où l'erreur "column user_id does not exist" lors du rattachement.
-- **Validation d'inscription trop stricte** : le contrôle n'acceptait que la valeur JavaScript stricte `true` pour "Cotisation payée", alors que selon la configuration du champ, la valeur réellement enregistrée peut être la chaîne "Oui" — empêchant la validation même une fois la cotisation cochée comme payée. Le contrôle accepte désormais plusieurs représentations équivalentes (true, "Oui", "oui", 1, "1").
+- **Validation d'inscription trop stricte** : le contrôle sur "Cotisation payée" attendait une valeur précise ("Oui"/true), alors que ce champ peut être un choix parmi plusieurs valeurs (ex. mode de paiement), où "Non" signifie non payé et n'importe quelle autre valeur signifie payé. La règle est désormais : payé si la valeur est renseignée et différente de "Non" (peu importe la casse).
+
+## Correction — "Relié à : compte inconnu" au chargement de la page
+
+Bug d'ordre de chargement : la liste des comptes existants se chargeait après le tableau des inscriptions, donc au premier affichage de la page, toute inscription déjà reliée à un compte affichait "compte inconnu" (la correspondance n'avait pas encore les données pour s'afficher correctement). Corrigé en inversant l'ordre de chargement.
 
 ## Autres changements de ce tour
 

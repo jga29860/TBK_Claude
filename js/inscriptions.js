@@ -47,8 +47,8 @@ async function initInscriptionsPage() {
   await loadBareme();
   await loadChamps();
   await loadAffichage();
-  await loadInscriptions();
   await loadProfilesPourRattachement();
+  await loadInscriptions();
 
   bindMainForm();
   bindCertificatInput();
@@ -503,7 +503,8 @@ function renderInscriptionsTableHead(columns) {
 }
 
 function estValeurAffirmative(val) {
-  return val === true || val === 'true' || val === 'Oui' || val === 'oui' || val === 1 || val === '1';
+  if (val === undefined || val === null || val === '' || val === false) return false;
+  return String(val).trim().toLowerCase() !== 'non';
 }
 
 function conditionsValidationOk(record) {
