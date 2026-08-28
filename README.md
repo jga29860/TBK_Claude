@@ -521,6 +521,14 @@ Complète le suivi des connexions : journalise aussi automatiquement les visites
 
 Technique : un petit script autonome (`js/visite-log.js`), indépendant de `auth.js`/`main.js`, ajouté sur ces 6 pages spécifiquement (certaines d'entre elles ne chargent pas ces fichiers).
 
+## Nouveau droit de page : Tournois - Inscriptions
+
+Nouveau droit de page dédié à `tournoi-inscriptions.html` (Admin → Profils), qui reposait jusqu'ici uniquement sur "Tournois - Administration"/"Tournois - Gestion". Permet de déléguer uniquement la gestion des équipes inscrites et des poules à quelqu'un, sans lui donner accès à la création de tournois, la planification ou l'émargement.
+
+## Audit de la procédure de sauvegarde
+
+Vérification complète : les 21 tables du modèle de données sont confirmées toutes couvertes par `sauvegarde.html`, dans un ordre respectant toutes les dépendances entre tables (clés étrangères) — aucune table manquante, aucune correction nécessaire. La documentation (page et Word) a été mise à jour avec le nouveau droit de page.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

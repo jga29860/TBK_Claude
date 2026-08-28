@@ -12,7 +12,7 @@ async function initPage() {
   const deniedPanel = document.getElementById('deniedPanel');
   const mainPanel = document.getElementById('mainPanel');
 
-  const hasAccess = !!access && (access.pages.includes('tournois_admin') || access.pages.includes('tournois_gestion'));
+  const hasAccess = !!access && (access.pages.includes('tournois_admin') || access.pages.includes('tournois_gestion') || access.pages.includes('tournois_inscriptions'));
   if (!hasAccess) {
     deniedPanel.hidden = false;
     mainPanel.hidden = true;

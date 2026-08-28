@@ -161,7 +161,7 @@ const TOOL_LINKS = [
   { pageKeys: ['espace_membres'], href: 'membres.html', label: 'Espace membres', group: 'Club' },
   { pageKeys: ['inscriptions'], href: 'inscriptions.html', label: 'Inscriptions saison', group: 'Club' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournois.html', label: 'Tournois', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_emargement'], href: 'emargement.html', label: 'Émargement', group: 'Tournoi' },
   { pageKeys: ['benevoles', 'tournois_admin', 'tournois_gestion'], href: 'tournoi-benevoles.html', label: 'Bénévoles', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'poules.html', label: 'Poules', group: 'Tournoi' },
