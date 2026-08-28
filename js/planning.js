@@ -688,84 +688,100 @@ function renderMatchsRotations() {
   container.innerHTML = anyShown ? html : '<p class="section-lead">Aucun match pour ce filtre.</p>';
 }
 
-function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
+/** Calcule l'état dérivé d'un match (lançable, statut, durée…), partagé
+ *  entre les vues Poule et Phase finale du planning — pour ne plus
+ *  dupliquer cette logique dans les deux fonctions de rendu. */
+function calculerEtatMatch(m) {
   const now = Date.now();
   const terrainsLibres = getTerrainsLibres();
+  const lancable = !m.heure_lancement &&
+    !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
+    equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id) &&
+    terrainsLibres.length > 0;
 
+  const winnerId = matchWinnerId(m);
+
+  let duree = '—';
+  if (m.heure_lancement && m.heure_fin) {
+    duree = Math.round((new Date(m.heure_fin) - new Date(m.heure_lancement)) / 60000) + ' min';
+  } else if (m.heure_lancement && !m.heure_fin) {
+    duree = 'en cours (' + Math.round((now - new Date(m.heure_lancement)) / 60000) + ' min)';
+  }
+
+  const heureLancement = m.heure_lancement
+    ? new Date(m.heure_lancement).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : '—';
+
+  let motifIndisponible = '';
+  if (!m.heure_lancement && !lancable) {
+    if (equipeEnCours(m.equipe1_id) || equipeEnCours(m.equipe2_id)) motifIndisponible = 'Une équipe joue déjà';
+    else if (!equipePresente(m.equipe1_id) || !equipePresente(m.equipe2_id)) motifIndisponible = 'Équipe non présente';
+    else if (terrainsLibres.length === 0) motifIndisponible = 'Aucun terrain libre';
+  }
+
+  let statut, rowClass = '';
+  if (m.heure_lancement && m.heure_fin) { statut = 'Terminé'; rowClass = 'row-termine'; }
+  else if (m.heure_lancement && !m.heure_fin) { statut = 'En cours'; }
+  else if (!lancable) { statut = 'Non lancé'; rowClass = 'row-indisponible'; }
+  else { statut = 'Non lancé'; }
+
+  return { lancable, winnerId, duree, heureLancement, motifIndisponible, statut, rowClass };
+}
+
+/** Rendu commun d'une ligne de match, colonnes regroupées en blocs
+ *  compacts (au lieu de 13 colonnes étroites) — bien plus lisible sur
+ *  mobile, et un peu plus compact sur PC aussi. Le contenu de la 1ère
+ *  cellule ("infoHtml") varie selon le contexte (poule / phase finale). */
+function renderLigneMatch(m, infoHtml) {
+  const { lancable, winnerId, duree, heureLancement, motifIndisponible, statut, rowClass } = calculerEtatMatch(m);
+
+  return `
+    <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
+      <td class="match-cell match-cell--info">${infoHtml}</td>
+      <td class="match-cell match-cell--equipes">
+        <div class="match-equipe-ligne ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</div>
+        <div class="match-vs-mini">vs</div>
+        <div class="match-equipe-ligne ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</div>
+      </td>
+      <td class="match-cell match-cell--statut">
+        <span class="match-terrain">🎾 T.${m.terrain ?? '—'}</span>
+        <span class="match-statut-badge">${statut}</span>
+      </td>
+      <td class="match-cell match-cell--scores">
+        ${[1, 2, 3].map(n => `
+          <span class="score-set">
+            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}"><span class="score-set-tiret">-</span><input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
+          </span>`).join('')}
+      </td>
+      <td class="match-cell match-cell--horaires">
+        <span>🕐 ${heureLancement}</span>
+        <span>⏱ ${duree}</span>
+      </td>
+      <td class="match-cell match-cell--actions">
+        ${!m.heure_lancement
+          ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
+          : ''}
+      </td>
+    </tr>`;
+}
+
+function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
   const rows = matchs.map(m => {
     const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
-    const lancable = !m.heure_lancement &&
-      !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
-      equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id) &&
-      terrainsLibres.length > 0;
-
-    const winnerId = matchWinnerId(m);
-
-    let duree = '—';
-    if (m.heure_lancement && m.heure_fin) {
-      duree = Math.round((new Date(m.heure_fin) - new Date(m.heure_lancement)) / 60000) + ' min';
-    } else if (m.heure_lancement && !m.heure_fin) {
-      duree = 'en cours (' + Math.round((now - new Date(m.heure_lancement)) / 60000) + ' min)';
-    }
-
-    const heureLancement = m.heure_lancement
-      ? new Date(m.heure_lancement).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      : '—';
-
-    let motifIndisponible = '';
-    if (!m.heure_lancement && !lancable) {
-      if (equipeEnCours(m.equipe1_id) || equipeEnCours(m.equipe2_id)) motifIndisponible = 'Une équipe joue déjà';
-      else if (!equipePresente(m.equipe1_id) || !equipePresente(m.equipe2_id)) motifIndisponible = 'Équipe non présente';
-      else if (terrainsLibres.length === 0) motifIndisponible = 'Aucun terrain libre';
-    }
-
-    // Statut du match + classe de ligne (grisée si terminé ou non jouable pour le moment)
-    let statut, rowClass = '';
-    if (m.heure_lancement && m.heure_fin) {
-      statut = 'Terminé';
-      rowClass = 'row-termine';
-    } else if (m.heure_lancement && !m.heure_fin) {
-      statut = 'En cours';
-    } else if (!lancable) {
-      statut = 'Non lancé';
-      rowClass = 'row-indisponible';
-    } else {
-      statut = 'Non lancé';
-    }
-
-    return `
-      <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
-        <td>${m.numero}</td>
-        <td>${escapeHtml(comp ? comp.nom : '?')}</td>
-        <td class="${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</td>
-        <td class="${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</td>
-        <td>Poule ${m.poule ?? '—'}</td>
-        <td>${m.terrain ?? '—'}</td>
-        <td>${statut}</td>
-        ${[1, 2, 3].map(n => `
-          <td class="score-cell">
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}">
-            -
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
-          </td>`).join('')}
-        <td>${heureLancement}</td>
-        <td>${duree}</td>
-        <td>${!m.heure_lancement
-          ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
-          : ''}</td>
-      </tr>`;
+    const infoHtml = `
+      <span class="match-numero">#${m.numero}</span>
+      <span class="match-comp">${escapeHtml(comp ? comp.nom : '?')}</span>
+      <span class="match-poule">Poule ${m.poule ?? '—'}</span>`;
+    return renderLigneMatch(m, infoHtml);
   }).join('');
 
   return `
     <div class="poule-block">
       <h3 class="poule-block-title">Rotation ${numeroRotation} <span class="poule-count">(estimée ${heureEstimeeRotation})</span></h3>
       <div class="table-wrap">
-        <table class="schedule table-center">
+        <table class="schedule table-center match-table">
           <thead>
-            <tr>
-              <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Poule</th><th>Terrain</th><th>Statut</th>
-              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
-            </tr>
+            <tr><th>Match</th><th>Équipes</th><th>Terrain / Statut</th><th>Scores</th><th>Horaires</th><th></th></tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
@@ -821,79 +837,25 @@ function renderPhaseFinale() {
 }
 
 function renderBracketRotationBlock(numeroRotation, matchs, noms) {
-  const now = Date.now();
-  const terrainsLibres = getTerrainsLibres();
-
   const rows = matchs.map(m => {
     const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
-    const lancable = !m.heure_lancement &&
-      !equipeEnCours(m.equipe1_id) && !equipeEnCours(m.equipe2_id) &&
-      equipePresente(m.equipe1_id) && equipePresente(m.equipe2_id) &&
-      terrainsLibres.length > 0;
-
-    const winnerId = matchWinnerId(m);
-
-    let duree = '—';
-    if (m.heure_lancement && m.heure_fin) {
-      duree = Math.round((new Date(m.heure_fin) - new Date(m.heure_lancement)) / 60000) + ' min';
-    } else if (m.heure_lancement && !m.heure_fin) {
-      duree = 'en cours (' + Math.round((now - new Date(m.heure_lancement)) / 60000) + ' min)';
-    }
-
-    const heureLancement = m.heure_lancement
-      ? new Date(m.heure_lancement).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      : '—';
-
-    let motifIndisponible = '';
-    if (!m.heure_lancement && !lancable) {
-      if (equipeEnCours(m.equipe1_id) || equipeEnCours(m.equipe2_id)) motifIndisponible = 'Une équipe joue déjà';
-      else if (!equipePresente(m.equipe1_id) || !equipePresente(m.equipe2_id)) motifIndisponible = 'Équipe non présente';
-      else if (terrainsLibres.length === 0) motifIndisponible = 'Aucun terrain libre';
-    }
-
-    let statut, rowClass = '';
-    if (m.heure_lancement && m.heure_fin) { statut = 'Terminé'; rowClass = 'row-termine'; }
-    else if (m.heure_lancement && !m.heure_fin) { statut = 'En cours'; }
-    else if (!lancable) { statut = 'Non lancé'; rowClass = 'row-indisponible'; }
-    else { statut = 'Non lancé'; }
-
     const nbMatchsMemeTour = matchsCache.filter(x =>
       x.tournoi_competition_id === m.tournoi_competition_id && x.phase === m.phase && x.tour === m.tour
     ).length;
     const competitionLabel = `${comp ? comp.nom : '?'} — ${noms[m.phase] || m.phase} — ${nomDuTour(nbMatchsMemeTour * 2)}`;
-
-    return `
-      <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
-        <td>${m.numero}</td>
-        <td>${escapeHtml(competitionLabel)}</td>
-        <td class="${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</td>
-        <td class="${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</td>
-        <td>${m.terrain ?? '—'}</td>
-        <td>${statut}</td>
-        ${[1, 2, 3].map(n => `
-          <td class="score-cell">
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}">
-            -
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
-          </td>`).join('')}
-        <td>${heureLancement}</td>
-        <td>${duree}</td>
-        <td>${!m.heure_lancement
-          ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
-          : ''}</td>
-      </tr>`;
+    const infoHtml = `
+      <span class="match-numero">#${m.numero}</span>
+      <span class="match-comp">${escapeHtml(competitionLabel)}</span>`;
+    return renderLigneMatch(m, infoHtml);
   }).join('');
 
   return `
     <div class="poule-block">
       <h3 class="poule-block-title">Rotation ${numeroRotation}</h3>
       <div class="table-wrap">
-        <table class="schedule table-center">
+        <table class="schedule table-center match-table">
           <thead>
-            <tr>
-              <th>N°</th><th>Compétition</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
-              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
-            </tr>
+            <tr><th>Match</th><th>Équipes</th><th>Terrain / Statut</th><th>Scores</th><th>Horaires</th><th></th></tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>

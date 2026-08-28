@@ -190,6 +190,7 @@ function renderCompetitions() {
   }).join('');
 
   bindToggleButtons();
+  bindPouleFicheEvents();
 }
 
 function renderPouleSection(comp, poule) {
@@ -198,12 +199,15 @@ function renderPouleSection(comp, poule) {
 
   const classementRows = classement.map((row, idx) => `
     <tr>
-      <td title="Valeur de classement : ${row.valeur}">${idx + 1}</td>
-      <td>${escapeHtml(equipeLabel(row.equipe))}</td>
-      <td>${row.joues}</td>
-      <td>${row.points}</td>
-      <td>${row.diffSets >= 0 ? '+' : ''}${row.diffSets}</td>
-      <td>${row.diffPts >= 0 ? '+' : ''}${row.diffPts}</td>
+      <td class="cell-nom" title="Valeur de classement : ${row.valeur}">
+        <span class="cell-nom-chevron">▸</span>
+        <span class="cell-nom-texte">${idx + 1}. ${escapeHtml(equipeLabel(row.equipe))}</span>
+        <span class="cell-nom-statut-mobile"><span class="statut-badge statut-en-cours">${row.points} pts</span></span>
+      </td>
+      <td data-label="MJ">${row.joues}</td>
+      <td data-label="Points">${row.points}</td>
+      <td data-label="Diff. sets">${row.diffSets >= 0 ? '+' : ''}${row.diffSets}</td>
+      <td data-label="Diff. pts">${row.diffPts >= 0 ? '+' : ''}${row.diffPts}</td>
     </tr>`).join('');
 
   const setText = (m, n) => {
@@ -219,13 +223,17 @@ function renderPouleSection(comp, poule) {
     const e2Win = s.decided && s.winnerId === m.equipe2_id;
     return `
       <tr>
-        <td>${m.numero}</td>
-        <td class="${e1Win ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(e1))}</td>
-        <td class="${e2Win ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(e2))}</td>
-        <td>${setText(m, 1)}</td>
-        <td>${setText(m, 2)}</td>
-        <td>${setText(m, 3)}</td>
-        <td>${m.terrain ?? '—'}</td>
+        <td class="cell-nom">
+          <span class="cell-nom-chevron">▸</span>
+          <span class="cell-nom-texte">#${m.numero} — ${escapeHtml(equipeLabel(e1))} vs ${escapeHtml(equipeLabel(e2))}</span>
+          <span class="cell-nom-statut-mobile"><span class="statut-badge statut-cloture">T.${m.terrain ?? '—'}</span></span>
+        </td>
+        <td data-label="Équipe 1" class="${e1Win ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(e1))}</td>
+        <td data-label="Équipe 2" class="${e2Win ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(e2))}</td>
+        <td data-label="Set 1">${setText(m, 1)}</td>
+        <td data-label="Set 2">${setText(m, 2)}</td>
+        <td data-label="Set 3">${setText(m, 3)}</td>
+        <td data-label="Terrain">${m.terrain ?? '—'}</td>
       </tr>`;
   }).join('');
 
@@ -235,21 +243,29 @@ function renderPouleSection(comp, poule) {
     <div class="poule-block">
       <h3 class="poule-block-title">Poule ${poule}</h3>
       <div class="table-wrap">
-        <table class="schedule table-center">
-          <thead><tr><th>Cl.</th><th>Équipe</th><th>MJ</th><th>Pts</th><th>Diff. sets</th><th>Diff. pts</th></tr></thead>
-          <tbody>${classementRows || '<tr><td colspan="6">Aucune équipe dans cette poule.</td></tr>'}</tbody>
+        <table class="schedule table-center poule-fiche-table">
+          <thead><tr><th>Équipe</th><th>MJ</th><th>Pts</th><th>Diff. sets</th><th>Diff. pts</th></tr></thead>
+          <tbody>${classementRows || '<tr><td colspan="5">Aucune équipe dans cette poule.</td></tr>'}</tbody>
         </table>
       </div>
       <div class="form-actions" style="margin-top:14px;">
         <button type="button" class="btn btn-ghost btn-small toggle-matchs-btn" data-target="${blockId}">Afficher les matchs</button>
       </div>
       <div class="table-wrap matchs-panel" id="${blockId}" hidden style="margin-top:14px;">
-        <table class="schedule table-center">
-          <thead><tr><th>N°</th><th>Équipe 1</th><th>Équipe 2</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Terrain</th></tr></thead>
+        <table class="schedule table-center poule-fiche-table">
+          <thead><tr><th>Match</th><th>Équipe 1</th><th>Équipe 2</th><th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Terrain</th></tr></thead>
           <tbody>${matchsRows || '<tr><td colspan="7">Aucun match généré (rendez-vous sur la page Planning).</td></tr>'}</tbody>
         </table>
       </div>
     </div>`;
+}
+
+function bindPouleFicheEvents() {
+  document.querySelectorAll('.poule-fiche-table .cell-nom').forEach(cell => {
+    cell.addEventListener('click', () => {
+      cell.closest('tr').classList.toggle('row-expanded');
+    });
+  });
 }
 
 function bindToggleButtons() {

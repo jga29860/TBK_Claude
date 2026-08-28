@@ -592,6 +592,16 @@ Aucune faille de sécurité détectée. Corrections apportées suite à l'audit 
 
 **Pistes identifiées mais non traitées** (améliorations, pas des bugs) : optimisation mobile de planning.html/poules.html/phase-finale.html/admin.html (non encore revues dans cette conversation) ; purge des journaux de connexion/visites toujours manuelle (l'automatiser nécessiterait la même infrastructure serveur que la fonction Edge déjà évoquée et mise de côté).
 
+## Optimisation mobile globale du site
+
+Suite à l'audit précédent, revue mobile des pages restantes.
+
+- **planning.html** (la page la plus dense du site, 13 colonnes avec saisie de score en direct) : colonnes regroupées en 6 blocs compacts (Match, Équipes, Terrain/Statut, Scores, Horaires, Action), affichés en carte empilée sur mobile — tout reste directement modifiable. Au passage, factorisation d'une grosse duplication de code entre les vues Poule et Phase finale (logique de calcul d'état d'un match).
+- **poules.html** : classement et détail des matchs par poule passent au même motif "fiche dépliable au tap" déjà utilisé sur les autres tableaux du site (nom cliquable, reste replié par défaut).
+- **phase-finale.html** : déjà correctement pensée pour mobile (affichage en colonnes par tour avec défilement horizontal volontaire — comportement standard pour un tableau à élimination directe, aucune correction nécessaire).
+- **admin.html** (Profils et Utilisateurs) : les deux tableaux passent en cartes empilées sur mobile (contenu trop varié — cases à cocher multiples, champs, actions — pour le motif "nom cliquable" ; tout reste visible directement sans avoir à déplier).
+- **documentation.html, sauvegarde.html, suivi-connexions.html** : tableaux principalement composés de texte descriptif, qui s'enroule naturellement dans les cellules — laissés tels quels (déjà fonctionnels, filet de sécurité de défilement en place si besoin).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -597,16 +597,17 @@ table.schedule .role-label-input{
    pour inscriptions.html et tournois.html ===== */
 .cell-nom-statut-mobile{ display:none; } /* visible uniquement sur mobile, voir media query ci-dessous */
 @media (max-width: 760px){
-  #inscriptionsTable thead, #tournoisTable thead, .equipes-table thead{ display:none; }
+  #inscriptionsTable thead, #tournoisTable thead, .equipes-table thead, .poule-fiche-table thead{ display:none; }
   #inscriptionsTable, #inscriptionsTable tbody,
   #tournoisTable, #tournoisTable tbody,
-  .equipes-table, .equipes-table tbody{ display:block; width:100%; }
-  #inscriptionsTable tr, #tournoisTable tr, .equipes-table tr{
+  .equipes-table, .equipes-table tbody,
+  .poule-fiche-table, .poule-fiche-table tbody{ display:block; width:100%; }
+  #inscriptionsTable tr, #tournoisTable tr, .equipes-table tr, .poule-fiche-table tr{
     display:block; width:100%; margin-bottom:10px; border:1px solid var(--border);
     border-radius:10px; overflow:hidden; background:var(--white);
   }
-  #inscriptionsTable td, #tournoisTable td, .equipes-table td{ display:none; border:none; padding:10px 14px; }
-  #inscriptionsTable td.cell-nom, #tournoisTable td.cell-nom, .equipes-table td.cell-nom{
+  #inscriptionsTable td, #tournoisTable td, .equipes-table td, .poule-fiche-table td{ display:none; border:none; padding:10px 14px; }
+  #inscriptionsTable td.cell-nom, #tournoisTable td.cell-nom, .equipes-table td.cell-nom, .poule-fiche-table td.cell-nom{
     display:flex; align-items:center; gap:8px; cursor:pointer;
     font-weight:700; padding:14px; background:var(--pale);
   }
@@ -616,17 +617,35 @@ table.schedule .role-label-input{
   .cell-nom-chevron{ transition: transform .15s ease; color:var(--green); font-weight:900; }
   #inscriptionsTable tr.row-expanded td.cell-nom .cell-nom-chevron,
   #tournoisTable tr.row-expanded td.cell-nom .cell-nom-chevron,
-  .equipes-table tr.row-expanded td.cell-nom .cell-nom-chevron{ transform: rotate(90deg); }
+  .equipes-table tr.row-expanded td.cell-nom .cell-nom-chevron,
+  .poule-fiche-table tr.row-expanded td.cell-nom .cell-nom-chevron{ transform: rotate(90deg); }
 
-  #inscriptionsTable tr.row-expanded td, #tournoisTable tr.row-expanded td, .equipes-table tr.row-expanded td{
+  #inscriptionsTable tr.row-expanded td, #tournoisTable tr.row-expanded td, .equipes-table tr.row-expanded td, .poule-fiche-table tr.row-expanded td{
     display:block; border-bottom:1px solid #eee;
   }
-  #inscriptionsTable tr.row-expanded td:last-child, #tournoisTable tr.row-expanded td:last-child, .equipes-table tr.row-expanded td:last-child{ border-bottom:none; }
-  #inscriptionsTable tr.row-expanded td[data-label]::before, #tournoisTable tr.row-expanded td[data-label]::before, .equipes-table tr.row-expanded td[data-label]::before{
+  #inscriptionsTable tr.row-expanded td:last-child, #tournoisTable tr.row-expanded td:last-child, .equipes-table tr.row-expanded td:last-child, .poule-fiche-table tr.row-expanded td:last-child{ border-bottom:none; }
+  #inscriptionsTable tr.row-expanded td[data-label]::before, #tournoisTable tr.row-expanded td[data-label]::before, .equipes-table tr.row-expanded td[data-label]::before, .poule-fiche-table tr.row-expanded td[data-label]::before{
     content: attr(data-label); display:block; font-size:0.7rem; font-weight:700;
     text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin-bottom:3px;
   }
   #tournoisTable td .btn, .equipes-table td .btn{ margin:3px 6px 3px 0; }
+}
+
+/* ===== admin.html : tableaux Profils et Utilisateurs en cartes sur mobile
+   (contenu trop varié — cases à cocher, champs, actions — pour le motif
+   "nom cliquable à déplier" ; tout reste visible directement) ===== */
+@media (max-width: 760px){
+  #rolesTable thead, #usersTable thead{ display:none; }
+  #rolesTable, #rolesTable tbody, #usersTable, #usersTable tbody{ display:block; width:100%; }
+  #rolesTable tr, #usersTable tr{
+    display:block; width:100%; margin-bottom:14px; border:1px solid var(--border);
+    border-radius:10px; padding:12px; background:var(--white);
+  }
+  #rolesTable td, #usersTable td{ display:block; width:100%; padding:6px 0; border:none !important; }
+  #rolesTable td:not(:last-child), #usersTable td:not(:last-child){
+    border-bottom:1px solid #eee !important; padding-bottom:10px; margin-bottom:6px;
+  }
+  #usersTable .btn{ width:100%; margin-bottom:6px; }
 }
 
 /* ===== Émargement : champs et bascules groupés par joueur ===== */
@@ -756,6 +775,45 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .row-indisponible{ background:#fff3e6 !important; opacity:0.7; }
 
 .equipe-gagnante{ background:#d9f2d9 !important; font-weight:700; }
+
+/* ===== Planning : colonnes de match regroupées en blocs compacts ===== */
+.match-table td.match-cell{ vertical-align:top; text-align:left !important; padding:10px !important; }
+.match-cell--info{ display:flex; flex-direction:column; gap:2px; font-size:0.82rem; min-width:110px; }
+.match-numero{ font-weight:800; color: var(--dark); }
+.match-comp{ font-weight:600; }
+.match-poule{ color: var(--ink-soft); font-size:0.78rem; }
+
+.match-cell--equipes{ font-size:0.85rem; min-width:140px; }
+.match-equipe-ligne{ font-weight:600; padding:1px 4px; border-radius:4px; display:inline-block; }
+.match-vs-mini{ font-size:0.68rem; color: var(--ink-soft); margin:1px 0; }
+
+.match-cell--statut{ display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
+.match-terrain{ font-size:0.8rem; font-weight:700; white-space:nowrap; }
+.match-statut-badge{
+  font-size:0.7rem; padding:2px 9px; border-radius:10px; background: var(--pale);
+  color: var(--ink-soft); font-weight:700; white-space:nowrap;
+}
+
+.match-cell--scores{ display:flex; flex-direction:column; gap:5px; }
+.score-set{ display:flex; align-items:center; gap:3px; white-space:nowrap; }
+.score-set-tiret{ color: var(--ink-soft); }
+
+.match-cell--horaires{ display:flex; flex-direction:column; gap:2px; font-size:0.76rem; color: var(--ink-soft); white-space:nowrap; }
+
+@media (max-width: 760px){
+  .match-table thead{ display:none; }
+  .match-table, .match-table tbody{ display:block; width:100%; }
+  .match-table tr{
+    display:block; width:100%; margin-bottom:10px; border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; background:var(--white);
+  }
+  .match-cell{ display:block !important; width:100%; padding:10px 14px !important; border-bottom:1px solid #eee; }
+  .match-cell:last-child{ border-bottom:none; }
+  .match-cell--equipes{ font-size:0.98rem; }
+  .match-cell--scores{ flex-direction:row; flex-wrap:wrap; gap:14px; }
+  .score-input{ width:46px; padding:8px 4px; font-size:1rem; }
+  .match-cell--actions .lancer-btn{ width:100%; padding:12px; }
+}
 
 /* ===== Synthèse phase finale (tableau en colonnes) ===== */
 .bracket-rounds{ display:flex; gap:20px; overflow-x:auto; padding-bottom:6px; margin-top:14px; }
