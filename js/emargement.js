@@ -215,15 +215,15 @@ function renderJoueurGroupe(eq, n) {
       <div class="joueur-emarg-toggles">
         <label class="emarg-toggle emarg-toggle--present">
           <input type="checkbox" class="emarg-check" data-player="${n}" data-field="present" ${eq[`joueur${n}_present`] ? 'checked' : ''}>
-          <span>✓ Présent</span>
+          <span class="emarg-toggle-icon">✓</span><span class="emarg-toggle-texte">Présent</span>
         </label>
         <label class="emarg-toggle emarg-toggle--absent">
           <input type="checkbox" class="emarg-check" data-player="${n}" data-field="absent" ${eq[`joueur${n}_absent`] ? 'checked' : ''}>
-          <span>✗ Absent</span>
+          <span class="emarg-toggle-icon">✗</span><span class="emarg-toggle-texte">Absent</span>
         </label>
         <label class="emarg-toggle emarg-toggle--paye">
           <input type="checkbox" class="emarg-check" data-player="${n}" data-field="cotisation_payee" ${eq[`joueur${n}_cotisation_payee`] ? 'checked' : ''}>
-          <span>💰 Payée</span>
+          <span class="emarg-toggle-icon">💰</span><span class="emarg-toggle-texte">Payée</span>
         </label>
       </div>
     </div>`;

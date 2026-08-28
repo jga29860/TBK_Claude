@@ -575,6 +575,10 @@ Bug d'ordre de chargement : la liste des comptes existants se chargeait après l
 
 Le bandeau du haut de emargement.html (cotisation/présents/réglé + recherche + filtre absents) prenait beaucoup trop de place sur mobile, en restant fixé en haut d'écran en permanence. Condensé en 2 lignes compactes au lieu de 5+ : les 3 indicateurs tiennent maintenant sur une seule ligne (libellés courts), et la recherche + le bouton "Absents" sont côte à côte au lieu d'être empilés. Le bandeau reste "collé" en haut pendant le défilement (pratique pour rechercher un joueur en pleine liste), mais occupe une fraction de l'espace qu'avant, laissant beaucoup plus de place aux données en dessous.
 
+## Émargement — boutons Présent/Absent/Payée sans défilement horizontal sur mobile
+
+Les 3 boutons de bascule par joueur (Présent/Absent/Payée) pouvaient forcer un défilement horizontal sur mobile malgré le passage à la ligne prévu. Corrigé en profondeur : sur mobile, ces 3 boutons deviennent des carrés icône-seule (✓ / ✗ / 💰) de largeur égale, garantis de tenir sur une seule ligne quelle que soit la largeur d'écran — plus de texte à faire tenir, plus de risque de débordement. Le texte complet (Présent/Absent/Payée) reste affiché normalement sur PC. Une sécurité supplémentaire (largeur de tableau figée) empêche aussi le tableau HTML sous-jacent d'imposer une largeur minimale qui forcerait un défilement.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
