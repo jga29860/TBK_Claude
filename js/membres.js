@@ -141,7 +141,7 @@ function rendreMesInformations(insc) {
       <div class="info-ligne"><span class="info-label">Statut de l'inscription</span><span class="info-valeur">${statutBadge}</span></div>
       <div class="info-ligne"><span class="info-label">Catégorie</span><span class="info-valeur">${escapeHtml(insc.categorie || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
-      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${champs.cotisation_payee ? '✅ Payée' : '⏳ Non payée'}</span></div>
+      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? '✅ Payée' : '⏳ Non payée'}</span></div>
       ${certifLigne}
     </div>`;
 }

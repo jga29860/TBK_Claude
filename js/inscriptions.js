@@ -502,11 +502,6 @@ function renderInscriptionsTableHead(columns) {
   theadRow.innerHTML = `<th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
 }
 
-function estValeurAffirmative(val) {
-  if (val === undefined || val === null || val === '' || val === false) return false;
-  return String(val).trim().toLowerCase() !== 'non';
-}
-
 function conditionsValidationOk(record) {
   const champs = record.champs || {};
   const motifs = [];

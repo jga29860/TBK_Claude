@@ -25,6 +25,19 @@ function estIdentifiantTechnique(email) {
 
 /** Renvoie l'identifiant "humain" à afficher : le nom d'utilisateur si
  *  c'est un compte technique, sinon l'adresse email telle quelle. */
+/**
+ * Interprète un champ "Cotisation payée" (ou tout champ similaire) comme
+ * payé/vrai dès lors qu'il est renseigné et différent de "Non" (peu
+ * importe la casse) — plutôt qu'un simple test de vérité JavaScript, qui
+ * considérerait à tort la chaîne "Non" comme "vraie" (payée).
+ * Centralisé ici pour que inscriptions.html et membres.html appliquent
+ * toujours exactement la même règle.
+ */
+function estValeurAffirmative(val) {
+  if (val === undefined || val === null || val === '' || val === false) return false;
+  return String(val).trim().toLowerCase() !== 'non';
+}
+
 function afficherIdentifiant(email) {
   if (estIdentifiantTechnique(email)) return email.split('@')[0];
   return email;

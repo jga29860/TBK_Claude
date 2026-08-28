@@ -566,6 +566,11 @@ Exécutez `supabase/migration_correction_colonne_user_id_manquante.sql`.
 
 Bug d'ordre de chargement : la liste des comptes existants se chargeait après le tableau des inscriptions, donc au premier affichage de la page, toute inscription déjà reliée à un compte affichait "compte inconnu" (la correspondance n'avait pas encore les données pour s'afficher correctement). Corrigé en inversant l'ordre de chargement.
 
+## Correction — incohérence "Cotisation payée" entre inscriptions.html et membres.html
+
+- **Cause du bug** : `membres.html` affichait "✅ Payée" dès que le champ était non vide — y compris pour la valeur littérale "Non", qui est une chaîne de texte non vide donc considérée "vraie" par un simple test JavaScript. `inscriptions.html`, elle, appliquait déjà la bonne règle. Résultat : une même fiche pouvait afficher "payée" sur une page et "non payée" sur l'autre.
+- **Correction** : la règle ("payé" = renseigné et différent de "Non", peu importe la casse) est désormais centralisée dans `auth.js` (chargé par les deux pages), pour garantir qu'inscriptions.html et membres.html appliquent toujours exactement la même logique.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
