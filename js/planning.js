@@ -110,11 +110,6 @@ async function loadAll(tournoiId, silent) {
     nbEquipes: equipesCache.filter(e => e.tournoi_competition_id === c.id).length,
   }));
 
-  if (!silent) {
-    const genSelect = document.getElementById('genCompetitionSelect');
-    genSelect.innerHTML = competitionsCache.map(c => `<option value="${c.id}">${escapeHtml(c.nom)}</option>`).join('');
-  }
-
   // Génère automatiquement la phase finale des compétitions dont les poules
   // viennent de se terminer (ou l'étaient déjà avant le chargement de la page),
   // puis recharge les matchs pour prendre en compte une éventuelle génération.
@@ -132,7 +127,7 @@ async function loadAll(tournoiId, silent) {
   // ne perdent pas leur planning existant.
   const poulesSansRotation = matchsCache.filter(m => m.phase === 'poule' && !m.heure_lancement && m.rotation == null);
   if (poulesSansRotation.length > 0) {
-    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`);
+    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`, m => m.tournoi_competition_id);
     const { data: refresh } = compIds.length
       ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
       : { data: [] };
@@ -144,7 +139,7 @@ async function loadAll(tournoiId, silent) {
   );
   const finaleSansRotation = matchsFinaleConnus.filter(m => !m.heure_lancement && m.rotation == null);
   if (finaleSansRotation.length > 0) {
-    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`);
+    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`, m => m.tournoi_competition_id);
     const { data: refresh2 } = compIds.length
       ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
       : { data: [] };
@@ -178,43 +173,43 @@ async function saveTournoiSettings() {
 
 async function generateMatchs() {
   const hint = document.getElementById('planningHint');
-  const competitionId = document.getElementById('genCompetitionSelect').value;
-  const comp = competitionsCache.find(c => c.id === competitionId);
-  if (!comp) { hint.textContent = 'Choisissez une compétition.'; return; }
+  if (competitionsCache.length === 0) { hint.textContent = 'Aucune compétition dans ce tournoi.'; return; }
 
-  const nbPoules = comp.nb_poules;
-  const equipesParPoule = {};
-  for (let p = 1; p <= nbPoules; p++) {
-    equipesParPoule[p] = equipesCache.filter(e => e.tournoi_competition_id === comp.id && e.poule === p);
-  }
-  const missing = equipesCache.filter(e => e.tournoi_competition_id === comp.id && !e.poule).length;
+  const missing = equipesCache.filter(e => !e.poule).length;
   const warn = missing > 0 ? `\n\nAttention : ${missing} équipe(s) non affectée(s) à une poule seront ignorées.` : '';
 
-  if (!confirm(`Générer les matchs de poule pour "${comp.nom}" ? Cela remplace tous les matchs de poule existants (scores déjà saisis inclus).${warn}`)) return;
+  if (!confirm(`Régénérer le planning de poule pour l'intégralité du tournoi (toutes les compétitions) ? Cela remplace tous les matchs de poule existants (scores déjà saisis inclus).${warn}`)) return;
 
   hint.textContent = 'Génération en cours…';
 
+  const compIds = competitionsCache.map(c => c.id);
   const { error: delError } = await sbClient
     .from('matchs')
     .delete()
-    .eq('tournoi_competition_id', comp.id)
+    .in('tournoi_competition_id', compIds)
     .eq('phase', 'poule');
   if (delError) { hint.textContent = 'Erreur : ' + delError.message; return; }
 
   const rows = [];
-  let numero = 1;
-  for (let p = 1; p <= nbPoules; p++) {
-    const equipes = equipesParPoule[p];
-    for (let i = 0; i < equipes.length; i++) {
-      for (let j = i + 1; j < equipes.length; j++) {
-        rows.push({
-          tournoi_competition_id: comp.id,
-          phase: 'poule',
-          poule: p,
-          numero: numero++,
-          equipe1_id: equipes[i].id,
-          equipe2_id: equipes[j].id,
-        });
+  for (const comp of competitionsCache) {
+    const equipesParPoule = {};
+    for (let p = 1; p <= comp.nb_poules; p++) {
+      equipesParPoule[p] = equipesCache.filter(e => e.tournoi_competition_id === comp.id && e.poule === p);
+    }
+    let numero = 1;
+    for (let p = 1; p <= comp.nb_poules; p++) {
+      const equipes = equipesParPoule[p];
+      for (let i = 0; i < equipes.length; i++) {
+        for (let j = i + 1; j < equipes.length; j++) {
+          rows.push({
+            tournoi_competition_id: comp.id,
+            phase: 'poule',
+            poule: p,
+            numero: numero++,
+            equipe1_id: equipes[i].id,
+            equipe2_id: equipes[j].id,
+          });
+        }
       }
     }
   }
@@ -228,17 +223,21 @@ async function generateMatchs() {
   const { error: insError } = await sbClient.from('matchs').insert(rows);
   if (insError) { hint.textContent = 'Erreur : ' + insError.message; return; }
 
-  // Numérote et enregistre les rotations une bonne fois pour toutes sur
-  // l'ensemble des matchs de poule du tournoi (pas seulement ceux qu'on
-  // vient de créer), pour que le regroupement reste stable ensuite.
+  // Numérote et enregistre les rotations une bonne fois pour toutes, pour
+  // l'ensemble du tournoi — les compétitions avancent au prorata de leur
+  // nombre d'équipes (voir le paramètre de pondération de persisterRotations).
   const { data: matchsPouleActuels } = await sbClient
     .from('matchs')
     .select('*')
     .eq('phase', 'poule')
-    .in('tournoi_competition_id', competitionsCache.map(c => c.id));
-  await persisterRotations(matchsPouleActuels || [], m => `${m.tournoi_competition_id}|${m.poule}`);
+    .in('tournoi_competition_id', compIds);
+  await persisterRotations(
+    matchsPouleActuels || [],
+    m => `${m.tournoi_competition_id}|${m.poule}`,
+    m => m.tournoi_competition_id
+  );
 
-  hint.textContent = `${rows.length} match(s) généré(s) pour ${comp.nom}.`;
+  hint.textContent = `${rows.length} match(s) généré(s) pour l'ensemble du tournoi.`;
   await loadAll(tournoi.id, true);
 }
 
@@ -310,7 +309,7 @@ async function genererPhaseFinaleAuto(comp) {
       .not('equipe1_id', 'is', null)
       .not('equipe2_id', 'is', null)
       .in('tournoi_competition_id', competitionsCache.map(c => c.id));
-    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`);
+    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, m => m.tournoi_competition_id);
 
     const hint = document.getElementById('planningHint');
     if (hint) hint.textContent = `Phase finale générée automatiquement pour ${comp.nom}.`;
@@ -600,8 +599,13 @@ function renderTop5() {
  * dans la même rotation, groupes les moins servis prioritaires).
  * groupKeyFn détermine le "groupe" à équilibrer (une poule pour la
  * phase de poules, une compétition+phase pour la phase finale).
+ * poidsGroupeFn (facultatif) donne le "poids" d'un groupe (ex. le
+ * nombre d'équipes de sa compétition) : un groupe plus lourd est
+ * considéré "moins servi" plus longtemps, donc prioritaire plus
+ * souvent — les compétitions avancent ainsi au prorata de leur
+ * taille plutôt que toutes au même rythme absolu.
  */
-function computeGroupesEquitables(matches, groupKeyFn, nbTerrains) {
+function computeGroupesEquitables(matches, groupKeyFn, nbTerrains, poidsGroupeFn) {
   // Matchs déjà lancés : ordre chronologique réel, inchangé
   const avecHeure = matches
     .filter(m => m.heure_lancement)
@@ -625,6 +629,11 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains) {
   const compteScheduled = {};
   groupeKeys.forEach(k => { compteScheduled[k] = 0; });
 
+  const poidsGroupe = {};
+  groupeKeys.forEach(k => {
+    poidsGroupe[k] = poidsGroupeFn ? Math.max(1, poidsGroupeFn(parGroupe[k][0])) : 1;
+  });
+
   const groupesAPlanifier = [];
   let restant = sansHeure.length;
 
@@ -635,8 +644,9 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains) {
 
     while (rotation.length < nbTerrains && progresse) {
       progresse = false;
-      // Priorité aux groupes les moins servis jusqu'ici (équité)
-      const ordre = groupeKeys.slice().sort((a, b) => compteScheduled[a] - compteScheduled[b]);
+      // Priorité aux groupes les moins servis jusqu'ici, au prorata de
+      // leur poids (équité classique si aucun poids n'est fourni).
+      const ordre = groupeKeys.slice().sort((a, b) => (compteScheduled[a] / poidsGroupe[a]) - (compteScheduled[b] / poidsGroupe[b]));
       for (const key of ordre) {
         if (rotation.length >= nbTerrains) break;
         const liste = parGroupe[key];
@@ -665,8 +675,11 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains) {
  * obtenu sur chacun (colonne "rotation") — pour que ce regroupement
  * reste stable ensuite, au lieu d'être recalculé à chaque affichage.
  * Les matchs déjà lancés ou déjà numérotés ne sont jamais touchés.
+ * competitionKeyFn (facultatif) identifie la compétition d'un match :
+ * si fourni, les compétitions avancent au prorata de leur nombre
+ * d'équipes plutôt qu'au même rythme absolu pour toutes.
  */
-async function persisterRotations(matches, groupKeyFn) {
+async function persisterRotations(matches, groupKeyFn, competitionKeyFn) {
   const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
   const aNumeroter = matches.filter(m => !m.heure_lancement && (m.rotation === null || m.rotation === undefined));
   if (aNumeroter.length === 0) return;
@@ -677,7 +690,11 @@ async function persisterRotations(matches, groupKeyFn) {
   const dejaNumerotes = matches.filter(m => m.rotation !== null && m.rotation !== undefined);
   const departNumero = dejaNumerotes.length > 0 ? Math.max(...dejaNumerotes.map(m => m.rotation)) : 0;
 
-  const groupes = computeGroupesEquitables(aNumeroter, groupKeyFn, nbTerrains);
+  const poidsGroupeFn = competitionKeyFn
+    ? (m) => equipesCache.filter(e => e.tournoi_competition_id === competitionKeyFn(m)).length
+    : null;
+
+  const groupes = computeGroupesEquitables(aNumeroter, groupKeyFn, nbTerrains, poidsGroupeFn);
   for (let i = 0; i < groupes.length; i++) {
     const ids = groupes[i].map(m => m.id);
     const { error } = await sbClient.from('matchs').update({ rotation: departNumero + i + 1 }).in('id', ids);
@@ -1039,7 +1056,7 @@ async function saveMatchField(matchId, field, value) {
         .not('equipe1_id', 'is', null)
         .not('equipe2_id', 'is', null)
         .eq('tournoi_competition_id', matchSuivant.tournoi_competition_id);
-      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`);
+      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, m => m.tournoi_competition_id);
     }
   }
 

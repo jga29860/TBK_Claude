@@ -623,6 +623,11 @@ Exécutez `supabase/migration_rotation_stable.sql`.
 - **Textes garantis sur une ligne** : "Poule X", les noms d'équipe et le statut ne passent plus à la ligne sur PC (retour à la normale uniquement sur les fiches dépliées en mobile, pour ne pas faire déborder un nom très long).
 - **Scores par set garantis sur une ligne** : chaque set (2 cases + tiret) est désormais dans un conteneur qui ne peut jamais se couper en deux lignes.
 
+## Planning — génération du planning pour tout le tournoi, au prorata des équipes
+
+- **Un seul bouton pour tout le tournoi** : "Générer / régénérer tout le planning" remplace la sélection d'une compétition à la fois — régénère désormais les matchs de poule de toutes les compétitions en une seule opération (confirmation demandée, scores déjà saisis inclus dans le remplacement).
+- **Progression au prorata du nombre d'équipes** : l'algorithme de répartition en rotations donne désormais plus de poids aux compétitions ayant plus d'équipes (une compétition à 32 équipes reçoit proportionnellement plus de terrains par rotation qu'une compétition à 8 équipes), pour que toutes les compétitions terminent à peu près en même temps plutôt qu'au même rythme absolu, poule par poule, indépendamment de leur taille.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
