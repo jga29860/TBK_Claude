@@ -643,6 +643,16 @@ Exécutez `supabase/migration_rotation_stable.sql`.
 
 Corrige un déséquilibre observé : Principale ou Consolante pouvait avancer beaucoup plus vite que l'autre en nombre de matchs joués. Cause identifiée : le poids utilisé pour équilibrer les rotations (introduit précédemment) se basait sur le nombre total d'équipes de la compétition — une mesure correcte pour les poules, mais imprécise pour les phases finales, dont les deux tableaux (Principale/Consolante) ne sont pas toujours rigoureusement de la même taille (cas limite déjà documenté : nombre de poules qualificatives pas une puissance de 2). Le poids utilisé pour la phase finale est désormais le nombre total de matchs du tableau précis (Principale ou Consolante) plutôt que le nombre d'équipes de toute la compétition — une mesure exacte de charge de travail propre à chaque tableau, garantissant qu'ils progressent au même rythme relatif et terminent à peu près en même temps.
 
+## Planning — régénération complète, accès public aux pages de consultation, QR codes
+
+Exécutez `supabase/migration_lecture_publique_poules_finale.sql`.
+
+- **Générer/régénérer efface aussi la phase finale** : le bouton supprime désormais définitivement tous les matchs de poule ET de phase finale du tournoi (avant, seuls les matchs de poule étaient effacés, laissant d'éventuels matchs de phase finale obsolètes).
+- **Bouton réservé à l'administrateur** : "Générer / régénérer tout le planning" n'est visible que pour le profil ayant le droit "administration" — les autres profils autorisés sur la page (tournois_admin, tournois_gestion) ne le voient plus.
+- **Phase Poule et Phase finale accessibles sans connexion** : `poules.html` et `phase-finale.html` sont désormais consultables par n'importe qui, sans compte — en lecture seule (aucune saisie possible pour un visiteur anonyme).
+- **QR codes d'accès public** : sous "Heure de début" dans planning.html, deux QR codes pointent directement vers Phase Poule et Phase finale — pratiques à afficher sur place (écran, affiche) pour que les participants suivent l'avancement depuis leur téléphone.
+- **Page "Poules" renommée "Phase Poule"** : titre, en-tête, et lien du menu Organisation mis à jour.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -10,16 +10,10 @@ let filtreCompetitionId = '';
 let filtrePouleNum = '';
 
 async function initPage() {
-  const access = await getCurrentAccess();
+  // Page de consultation ouverte à tous, avec ou sans connexion (utile
+  // pour un accès par QR code sans authentification au site).
   const deniedPanel = document.getElementById('deniedPanel');
   const mainPanel = document.getElementById('mainPanel');
-
-  const hasAccess = !!access && (access.pages.includes('tournois_admin') || access.pages.includes('tournois_gestion'));
-  if (!hasAccess) {
-    deniedPanel.hidden = false;
-    mainPanel.hidden = true;
-    return;
-  }
 
   deniedPanel.hidden = true;
   mainPanel.hidden = false;
@@ -34,7 +28,7 @@ async function initPage() {
   }
 
   document.getElementById('filtersSection').hidden = false;
-  document.getElementById('pageTitle').textContent = `Poules & classement — ${tournoi.nom}`;
+  document.getElementById('pageTitle').textContent = `Phase Poule & classement — ${tournoi.nom}`;
   await loadCompetitionsEtMatchs(tournoi.id);
 }
 

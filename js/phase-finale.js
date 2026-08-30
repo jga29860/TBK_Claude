@@ -10,14 +10,9 @@ let matchsCache = [];
 let pollTimer = null;
 
 async function initPage() {
-  const access = await getCurrentAccess();
+  // Page de consultation ouverte à tous, avec ou sans connexion (utile
+  // pour un accès par QR code sans authentification au site).
   const deniedPanel = document.getElementById('deniedPanel');
-
-  const hasAccess = !!access && (access.pages.includes('tournois_admin') || access.pages.includes('tournois_gestion'));
-  if (!hasAccess) {
-    deniedPanel.hidden = false;
-    return;
-  }
   deniedPanel.hidden = true;
 
   const tournoi = await getTournoiEnCours();

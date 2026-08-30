@@ -55,10 +55,19 @@ async function initPage() {
   });
 
   document.getElementById('generateBtn').addEventListener('click', generateMatchs);
+  document.getElementById('generateBtn').hidden = !access.pages.includes('administration');
   document.getElementById('toggleRotationsBtn').addEventListener('click', () => {
     rotationsRepliees = !effectiveRotationsRepliees();
     renderMatchsRotations();
   });
+
+  // QR codes d'accès public (sans connexion) aux pages Phase Poule et
+  // Phase finale, à partager sur place (affiche imprimée, écran...).
+  const baseUrl = window.location.origin + window.location.pathname.replace(/planning\.html$/, '');
+  document.getElementById('qrPhasePoule').src =
+    `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(baseUrl + 'poules.html')}`;
+  document.getElementById('qrPhaseFinale').src =
+    `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(baseUrl + 'phase-finale.html')}`;
 
   const tournoiActif = await getTournoiEnCours();
   if (!tournoiActif) {
@@ -218,7 +227,7 @@ async function generateMatchs() {
   const missing = equipesCache.filter(e => !e.poule).length;
   const warn = missing > 0 ? `\n\nAttention : ${missing} équipe(s) non affectée(s) à une poule seront ignorées.` : '';
 
-  if (!confirm(`Régénérer le planning de poule pour l'intégralité du tournoi (toutes les compétitions) ? Cela remplace tous les matchs de poule existants (scores déjà saisis inclus).${warn}`)) return;
+  if (!confirm(`Régénérer tout le planning pour l'intégralité du tournoi (toutes les compétitions) ? Cela efface DÉFINITIVEMENT tous les matchs de poule ET de phase finale existants (scores déjà saisis inclus).${warn}`)) return;
 
   hint.textContent = 'Génération en cours…';
 
@@ -226,8 +235,7 @@ async function generateMatchs() {
   const { error: delError } = await sbClient
     .from('matchs')
     .delete()
-    .in('tournoi_competition_id', compIds)
-    .eq('phase', 'poule');
+    .in('tournoi_competition_id', compIds);
   if (delError) { hint.textContent = 'Erreur : ' + delError.message; return; }
 
   const rows = [];
