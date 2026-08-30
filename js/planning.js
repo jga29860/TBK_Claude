@@ -728,36 +728,36 @@ function calculerEtatMatch(m) {
   return { lancable, winnerId, duree, heureLancement, motifIndisponible, statut, rowClass };
 }
 
-/** Rendu commun d'une ligne de match, colonnes regroupées en blocs
- *  compacts (au lieu de 13 colonnes étroites) — bien plus lisible sur
- *  mobile, et un peu plus compact sur PC aussi. Le contenu de la 1ère
- *  cellule ("infoHtml") varie selon le contexte (poule / phase finale). */
-function renderLigneMatch(m, infoHtml) {
+/** Rendu commun d'une ligne de match : tableau à colonnes classiques
+ *  (dense sur PC, une ligne par match), avec une identité cliquable en
+ *  1ère colonne qui se déplie sur mobile (motif déjà utilisé ailleurs
+ *  sur le site) plutôt que des blocs regroupés fragiles. */
+function renderLigneMatch(m, infoLabel, poule) {
   const { lancable, winnerId, duree, heureLancement, motifIndisponible, statut, rowClass } = calculerEtatMatch(m);
+  const nomEquipe1 = equipeLabel(m.equipe1_id);
+  const nomEquipe2 = equipeLabel(m.equipe2_id);
+
+  const setCells = [1, 2, 3].map(n => `
+    <td data-label="Set ${n}">
+      <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}"><span class="score-set-tiret">-</span><input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
+    </td>`).join('');
 
   return `
     <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
-      <td class="match-cell match-cell--info">${infoHtml}</td>
-      <td class="match-cell match-cell--equipes">
-        <div class="match-equipe-ligne ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</div>
-        <div class="match-vs-mini">vs</div>
-        <div class="match-equipe-ligne ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</div>
+      <td class="cell-nom">
+        <span class="cell-nom-chevron">▸</span>
+        <span class="cell-nom-texte">#${m.numero} ${escapeHtml(infoLabel)}</span>
+        <span class="cell-nom-statut-mobile"><span class="statut-badge statut-cloture">${escapeHtml(statut)}</span></span>
       </td>
-      <td class="match-cell match-cell--statut">
-        <span class="match-terrain">🎾 T.${m.terrain ?? '—'}</span>
-        <span class="match-statut-badge">${statut}</span>
-      </td>
-      <td class="match-cell match-cell--scores">
-        ${[1, 2, 3].map(n => `
-          <span class="score-set">
-            <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}"><span class="score-set-tiret">-</span><input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
-          </span>`).join('')}
-      </td>
-      <td class="match-cell match-cell--horaires">
-        <span>🕐 ${heureLancement}</span>
-        <span>⏱ ${duree}</span>
-      </td>
-      <td class="match-cell match-cell--actions">
+      ${poule !== undefined ? `<td data-label="Poule">Poule ${poule ?? '—'}</td>` : ''}
+      <td data-label="Équipe 1" class="${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe1)}</td>
+      <td data-label="Équipe 2" class="${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe2)}</td>
+      <td data-label="Terrain">${m.terrain ?? '—'}</td>
+      <td data-label="Statut">${escapeHtml(statut)}</td>
+      ${setCells}
+      <td data-label="Heure lancement">${heureLancement}</td>
+      <td data-label="Durée">${duree}</td>
+      <td data-label="Actions">
         ${!m.heure_lancement
           ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
           : ''}
@@ -768,11 +768,7 @@ function renderLigneMatch(m, infoHtml) {
 function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
   const rows = matchs.map(m => {
     const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
-    const infoHtml = `
-      <span class="match-numero">#${m.numero}</span>
-      <span class="match-comp">${escapeHtml(comp ? comp.nom : '?')}</span>
-      <span class="match-poule">Poule ${m.poule ?? '—'}</span>`;
-    return renderLigneMatch(m, infoHtml);
+    return renderLigneMatch(m, comp ? comp.nom : '?', m.poule);
   }).join('');
 
   return `
@@ -781,7 +777,10 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
       <div class="table-wrap">
         <table class="schedule table-center match-table">
           <thead>
-            <tr><th>Match</th><th>Équipes</th><th>Terrain / Statut</th><th>Scores</th><th>Horaires</th><th></th></tr>
+            <tr>
+              <th>Match</th><th>Poule</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
+              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
+            </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
@@ -843,10 +842,7 @@ function renderBracketRotationBlock(numeroRotation, matchs, noms) {
       x.tournoi_competition_id === m.tournoi_competition_id && x.phase === m.phase && x.tour === m.tour
     ).length;
     const competitionLabel = `${comp ? comp.nom : '?'} — ${noms[m.phase] || m.phase} — ${nomDuTour(nbMatchsMemeTour * 2)}`;
-    const infoHtml = `
-      <span class="match-numero">#${m.numero}</span>
-      <span class="match-comp">${escapeHtml(competitionLabel)}</span>`;
-    return renderLigneMatch(m, infoHtml);
+    return renderLigneMatch(m, competitionLabel, undefined);
   }).join('');
 
   return `
@@ -855,7 +851,10 @@ function renderBracketRotationBlock(numeroRotation, matchs, noms) {
       <div class="table-wrap">
         <table class="schedule table-center match-table">
           <thead>
-            <tr><th>Match</th><th>Équipes</th><th>Terrain / Statut</th><th>Scores</th><th>Horaires</th><th></th></tr>
+            <tr>
+              <th>Match</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
+              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
+            </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
@@ -874,6 +873,12 @@ function getTerrainsLibres() {
 }
 
 function bindMatchRowEvents() {
+  document.querySelectorAll('.match-table .cell-nom').forEach(cell => {
+    cell.addEventListener('click', () => {
+      cell.closest('tr').classList.toggle('row-expanded');
+    });
+  });
+
   document.querySelectorAll('.lancer-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const matchId = e.target.closest('tr').getAttribute('data-match-id');

@@ -597,17 +597,18 @@ table.schedule .role-label-input{
    pour inscriptions.html et tournois.html ===== */
 .cell-nom-statut-mobile{ display:none; } /* visible uniquement sur mobile, voir media query ci-dessous */
 @media (max-width: 760px){
-  #inscriptionsTable thead, #tournoisTable thead, .equipes-table thead, .poule-fiche-table thead{ display:none; }
+  #inscriptionsTable thead, #tournoisTable thead, .equipes-table thead, .poule-fiche-table thead, .match-table thead{ display:none; }
   #inscriptionsTable, #inscriptionsTable tbody,
   #tournoisTable, #tournoisTable tbody,
   .equipes-table, .equipes-table tbody,
-  .poule-fiche-table, .poule-fiche-table tbody{ display:block; width:100%; }
-  #inscriptionsTable tr, #tournoisTable tr, .equipes-table tr, .poule-fiche-table tr{
+  .poule-fiche-table, .poule-fiche-table tbody,
+  .match-table, .match-table tbody{ display:block; width:100%; }
+  #inscriptionsTable tr, #tournoisTable tr, .equipes-table tr, .poule-fiche-table tr, .match-table tr{
     display:block; width:100%; margin-bottom:10px; border:1px solid var(--border);
     border-radius:10px; overflow:hidden; background:var(--white);
   }
-  #inscriptionsTable td, #tournoisTable td, .equipes-table td, .poule-fiche-table td{ display:none; border:none; padding:10px 14px; }
-  #inscriptionsTable td.cell-nom, #tournoisTable td.cell-nom, .equipes-table td.cell-nom, .poule-fiche-table td.cell-nom{
+  #inscriptionsTable td, #tournoisTable td, .equipes-table td, .poule-fiche-table td, .match-table td{ display:none; border:none; padding:10px 14px; }
+  #inscriptionsTable td.cell-nom, #tournoisTable td.cell-nom, .equipes-table td.cell-nom, .poule-fiche-table td.cell-nom, .match-table td.cell-nom{
     display:flex; align-items:center; gap:8px; cursor:pointer;
     font-weight:700; padding:14px; background:var(--pale);
   }
@@ -618,17 +619,20 @@ table.schedule .role-label-input{
   #inscriptionsTable tr.row-expanded td.cell-nom .cell-nom-chevron,
   #tournoisTable tr.row-expanded td.cell-nom .cell-nom-chevron,
   .equipes-table tr.row-expanded td.cell-nom .cell-nom-chevron,
-  .poule-fiche-table tr.row-expanded td.cell-nom .cell-nom-chevron{ transform: rotate(90deg); }
+  .poule-fiche-table tr.row-expanded td.cell-nom .cell-nom-chevron,
+  .match-table tr.row-expanded td.cell-nom .cell-nom-chevron{ transform: rotate(90deg); }
 
-  #inscriptionsTable tr.row-expanded td, #tournoisTable tr.row-expanded td, .equipes-table tr.row-expanded td, .poule-fiche-table tr.row-expanded td{
+  #inscriptionsTable tr.row-expanded td, #tournoisTable tr.row-expanded td, .equipes-table tr.row-expanded td, .poule-fiche-table tr.row-expanded td, .match-table tr.row-expanded td{
     display:block; border-bottom:1px solid #eee;
   }
-  #inscriptionsTable tr.row-expanded td:last-child, #tournoisTable tr.row-expanded td:last-child, .equipes-table tr.row-expanded td:last-child, .poule-fiche-table tr.row-expanded td:last-child{ border-bottom:none; }
-  #inscriptionsTable tr.row-expanded td[data-label]::before, #tournoisTable tr.row-expanded td[data-label]::before, .equipes-table tr.row-expanded td[data-label]::before, .poule-fiche-table tr.row-expanded td[data-label]::before{
+  #inscriptionsTable tr.row-expanded td:last-child, #tournoisTable tr.row-expanded td:last-child, .equipes-table tr.row-expanded td:last-child, .poule-fiche-table tr.row-expanded td:last-child, .match-table tr.row-expanded td:last-child{ border-bottom:none; }
+  #inscriptionsTable tr.row-expanded td[data-label]::before, #tournoisTable tr.row-expanded td[data-label]::before, .equipes-table tr.row-expanded td[data-label]::before, .poule-fiche-table tr.row-expanded td[data-label]::before, .match-table tr.row-expanded td[data-label]::before{
     content: attr(data-label); display:block; font-size:0.7rem; font-weight:700;
     text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); margin-bottom:3px;
   }
   #tournoisTable td .btn, .equipes-table td .btn{ margin:3px 6px 3px 0; }
+  .match-table .score-input{ width:44px; padding:8px 4px; font-size:1rem; }
+  .match-table .lancer-btn{ width:100%; padding:12px; }
 }
 
 /* ===== admin.html : tableaux Profils et Utilisateurs en cartes sur mobile
@@ -776,49 +780,10 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 
 .equipe-gagnante{ background:#d9f2d9 !important; font-weight:700; }
 
-/* ===== Planning : colonnes de match regroupées, sur une seule ligne
-   par match en PC (pour afficher un maximum de matchs à l'écran) ;
-   empilées verticalement uniquement sur mobile (voir media query). ===== */
-.match-table td.match-cell{ vertical-align:middle; text-align:left !important; padding:6px 10px !important; }
-.match-cell--info{ display:flex; flex-direction:row; align-items:baseline; gap:6px; font-size:0.82rem; white-space:nowrap; }
-.match-numero{ font-weight:800; color: var(--dark); }
-.match-comp{ font-weight:600; }
-.match-poule{ color: var(--ink-soft); font-size:0.78rem; }
-
-.match-cell--equipes{ display:flex; align-items:center; gap:6px; font-size:0.85rem; white-space:nowrap; }
-.match-equipe-ligne{ font-weight:600; padding:1px 4px; border-radius:4px; }
-.match-vs-mini{ font-size:0.7rem; color: var(--ink-soft); }
-
-.match-cell--statut{ display:flex; flex-direction:row; align-items:center; gap:8px; white-space:nowrap; }
-.match-terrain{ font-size:0.8rem; font-weight:700; white-space:nowrap; }
-.match-statut-badge{
-  font-size:0.7rem; padding:2px 9px; border-radius:10px; background: var(--pale);
-  color: var(--ink-soft); font-weight:700; white-space:nowrap;
-}
-
-.match-cell--scores{ display:flex; flex-direction:row; align-items:center; gap:10px; }
-.score-set{ display:flex; align-items:center; gap:3px; white-space:nowrap; }
-.score-set-tiret{ color: var(--ink-soft); }
-
-.match-cell--horaires{ display:flex; flex-direction:row; align-items:center; gap:10px; font-size:0.76rem; color: var(--ink-soft); white-space:nowrap; }
-
-@media (max-width: 760px){
-  .match-table thead{ display:none; }
-  .match-table, .match-table tbody{ display:block; width:100%; }
-  .match-table tr{
-    display:block; width:100%; margin-bottom:10px; border:1px solid var(--border);
-    border-radius:10px; overflow:hidden; background:var(--white);
-  }
-  .match-cell{ display:block !important; width:100%; padding:10px 14px !important; border-bottom:1px solid #eee; }
-  .match-cell:last-child{ border-bottom:none; }
-  .match-cell--info{ flex-direction:column; align-items:flex-start; gap:2px; }
-  .match-cell--equipes{ flex-direction:column; align-items:flex-start; gap:1px; font-size:0.98rem; }
-  .match-cell--statut{ flex-direction:column; align-items:flex-start; gap:5px; }
-  .match-cell--scores{ flex-direction:row; flex-wrap:wrap; gap:14px; }
-  .match-cell--horaires{ flex-direction:column; align-items:flex-start; gap:2px; }
-  .score-input{ width:46px; padding:8px 4px; font-size:1rem; }
-  .match-cell--actions .lancer-btn{ width:100%; padding:12px; }
-}
+/* ===== Planning : tableau des matchs, dense sur PC (une ligne par
+   match), dépliable au clic sur mobile (motif partagé, voir plus bas). ===== */
+.score-set-tiret{ color: var(--ink-soft); margin:0 2px; }
+.match-table .score-input{ width:38px; }
 
 /* ===== Synthèse phase finale (tableau en colonnes) ===== */
 .bracket-rounds{ display:flex; gap:20px; overflow-x:auto; padding-bottom:6px; margin-top:14px; }
@@ -1015,6 +980,17 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .planning-top-row{ display:grid; grid-template-columns: 1.6fr 1fr 1fr; gap:24px; align-items:start; }
 .planning-terrains-panel, .planning-top5-panel{ min-width:0; }
 @media (max-width: 1100px){ .planning-top-row{ grid-template-columns: 1fr; } }
+
+/* Bandeau du haut : toujours visible pendant le défilement, en version
+   compacte (bouton "Générer" ramené sur la ligne des filtres, au lieu
+   d'une sous-section séparée). */
+.planning-top-section{ position: sticky; top: 68px; z-index: 15; padding: 16px 20px; }
+.planning-filtres-row{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.planning-filtres-spacer{ flex:1; }
+.planning-gen-select{ font-family: var(--font-body); padding:8px 10px; border-radius:8px; border:1px solid #a9d18e; }
+@media (max-width: 760px){
+  .planning-filtres-spacer{ flex-basis:100%; height:0; }
+}
 
 .filter-mode-btn.is-active{ background: var(--green) !important; color: var(--white) !important; }
 

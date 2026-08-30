@@ -44,7 +44,7 @@
     <div id="planningContent" hidden>
 
       <!-- ===== Bandeau du haut : réglages + terrains + top 5, sur la même ligne ===== -->
-      <section class="admin-section">
+      <section class="admin-section planning-top-section">
         <div class="planning-top-row">
 
           <div class="planning-settings">
@@ -68,19 +68,13 @@
               <div class="kpi"><span class="small">Durée moyenne</span><br><strong id="kpiDureeMoyenne">—</strong></div>
             </div>
 
-            <div class="form-actions">
+            <div class="form-actions planning-filtres-row">
               <button type="button" class="btn btn-ghost btn-small filter-mode-btn is-active" data-mode="complet">Planning complet</button>
               <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="en_cours">Matchs en cours</button>
               <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="possibles">Matchs possibles</button>
-            </div>
-
-            <h3 class="admin-subheading">Générer les matchs de poule</h3>
-            <p class="section-lead" style="margin-top:4px;">La phase finale (Principale / Consolante) se génère automatiquement dès que tous les matchs de poule d'une compétition sont terminés.</p>
-            <div class="inline-form" style="margin-top:8px;">
-              <label>Compétition
-                <select id="genCompetitionSelect"></select>
-              </label>
-              <button type="button" class="btn btn-ghost btn-small" id="generateBtn">Générer / régénérer</button>
+              <span class="planning-filtres-spacer"></span>
+              <select id="genCompetitionSelect" class="planning-gen-select"></select>
+              <button type="button" class="btn btn-primary btn-small" id="generateBtn" title="La phase finale (Principale / Consolante) se génère automatiquement dès que tous les matchs de poule d'une compétition sont terminés.">Générer / régénérer</button>
             </div>
             <p class="form-hint" id="planningHint"></p>
           </div>

@@ -602,6 +602,18 @@ Suite à l'audit précédent, revue mobile des pages restantes.
 - **admin.html** (Profils et Utilisateurs) : les deux tableaux passent en cartes empilées sur mobile (contenu trop varié — cases à cocher multiples, champs, actions — pour le motif "nom cliquable" ; tout reste visible directement sans avoir à déplier).
 - **documentation.html, sauvegarde.html, suivi-connexions.html** : tableaux principalement composés de texte descriptif, qui s'enroule naturellement dans les cellules — laissés tels quels (déjà fonctionnels, filet de sécurité de défilement en place si besoin).
 
+## Planning — correction : chaque match sur une seule ligne en PC
+
+Correction d'une régression introduite par le regroupement de colonnes précédent : le contenu de chaque bloc (équipes, scores, horaires...) s'empilait verticalement même sur grand écran, ce qui allongeait chaque ligne au lieu de la compacter. Désormais : sur PC, tout le contenu d'un match tient sur une seule ligne horizontale compacte (padding réduit), pour afficher le maximum de matchs possible sans défilement. L'empilement vertical reste réservé au mobile, où il reste nécessaire.
+
+## Planning — refonte du tableau des matchs et bandeau du haut compacté
+
+Retour à un tableau à colonnes classiques (dense, une ligne par match sur PC — comme les tableaux historiques du site), après que l'approche par blocs regroupés se soit montrée peu fiable. Sur mobile, la 1ère colonne (identité du match) se déplie au tap pour révéler le reste, motif déjà éprouvé sur inscriptions.html/tournois.html/tournoi-inscriptions.html — appliqué ici aussi à poules.html au passage.
+
+- **Bandeau du haut compacté** : le bouton "Générer / régénérer" (avec le choix de compétition) est désormais sur la même ligne que les 3 filtres (Planning complet / Matchs en cours / Matchs possibles), aligné à droite, au lieu d'une sous-section séparée avec son propre titre et paragraphe.
+- **Bandeau toujours visible** : ce bandeau (réglages, terrains, top 5, filtres) reste collé en haut de l'écran pendant le défilement de la liste des matchs, comme sur emargement.html.
+- **Un maximum de matchs visibles** : le tableau à colonnes classiques est naturellement dense sur PC — plus besoin d'astuce de mise en page pour ça, c'est le comportement par défaut d'un tableau HTML.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
