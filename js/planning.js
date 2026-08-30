@@ -171,6 +171,46 @@ async function saveTournoiSettings() {
 // Génération des matchs de poule (round-robin), par compétition
 // ============================================================
 
+/**
+ * Calendrier "round-robin" (méthode du cercle) pour une poule : répartit
+ * les rencontres en journées où chaque équipe ne joue qu'une seule fois.
+ * Utilisé pour ordonner la génération des matchs (numéro croissant),
+ * afin qu'au sein d'une poule personne ne rejoue avant que tout le
+ * monde ait joué une fois — enchaînement progressif et équitable.
+ * Gère aussi un nombre impair d'équipes (une équipe "repos" par journée).
+ */
+function genererCalendrierRoundRobin(equipes) {
+  const n = equipes.length;
+  if (n < 2) return [];
+
+  let liste = equipes.slice();
+  if (liste.length % 2 !== 0) liste.push(null); // équipe fictive "repos" si nombre impair
+
+  const nb = liste.length;
+  const nbJournees = nb - 1;
+  const moitie = nb / 2;
+  const journees = [];
+  let arr = liste.slice();
+
+  for (let j = 0; j < nbJournees; j++) {
+    const rencontres = [];
+    for (let i = 0; i < moitie; i++) {
+      const a = arr[i];
+      const b = arr[nb - 1 - i];
+      if (a && b) rencontres.push([a, b]);
+    }
+    journees.push(rencontres);
+
+    // Rotation façon "cercle" : la 1ère équipe reste fixe, les autres tournent.
+    const fixe = arr[0];
+    const reste = arr.slice(1);
+    reste.unshift(reste.pop());
+    arr = [fixe, ...reste];
+  }
+
+  return journees;
+}
+
 async function generateMatchs() {
   const hint = document.getElementById('planningHint');
   if (competitionsCache.length === 0) { hint.textContent = 'Aucune compétition dans ce tournoi.'; return; }
@@ -199,18 +239,19 @@ async function generateMatchs() {
     let numero = 1;
     for (let p = 1; p <= comp.nb_poules; p++) {
       const equipes = equipesParPoule[p];
-      for (let i = 0; i < equipes.length; i++) {
-        for (let j = i + 1; j < equipes.length; j++) {
+      const journees = genererCalendrierRoundRobin(equipes);
+      journees.forEach(rencontres => {
+        rencontres.forEach(([e1, e2]) => {
           rows.push({
             tournoi_competition_id: comp.id,
             phase: 'poule',
             poule: p,
             numero: numero++,
-            equipe1_id: equipes[i].id,
-            equipe2_id: equipes[j].id,
+            equipe1_id: e1.id,
+            equipe2_id: e2.id,
           });
-        }
-      }
+        });
+      });
     }
   }
 

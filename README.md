@@ -634,6 +634,11 @@ Exécutez `supabase/migration_rotation_stable.sql`.
 - **Terrains sur 3 colonnes fixes** (au lieu d'un empilement dépendant de la largeur d'écran).
 - **Top 5 attente sur 2 colonnes** : une colonne par compétition (ex. Double Mixte à gauche, Double Homme à droite) au lieu d'un empilement vertical.
 
+## Planning — enchaînement progressif au sein d'une poule + saisie des scores agrandie
+
+- **Calendrier round-robin par poule** : les matchs de poule sont désormais générés selon un calendrier "round-robin" (méthode du cercle, classique dans tous les sports pour ce besoin) au lieu d'un simple ordre 1-2, 1-3, 1-4... Chaque équipe joue une fois par "journée" avant de rejouer — sur une poule de 4, les 3 journées opposent chacune 2 paires différentes sans qu'une équipe ne rejoue avant que toutes les autres aient joué une fois. Fonctionne aussi avec un nombre impair d'équipes (une équipe au repos par journée). Vérifié : 6 paires uniques exactement pour une poule de 4, comme attendu.
+- **Cases de score agrandies** : largeur des champs de saisie des points augmentée, pour bien afficher les valeurs à 2 chiffres.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
