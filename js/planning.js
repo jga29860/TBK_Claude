@@ -127,7 +127,7 @@ async function loadAll(tournoiId, silent) {
   // ne perdent pas leur planning existant.
   const poulesSansRotation = matchsCache.filter(m => m.phase === 'poule' && !m.heure_lancement && m.rotation == null);
   if (poulesSansRotation.length > 0) {
-    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`, m => m.tournoi_competition_id);
+    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`, poidsParEquipesCompetition);
     const { data: refresh } = compIds.length
       ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
       : { data: [] };
@@ -139,7 +139,7 @@ async function loadAll(tournoiId, silent) {
   );
   const finaleSansRotation = matchsFinaleConnus.filter(m => !m.heure_lancement && m.rotation == null);
   if (finaleSansRotation.length > 0) {
-    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`, m => m.tournoi_competition_id);
+    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket);
     const { data: refresh2 } = compIds.length
       ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
       : { data: [] };
@@ -275,7 +275,7 @@ async function generateMatchs() {
   await persisterRotations(
     matchsPouleActuels || [],
     m => `${m.tournoi_competition_id}|${m.poule}`,
-    m => m.tournoi_competition_id
+    poidsParEquipesCompetition
   );
 
   hint.textContent = `${rows.length} match(s) généré(s) pour l'ensemble du tournoi.`;
@@ -350,7 +350,7 @@ async function genererPhaseFinaleAuto(comp) {
       .not('equipe1_id', 'is', null)
       .not('equipe2_id', 'is', null)
       .in('tournoi_competition_id', competitionsCache.map(c => c.id));
-    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, m => m.tournoi_competition_id);
+    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket);
 
     const hint = document.getElementById('planningHint');
     if (hint) hint.textContent = `Phase finale générée automatiquement pour ${comp.nom}.`;
@@ -716,11 +716,12 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains, poidsGroupeFn
  * obtenu sur chacun (colonne "rotation") — pour que ce regroupement
  * reste stable ensuite, au lieu d'être recalculé à chaque affichage.
  * Les matchs déjà lancés ou déjà numérotés ne sont jamais touchés.
- * competitionKeyFn (facultatif) identifie la compétition d'un match :
- * si fourni, les compétitions avancent au prorata de leur nombre
- * d'équipes plutôt qu'au même rythme absolu pour toutes.
+ * poidsGroupeFn (facultatif) donne le "poids" d'un groupe à partir
+ * d'un de ses matchs : les groupes plus lourds avancent plus souvent,
+ * au prorata de leur charge réelle de travail plutôt qu'au même
+ * rythme absolu pour tous.
  */
-async function persisterRotations(matches, groupKeyFn, competitionKeyFn) {
+async function persisterRotations(matches, groupKeyFn, poidsGroupeFn) {
   const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
   const aNumeroter = matches.filter(m => !m.heure_lancement && (m.rotation === null || m.rotation === undefined));
   if (aNumeroter.length === 0) return;
@@ -731,16 +732,27 @@ async function persisterRotations(matches, groupKeyFn, competitionKeyFn) {
   const dejaNumerotes = matches.filter(m => m.rotation !== null && m.rotation !== undefined);
   const departNumero = dejaNumerotes.length > 0 ? Math.max(...dejaNumerotes.map(m => m.rotation)) : 0;
 
-  const poidsGroupeFn = competitionKeyFn
-    ? (m) => equipesCache.filter(e => e.tournoi_competition_id === competitionKeyFn(m)).length
-    : null;
-
   const groupes = computeGroupesEquitables(aNumeroter, groupKeyFn, nbTerrains, poidsGroupeFn);
   for (let i = 0; i < groupes.length; i++) {
     const ids = groupes[i].map(m => m.id);
     const { error } = await sbClient.from('matchs').update({ rotation: departNumero + i + 1 }).in('id', ids);
     if (error) console.error('Erreur enregistrement rotation :', error.message);
   }
+}
+
+/** Poids d'un match de poule = nombre total d'équipes de sa compétition
+ *  (compétitions plus grandes avancent proportionnellement plus vite). */
+function poidsParEquipesCompetition(m) {
+  return equipesCache.filter(e => e.tournoi_competition_id === m.tournoi_competition_id).length;
+}
+
+/** Poids d'un match de phase finale = nombre total de matchs de SON
+ *  tableau précis (Principale ou Consolante) — mesure exacte de la
+ *  charge de travail propre à ce tableau, pour que Principale et
+ *  Consolante avancent réellement à parts égales dans le temps,
+ *  même si leurs tableaux ne sont pas rigoureusement de même taille. */
+function poidsParTailleBracket(m) {
+  return matchsCache.filter(x => x.tournoi_competition_id === m.tournoi_competition_id && x.phase === m.phase).length;
 }
 
 /** Regroupe des matchs déjà numérotés par leur rotation persistée
@@ -1097,7 +1109,7 @@ async function saveMatchField(matchId, field, value) {
         .not('equipe1_id', 'is', null)
         .not('equipe2_id', 'is', null)
         .eq('tournoi_competition_id', matchSuivant.tournoi_competition_id);
-      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, m => m.tournoi_competition_id);
+      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket);
     }
   }
 

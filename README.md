@@ -639,6 +639,10 @@ Exécutez `supabase/migration_rotation_stable.sql`.
 - **Calendrier round-robin par poule** : les matchs de poule sont désormais générés selon un calendrier "round-robin" (méthode du cercle, classique dans tous les sports pour ce besoin) au lieu d'un simple ordre 1-2, 1-3, 1-4... Chaque équipe joue une fois par "journée" avant de rejouer — sur une poule de 4, les 3 journées opposent chacune 2 paires différentes sans qu'une équipe ne rejoue avant que toutes les autres aient joué une fois. Fonctionne aussi avec un nombre impair d'équipes (une équipe au repos par journée). Vérifié : 6 paires uniques exactement pour une poule de 4, comme attendu.
 - **Cases de score agrandies** : largeur des champs de saisie des points augmentée, pour bien afficher les valeurs à 2 chiffres.
 
+## Phase finale — Principale et Consolante avancent réellement à parts égales
+
+Corrige un déséquilibre observé : Principale ou Consolante pouvait avancer beaucoup plus vite que l'autre en nombre de matchs joués. Cause identifiée : le poids utilisé pour équilibrer les rotations (introduit précédemment) se basait sur le nombre total d'équipes de la compétition — une mesure correcte pour les poules, mais imprécise pour les phases finales, dont les deux tableaux (Principale/Consolante) ne sont pas toujours rigoureusement de la même taille (cas limite déjà documenté : nombre de poules qualificatives pas une puissance de 2). Le poids utilisé pour la phase finale est désormais le nombre total de matchs du tableau précis (Principale ou Consolante) plutôt que le nombre d'équipes de toute la compétition — une mesure exacte de charge de travail propre à chaque tableau, garantissant qu'ils progressent au même rythme relatif et terminent à peu près en même temps.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
