@@ -776,29 +776,31 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 
 .equipe-gagnante{ background:#d9f2d9 !important; font-weight:700; }
 
-/* ===== Planning : colonnes de match regroupées en blocs compacts ===== */
-.match-table td.match-cell{ vertical-align:top; text-align:left !important; padding:10px !important; }
-.match-cell--info{ display:flex; flex-direction:column; gap:2px; font-size:0.82rem; min-width:110px; }
+/* ===== Planning : colonnes de match regroupées, sur une seule ligne
+   par match en PC (pour afficher un maximum de matchs à l'écran) ;
+   empilées verticalement uniquement sur mobile (voir media query). ===== */
+.match-table td.match-cell{ vertical-align:middle; text-align:left !important; padding:6px 10px !important; }
+.match-cell--info{ display:flex; flex-direction:row; align-items:baseline; gap:6px; font-size:0.82rem; white-space:nowrap; }
 .match-numero{ font-weight:800; color: var(--dark); }
 .match-comp{ font-weight:600; }
 .match-poule{ color: var(--ink-soft); font-size:0.78rem; }
 
-.match-cell--equipes{ font-size:0.85rem; min-width:140px; }
-.match-equipe-ligne{ font-weight:600; padding:1px 4px; border-radius:4px; display:inline-block; }
-.match-vs-mini{ font-size:0.68rem; color: var(--ink-soft); margin:1px 0; }
+.match-cell--equipes{ display:flex; align-items:center; gap:6px; font-size:0.85rem; white-space:nowrap; }
+.match-equipe-ligne{ font-weight:600; padding:1px 4px; border-radius:4px; }
+.match-vs-mini{ font-size:0.7rem; color: var(--ink-soft); }
 
-.match-cell--statut{ display:flex; flex-direction:column; gap:5px; align-items:flex-start; }
+.match-cell--statut{ display:flex; flex-direction:row; align-items:center; gap:8px; white-space:nowrap; }
 .match-terrain{ font-size:0.8rem; font-weight:700; white-space:nowrap; }
 .match-statut-badge{
   font-size:0.7rem; padding:2px 9px; border-radius:10px; background: var(--pale);
   color: var(--ink-soft); font-weight:700; white-space:nowrap;
 }
 
-.match-cell--scores{ display:flex; flex-direction:column; gap:5px; }
+.match-cell--scores{ display:flex; flex-direction:row; align-items:center; gap:10px; }
 .score-set{ display:flex; align-items:center; gap:3px; white-space:nowrap; }
 .score-set-tiret{ color: var(--ink-soft); }
 
-.match-cell--horaires{ display:flex; flex-direction:column; gap:2px; font-size:0.76rem; color: var(--ink-soft); white-space:nowrap; }
+.match-cell--horaires{ display:flex; flex-direction:row; align-items:center; gap:10px; font-size:0.76rem; color: var(--ink-soft); white-space:nowrap; }
 
 @media (max-width: 760px){
   .match-table thead{ display:none; }
@@ -809,8 +811,11 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
   }
   .match-cell{ display:block !important; width:100%; padding:10px 14px !important; border-bottom:1px solid #eee; }
   .match-cell:last-child{ border-bottom:none; }
-  .match-cell--equipes{ font-size:0.98rem; }
+  .match-cell--info{ flex-direction:column; align-items:flex-start; gap:2px; }
+  .match-cell--equipes{ flex-direction:column; align-items:flex-start; gap:1px; font-size:0.98rem; }
+  .match-cell--statut{ flex-direction:column; align-items:flex-start; gap:5px; }
   .match-cell--scores{ flex-direction:row; flex-wrap:wrap; gap:14px; }
+  .match-cell--horaires{ flex-direction:column; align-items:flex-start; gap:2px; }
   .score-input{ width:46px; padding:8px 4px; font-size:1rem; }
   .match-cell--actions .lancer-btn{ width:100%; padding:12px; }
 }
