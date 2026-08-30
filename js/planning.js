@@ -126,6 +126,31 @@ async function loadAll(tournoiId, silent) {
     : { data: [] };
   if (!mErrorMaj) matchsCache = matchsMaj || [];
 
+  // Rattrapage ponctuel : des matchs générés avant la mise en place du
+  // numéro de rotation persisté (ou tout cas limite) reçoivent un numéro
+  // une bonne fois — les tournois déjà configurés avant cette évolution
+  // ne perdent pas leur planning existant.
+  const poulesSansRotation = matchsCache.filter(m => m.phase === 'poule' && !m.heure_lancement && m.rotation == null);
+  if (poulesSansRotation.length > 0) {
+    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`);
+    const { data: refresh } = compIds.length
+      ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
+      : { data: [] };
+    if (refresh) matchsCache = refresh;
+  }
+
+  const matchsFinaleConnus = matchsCache.filter(m =>
+    (m.phase === 'principale' || m.phase === 'consolante') && m.equipe1_id && m.equipe2_id
+  );
+  const finaleSansRotation = matchsFinaleConnus.filter(m => !m.heure_lancement && m.rotation == null);
+  if (finaleSansRotation.length > 0) {
+    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`);
+    const { data: refresh2 } = compIds.length
+      ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
+      : { data: [] };
+    if (refresh2) matchsCache = refresh2;
+  }
+
   renderTout();
 }
 
@@ -203,6 +228,16 @@ async function generateMatchs() {
   const { error: insError } = await sbClient.from('matchs').insert(rows);
   if (insError) { hint.textContent = 'Erreur : ' + insError.message; return; }
 
+  // Numérote et enregistre les rotations une bonne fois pour toutes sur
+  // l'ensemble des matchs de poule du tournoi (pas seulement ceux qu'on
+  // vient de créer), pour que le regroupement reste stable ensuite.
+  const { data: matchsPouleActuels } = await sbClient
+    .from('matchs')
+    .select('*')
+    .eq('phase', 'poule')
+    .in('tournoi_competition_id', competitionsCache.map(c => c.id));
+  await persisterRotations(matchsPouleActuels || [], m => `${m.tournoi_competition_id}|${m.poule}`);
+
   hint.textContent = `${rows.length} match(s) généré(s) pour ${comp.nom}.`;
   await loadAll(tournoi.id, true);
 }
@@ -265,6 +300,18 @@ async function genererPhaseFinaleAuto(comp) {
   try {
     numero = await genererBracket('principale', premiers, seconds, comp.id, numero);
     numero = await genererBracket('consolante', troisiemes, quatriemes, comp.id, numero);
+
+    // Numérote et enregistre les rotations pour les matchs de phase finale
+    // désormais connus (au moins le 1er tour de chaque tableau).
+    const { data: matchsFinaleConnus } = await sbClient
+      .from('matchs')
+      .select('*')
+      .in('phase', ['principale', 'consolante'])
+      .not('equipe1_id', 'is', null)
+      .not('equipe2_id', 'is', null)
+      .in('tournoi_competition_id', competitionsCache.map(c => c.id));
+    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`);
+
     const hint = document.getElementById('planningHint');
     if (hint) hint.textContent = `Phase finale générée automatiquement pour ${comp.nom}.`;
   } catch (err) {
@@ -612,19 +659,45 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains) {
   return [...groupesLances, ...groupesAPlanifier];
 }
 
-function computeRotations() {
+/**
+ * Calcule le regroupement équitable en rotations pour un ensemble de
+ * matchs pas encore lancés, puis ENREGISTRE le numéro de rotation
+ * obtenu sur chacun (colonne "rotation") — pour que ce regroupement
+ * reste stable ensuite, au lieu d'être recalculé à chaque affichage.
+ * Les matchs déjà lancés ou déjà numérotés ne sont jamais touchés.
+ */
+async function persisterRotations(matches, groupKeyFn) {
   const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
-  const matchsPoule = matchsCache.filter(m => m.phase === 'poule');
-  return computeGroupesEquitables(matchsPoule, m => `${m.tournoi_competition_id}|${m.poule}`, nbTerrains);
+  const aNumeroter = matches.filter(m => !m.heure_lancement && (m.rotation === null || m.rotation === undefined));
+  if (aNumeroter.length === 0) return;
+
+  // Le numéro de rotation continue après le plus grand déjà attribué
+  // dans ce même groupe de compétitions, pour ne jamais entrer en
+  // collision avec des rotations déjà persistées.
+  const dejaNumerotes = matches.filter(m => m.rotation !== null && m.rotation !== undefined);
+  const departNumero = dejaNumerotes.length > 0 ? Math.max(...dejaNumerotes.map(m => m.rotation)) : 0;
+
+  const groupes = computeGroupesEquitables(aNumeroter, groupKeyFn, nbTerrains);
+  for (let i = 0; i < groupes.length; i++) {
+    const ids = groupes[i].map(m => m.id);
+    const { error } = await sbClient.from('matchs').update({ rotation: departNumero + i + 1 }).in('id', ids);
+    if (error) console.error('Erreur enregistrement rotation :', error.message);
+  }
 }
 
-function computeRotationsFinale() {
-  const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
-  // Seuls les matchs dont les 2 équipes sont déjà connues peuvent être planifiés
-  const matchsFinale = matchsCache.filter(m =>
-    (m.phase === 'principale' || m.phase === 'consolante') && m.equipe1_id && m.equipe2_id
-  );
-  return computeGroupesEquitables(matchsFinale, m => `${m.tournoi_competition_id}|${m.phase}`, nbTerrains);
+/** Regroupe des matchs déjà numérotés par leur rotation persistée
+ *  (lecture simple, sans aucun recalcul — garantit la stabilité). */
+function grouperParRotationPersistee(matches) {
+  const parRotation = {};
+  matches.forEach(m => {
+    const key = m.rotation ?? 0;
+    if (!parRotation[key]) parRotation[key] = [];
+    parRotation[key].push(m);
+  });
+  return Object.keys(parRotation)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map(k => parRotation[k]);
 }
 
 // ============================================================
@@ -645,7 +718,8 @@ function renderMatchsRotations() {
     return;
   }
 
-  const rotations = computeRotations();
+  const matchsPoule = matchsCache.filter(m => m.phase === 'poule');
+  const rotations = grouperParRotationPersistee(matchsPoule);
   const rotationMinutes = tournoi ? tournoi.rotation_minutes : 20;
   const heureDebut = tournoi && tournoi.heure_debut ? new Date(tournoi.heure_debut) : null;
 
@@ -738,8 +812,8 @@ function renderLigneMatch(m, infoLabel, poule) {
   const nomEquipe2 = equipeLabel(m.equipe2_id);
 
   const setCells = [1, 2, 3].map(n => `
-    <td data-label="Set ${n}">
-      <input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}"><span class="score-set-tiret">-</span><input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}">
+    <td data-label="Set ${n}" class="planning-nowrap">
+      <span class="score-set-inline"><input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}"><span class="score-set-tiret">-</span><input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}"></span>
     </td>`).join('');
 
   return `
@@ -749,11 +823,11 @@ function renderLigneMatch(m, infoLabel, poule) {
         <span class="cell-nom-texte">#${m.numero} ${escapeHtml(infoLabel)}</span>
         <span class="cell-nom-statut-mobile"><span class="statut-badge statut-cloture">${escapeHtml(statut)}</span></span>
       </td>
-      ${poule !== undefined ? `<td data-label="Poule">Poule ${poule ?? '—'}</td>` : ''}
-      <td data-label="Équipe 1" class="${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe1)}</td>
-      <td data-label="Équipe 2" class="${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe2)}</td>
-      <td data-label="Terrain">${m.terrain ?? '—'}</td>
-      <td data-label="Statut">${escapeHtml(statut)}</td>
+      ${poule !== undefined ? `<td data-label="Poule" class="planning-nowrap">Poule ${poule ?? '—'}</td>` : ''}
+      <td data-label="Équipe 1" class="planning-nowrap ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe1)}</td>
+      <td data-label="Équipe 2" class="planning-nowrap ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe2)}</td>
+      <td data-label="Terrain" class="planning-nowrap">${m.terrain ?? '—'}</td>
+      <td data-label="Statut" class="planning-nowrap">${escapeHtml(statut)}</td>
       ${setCells}
       <td data-label="Heure lancement">${heureLancement}</td>
       <td data-label="Durée">${duree}</td>
@@ -794,7 +868,10 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
 
 function renderPhaseFinale() {
   const container = document.getElementById('phaseFinaleContainer');
-  const rotations = computeRotationsFinale();
+  const matchsFinale = matchsCache.filter(m =>
+    (m.phase === 'principale' || m.phase === 'consolante') && m.equipe1_id && m.equipe2_id
+  );
+  const rotations = grouperParRotationPersistee(matchsFinale);
 
   if (rotations.length === 0) {
     container.innerHTML = '';
@@ -950,6 +1027,20 @@ async function saveMatchField(matchId, field, value) {
     const winnerId = matchWinnerId(updated);
     const slotField = match.slot_suivant === 'e1' ? 'equipe1_id' : 'equipe2_id';
     await sbClient.from('matchs').update({ [slotField]: winnerId }).eq('id', match.match_suivant_id);
+
+    // Si le match suivant a désormais ses deux équipes connues, il devient
+    // éligible à une rotation : on lui en attribue une (sans toucher aux autres).
+    const { data: matchSuivant } = await sbClient.from('matchs').select('*').eq('id', match.match_suivant_id).single();
+    if (matchSuivant && matchSuivant.equipe1_id && matchSuivant.equipe2_id && matchSuivant.rotation == null) {
+      const { data: matchsFinaleConnus } = await sbClient
+        .from('matchs')
+        .select('*')
+        .in('phase', ['principale', 'consolante'])
+        .not('equipe1_id', 'is', null)
+        .not('equipe2_id', 'is', null)
+        .eq('tournoi_competition_id', matchSuivant.tournoi_competition_id);
+      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`);
+    }
   }
 
   // Le rechargement reconstruit toutes les lignes (recalcul du classement,

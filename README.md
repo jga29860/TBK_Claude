@@ -614,6 +614,15 @@ Retour à un tableau à colonnes classiques (dense, une ligne par match sur PC �
 - **Bandeau toujours visible** : ce bandeau (réglages, terrains, top 5, filtres) reste collé en haut de l'écran pendant le défilement de la liste des matchs, comme sur emargement.html.
 - **Un maximum de matchs visibles** : le tableau à colonnes classiques est naturellement dense sur PC — plus besoin d'astuce de mise en page pour ça, c'est le comportement par défaut d'un tableau HTML.
 
+## Planning — rotations stables + bandeau plein largeur + textes sur une ligne
+
+Exécutez `supabase/migration_rotation_stable.sql`.
+
+- **Rotations enfin stables** : le numéro de rotation d'un match était recalculé à chaque affichage de la page, ce qui pouvait le faire "changer de rotation" au fil du tournoi (à chaque match lancé, l'algorithme d'équité se relançait sur l'ensemble des matchs restants). Désormais, ce numéro est calculé une bonne fois et enregistré en base (colonne `rotation`) : à la génération des matchs de poule, à la génération de la phase finale, et dès qu'un match de phase finale devient planifiable (ses deux équipes connues après propagation d'un vainqueur). Un rattrapage automatique s'applique aux tournois déjà en cours au premier chargement suivant le déploiement.
+- **Bandeau du haut sur une seule ligne, pleine largeur** : indicateurs (Terrains prévus, Durée moyenne), les 3 filtres (Planning complet/Matchs en cours/Matchs possibles) et le bloc génération (compétition + bouton) sont réunis sur une seule bande occupant toute la largeur de la page, avec réduction de police automatique si l'espace manque sur un écran plus étroit.
+- **Textes garantis sur une ligne** : "Poule X", les noms d'équipe et le statut ne passent plus à la ligne sur PC (retour à la normale uniquement sur les fiches dépliées en mobile, pour ne pas faire déborder un nom très long).
+- **Scores par set garantis sur une ligne** : chaque set (2 cases + tiret) est désormais dans un conteneur qui ne peut jamais se couper en deux lignes.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

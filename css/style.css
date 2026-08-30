@@ -633,6 +633,7 @@ table.schedule .role-label-input{
   #tournoisTable td .btn, .equipes-table td .btn{ margin:3px 6px 3px 0; }
   .match-table .score-input{ width:44px; padding:8px 4px; font-size:1rem; }
   .match-table .lancer-btn{ width:100%; padding:12px; }
+  .match-table tr.row-expanded td.planning-nowrap{ white-space:normal; }
 }
 
 /* ===== admin.html : tableaux Profils et Utilisateurs en cartes sur mobile
@@ -784,6 +785,8 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
    match), dépliable au clic sur mobile (motif partagé, voir plus bas). ===== */
 .score-set-tiret{ color: var(--ink-soft); margin:0 2px; }
 .match-table .score-input{ width:38px; }
+.score-set-inline{ display:inline-flex; align-items:center; white-space:nowrap; flex-wrap:nowrap; }
+.match-table .planning-nowrap{ white-space:nowrap; }
 
 /* ===== Synthèse phase finale (tableau en colonnes) ===== */
 .bracket-rounds{ display:flex; gap:20px; overflow-x:auto; padding-bottom:6px; margin-top:14px; }
@@ -985,11 +988,26 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
    compacte (bouton "Générer" ramené sur la ligne des filtres, au lieu
    d'une sous-section séparée). */
 .planning-top-section{ position: sticky; top: 68px; z-index: 15; padding: 16px 20px; }
-.planning-filtres-row{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
-.planning-filtres-spacer{ flex:1; }
-.planning-gen-select{ font-family: var(--font-body); padding:8px 10px; border-radius:8px; border:1px solid #a9d18e; }
+.planning-toolbar-row{
+  display:flex; align-items:center; flex-wrap:nowrap; gap:10px; width:100%;
+  margin-top:16px; padding-top:14px; border-top:1px solid var(--border);
+  overflow-x:auto;
+}
+.planning-kpi-inline{ font-size:0.85rem; white-space:nowrap; flex-shrink:0; }
+.planning-kpi-label{ color: var(--ink-soft); }
+.planning-toolbar-sep{ width:1px; align-self:stretch; background: var(--border); flex-shrink:0; }
+.planning-filtres-spacer{ flex:1; min-width:8px; }
+.planning-gen-select{ font-family: var(--font-body); padding:8px 10px; border-radius:8px; border:1px solid #a9d18e; flex-shrink:0; }
+.planning-toolbar-row .btn{ flex-shrink:0; white-space:nowrap; }
+
+@media (max-width: 1300px){
+  .planning-toolbar-row{ font-size:0.85rem; }
+  .planning-toolbar-row .btn{ padding:7px 10px; font-size:0.8rem; }
+}
 @media (max-width: 760px){
-  .planning-filtres-spacer{ flex-basis:100%; height:0; }
+  .planning-toolbar-row{ flex-wrap:wrap; overflow-x:visible; }
+  .planning-toolbar-sep{ display:none; }
+  .planning-filtres-spacer{ flex-basis:100%; height:0; min-width:0; }
 }
 
 .filter-mode-btn.is-active{ background: var(--green) !important; color: var(--white) !important; }

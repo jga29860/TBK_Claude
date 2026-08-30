@@ -62,21 +62,6 @@
                 <input type="text" id="filtreEquipeInput" placeholder="Nom ou club…">
               </label>
             </div>
-
-            <div class="kpi-row" style="margin-top:16px;">
-              <div class="kpi"><span class="small">Terrains prévus</span><br><strong id="kpiTerrains">0</strong></div>
-              <div class="kpi"><span class="small">Durée moyenne</span><br><strong id="kpiDureeMoyenne">—</strong></div>
-            </div>
-
-            <div class="form-actions planning-filtres-row">
-              <button type="button" class="btn btn-ghost btn-small filter-mode-btn is-active" data-mode="complet">Planning complet</button>
-              <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="en_cours">Matchs en cours</button>
-              <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="possibles">Matchs possibles</button>
-              <span class="planning-filtres-spacer"></span>
-              <select id="genCompetitionSelect" class="planning-gen-select"></select>
-              <button type="button" class="btn btn-primary btn-small" id="generateBtn" title="La phase finale (Principale / Consolante) se génère automatiquement dès que tous les matchs de poule d'une compétition sont terminés.">Générer / régénérer</button>
-            </div>
-            <p class="form-hint" id="planningHint"></p>
           </div>
 
           <div class="planning-terrains-panel">
@@ -90,6 +75,20 @@
           </div>
 
         </div>
+
+        <!-- Bandeau plein largeur, tout sur une seule ligne -->
+        <div class="planning-toolbar-row">
+          <span class="planning-kpi-inline"><span class="planning-kpi-label">Terrains prévus</span> <strong id="kpiTerrains">0</strong></span>
+          <span class="planning-kpi-inline"><span class="planning-kpi-label">Durée moyenne</span> <strong id="kpiDureeMoyenne">—</strong></span>
+          <span class="planning-toolbar-sep"></span>
+          <button type="button" class="btn btn-ghost btn-small filter-mode-btn is-active" data-mode="complet">Planning complet</button>
+          <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="en_cours">Matchs en cours</button>
+          <button type="button" class="btn btn-ghost btn-small filter-mode-btn" data-mode="possibles">Matchs possibles</button>
+          <span class="planning-filtres-spacer"></span>
+          <select id="genCompetitionSelect" class="planning-gen-select"></select>
+          <button type="button" class="btn btn-primary btn-small" id="generateBtn" title="La phase finale (Principale / Consolante) se génère automatiquement dès que tous les matchs de poule d'une compétition sont terminés.">Générer / régénérer</button>
+        </div>
+        <p class="form-hint" id="planningHint"></p>
       </section>
 
       <!-- ===== Matchs par rotation (phase de poules) ===== -->
