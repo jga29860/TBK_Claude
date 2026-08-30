@@ -628,6 +628,12 @@ Exécutez `supabase/migration_rotation_stable.sql`.
 - **Un seul bouton pour tout le tournoi** : "Générer / régénérer tout le planning" remplace la sélection d'une compétition à la fois — régénère désormais les matchs de poule de toutes les compétitions en une seule opération (confirmation demandée, scores déjà saisis inclus dans le remplacement).
 - **Progression au prorata du nombre d'équipes** : l'algorithme de répartition en rotations donne désormais plus de poids aux compétitions ayant plus d'équipes (une compétition à 32 équipes reçoit proportionnellement plus de terrains par rotation qu'une compétition à 8 équipes), pour que toutes les compétitions terminent à peu près en même temps plutôt qu'au même rythme absolu, poule par poule, indépendamment de leur taille.
 
+## Planning — optimisation de l'affichage du bandeau du haut
+
+- **Champs de réglages plus étroits** : Heure de début, Rotation, Temps min. entre 2 matchs, Filtre équipe occupent moins de place, sans toucher aux formulaires similaires des autres pages du site.
+- **Terrains sur 3 colonnes fixes** (au lieu d'un empilement dépendant de la largeur d'écran).
+- **Top 5 attente sur 2 colonnes** : une colonne par compétition (ex. Double Mixte à gauche, Double Homme à droite) au lieu d'un empilement vertical.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
