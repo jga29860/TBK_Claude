@@ -653,6 +653,14 @@ Exécutez `supabase/migration_lecture_publique_poules_finale.sql`.
 - **QR codes d'accès public** : sous "Heure de début" dans planning.html, deux QR codes pointent directement vers Phase Poule et Phase finale — pratiques à afficher sur place (écran, affiche) pour que les participants suivent l'avancement depuis leur téléphone.
 - **Page "Poules" renommée "Phase Poule"** : titre, en-tête, et lien du menu Organisation mis à jour.
 
+## Planning — correction algorithmique majeure : remplissage optimal des rotations
+
+Cause identifiée précisément (simulation vérifiée avec exactement le scénario signalé : 2 compétitions, 32+16 équipes, 9 terrains) : la pondération proportionnelle par compétition fonctionnait bien poule par poule, mais ne plafonnait jamais le nombre de créneaux qu'une compétition pouvait prendre **au sein d'une même rotation**. Une compétition ayant plus de poules (donc plus de "sources" de matchs disponibles simultanément) pouvait ainsi dépasser sa part proportionnelle sur certaines rotations, s'épuisant plus vite en valeur absolue et laissant l'autre compétition traîner seule en fin de phase de poules — d'où les rotations creuses observées (7 rotations de 9, puis 1 de 7, puis 1 de 2, au lieu de 8 rotations pleines de 9).
+
+Corrigé : chaque rotation répartit désormais ses créneaux entre compétitions selon un quota strict proportionnel (ex. 6/9 et 3/9 pour un ratio 32:16), avec redistribution des créneaux non utilisés si une compétition ne peut pas atteindre son quota (faute de matchs disponibles sans conflit d'équipe). Vérifié par simulation : le scénario exact rapporté produit maintenant 8 rotations pleines de 9 (6 pour la grande compétition, 3 pour la petite, à chaque rotation), sans aucun reliquat.
+
+Confirmé au passage : "Top 5 attente" se réinitialise déjà naturellement après régénération (c'est une valeur calculée à partir des matchs terminés, qui sont tous supprimés lors d'une régénération complète) — aucun code supplémentaire nécessaire sur ce point.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -136,7 +136,7 @@ async function loadAll(tournoiId, silent) {
   // ne perdent pas leur planning existant.
   const poulesSansRotation = matchsCache.filter(m => m.phase === 'poule' && !m.heure_lancement && m.rotation == null);
   if (poulesSansRotation.length > 0) {
-    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`, poidsParEquipesCompetition);
+    await persisterRotations(matchsCache.filter(m => m.phase === 'poule'), m => `${m.tournoi_competition_id}|${m.poule}`, poidsParEquipesCompetition, m => m.tournoi_competition_id);
     const { data: refresh } = compIds.length
       ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
       : { data: [] };
@@ -148,7 +148,7 @@ async function loadAll(tournoiId, silent) {
   );
   const finaleSansRotation = matchsFinaleConnus.filter(m => !m.heure_lancement && m.rotation == null);
   if (finaleSansRotation.length > 0) {
-    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket);
+    await persisterRotations(matchsFinaleConnus, m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket, m => m.tournoi_competition_id);
     const { data: refresh2 } = compIds.length
       ? await sbClient.from('matchs').select('*').in('tournoi_competition_id', compIds).order('numero')
       : { data: [] };
@@ -283,7 +283,8 @@ async function generateMatchs() {
   await persisterRotations(
     matchsPouleActuels || [],
     m => `${m.tournoi_competition_id}|${m.poule}`,
-    poidsParEquipesCompetition
+    poidsParEquipesCompetition,
+    m => m.tournoi_competition_id
   );
 
   hint.textContent = `${rows.length} match(s) généré(s) pour l'ensemble du tournoi.`;
@@ -358,7 +359,7 @@ async function genererPhaseFinaleAuto(comp) {
       .not('equipe1_id', 'is', null)
       .not('equipe2_id', 'is', null)
       .in('tournoi_competition_id', competitionsCache.map(c => c.id));
-    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket);
+    await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket, m => m.tournoi_competition_id);
 
     const hint = document.getElementById('planningHint');
     if (hint) hint.textContent = `Phase finale générée automatiquement pour ${comp.nom}.`;
@@ -653,8 +654,15 @@ function renderTop5() {
  * considéré "moins servi" plus longtemps, donc prioritaire plus
  * souvent — les compétitions avancent ainsi au prorata de leur
  * taille plutôt que toutes au même rythme absolu.
+ * competitionKeyFn (facultatif) identifie la compétition d'un match :
+ * si fourni, chaque ROTATION répartit ses créneaux entre compétitions
+ * au prorata exact de leur poids (ex. 6 créneaux sur 9 pour une
+ * compétition deux fois plus grande qu'une autre), plutôt que de
+ * laisser une compétition ayant plus de poules "grappiller" plus que
+ * sa part sur une même rotation (ce qui l'épuiserait trop vite en
+ * valeur absolue et laisserait l'autre traîner en fin de tournoi).
  */
-function computeGroupesEquitables(matches, groupKeyFn, nbTerrains, poidsGroupeFn) {
+function computeGroupesEquitables(matches, groupKeyFn, nbTerrains, poidsGroupeFn, competitionKeyFn) {
   // Matchs déjà lancés : ordre chronologique réel, inchangé
   const avecHeure = matches
     .filter(m => m.heure_lancement)
@@ -678,36 +686,91 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains, poidsGroupeFn
   const compteScheduled = {};
   groupeKeys.forEach(k => { compteScheduled[k] = 0; });
 
+  // Poids et compétition de chaque groupe, calculés une bonne fois avant
+  // toute modification des listes (celles-ci seront vidées au fil de
+  // l'algorithme, elles ne peuvent donc plus servir de référence ensuite).
   const poidsGroupe = {};
+  const competitionDeGroupe = {};
   groupeKeys.forEach(k => {
-    poidsGroupe[k] = poidsGroupeFn ? Math.max(1, poidsGroupeFn(parGroupe[k][0])) : 1;
+    const premierMatch = parGroupe[k][0];
+    poidsGroupe[k] = poidsGroupeFn ? Math.max(1, poidsGroupeFn(premierMatch)) : 1;
+    if (competitionKeyFn) competitionDeGroupe[k] = competitionKeyFn(premierMatch);
   });
 
   const groupesAPlanifier = [];
   let restant = sansHeure.length;
 
+  function tenterAjout(key, teamsUsed, rotation) {
+    const liste = parGroupe[key];
+    const idx = liste.findIndex(m => !teamsUsed.has(m.equipe1_id) && !teamsUsed.has(m.equipe2_id));
+    if (idx === -1) return false;
+    const match = liste.splice(idx, 1)[0];
+    teamsUsed.add(match.equipe1_id);
+    teamsUsed.add(match.equipe2_id);
+    rotation.push(match);
+    compteScheduled[key]++;
+    restant--;
+    return true;
+  }
+
   while (restant > 0) {
     const teamsUsed = new Set();
     const rotation = [];
-    let progresse = true;
 
-    while (rotation.length < nbTerrains && progresse) {
-      progresse = false;
-      // Priorité aux groupes les moins servis jusqu'ici, au prorata de
-      // leur poids (équité classique si aucun poids n'est fourni).
-      const ordre = groupeKeys.slice().sort((a, b) => (compteScheduled[a] / poidsGroupe[a]) - (compteScheduled[b] / poidsGroupe[b]));
-      for (const key of ordre) {
-        if (rotation.length >= nbTerrains) break;
-        const liste = parGroupe[key];
-        const idx = liste.findIndex(m => !teamsUsed.has(m.equipe1_id) && !teamsUsed.has(m.equipe2_id));
-        if (idx === -1) continue;
-        const match = liste.splice(idx, 1)[0];
-        teamsUsed.add(match.equipe1_id);
-        teamsUsed.add(match.equipe2_id);
-        rotation.push(match);
-        compteScheduled[key]++;
-        restant--;
-        progresse = true;
+    if (competitionKeyFn) {
+      // 1ère passe : répartition proportionnelle stricte par compétition
+      // pour cette rotation précise (ex. 6/9 et 3/9 pour un ratio 2:1).
+      const parCompetition = {};
+      groupeKeys.forEach(k => {
+        if (parGroupe[k].length === 0) return; // poule déjà épuisée
+        const compId = competitionDeGroupe[k];
+        if (!parCompetition[compId]) parCompetition[compId] = [];
+        parCompetition[compId].push(k);
+      });
+      const compIds = Object.keys(parCompetition);
+      const poidsCompetition = {};
+      compIds.forEach(cid => { poidsCompetition[cid] = poidsGroupe[parCompetition[cid][0]]; });
+      const sommePoids = compIds.reduce((s, cid) => s + poidsCompetition[cid], 0);
+      const cible = {};
+      compIds.forEach(cid => { cible[cid] = Math.round(nbTerrains * poidsCompetition[cid] / sommePoids); });
+
+      let progresseCible = true;
+      while (rotation.length < nbTerrains && progresseCible) {
+        progresseCible = false;
+        for (const cid of compIds) {
+          if (rotation.length >= nbTerrains) break;
+          const dejaPris = rotation.filter(m => competitionKeyFn(m) === cid).length;
+          if (dejaPris >= cible[cid]) continue; // quota de cette compétition atteint pour cette rotation
+          const groupesDeCetteComp = parCompetition[cid].slice().sort((a, b) => compteScheduled[a] - compteScheduled[b]);
+          for (const key of groupesDeCetteComp) {
+            if (tenterAjout(key, teamsUsed, rotation)) { progresseCible = true; break; }
+          }
+        }
+      }
+
+      // 2e passe : si des créneaux restent vides (une compétition n'a pas
+      // pu atteindre son quota, faute de matchs disponibles sans conflit
+      // d'équipe), on les redistribue librement, sans quota cette fois.
+      let progresseLibre = true;
+      while (rotation.length < nbTerrains && progresseLibre) {
+        progresseLibre = false;
+        const ordre = groupeKeys.slice().sort((a, b) => (compteScheduled[a] / poidsGroupe[a]) - (compteScheduled[b] / poidsGroupe[b]));
+        for (const key of ordre) {
+          if (rotation.length >= nbTerrains) break;
+          if (tenterAjout(key, teamsUsed, rotation)) progresseLibre = true;
+        }
+      }
+    } else {
+      // Comportement historique : équité par groupe uniquement, sans
+      // distinction ni plafond de compétition.
+      let progresse = true;
+      while (rotation.length < nbTerrains && progresse) {
+        progresse = false;
+        const ordre = groupeKeys.slice().sort((a, b) => (compteScheduled[a] / poidsGroupe[a]) - (compteScheduled[b] / poidsGroupe[b]));
+        for (const key of ordre) {
+          if (rotation.length >= nbTerrains) break;
+          if (tenterAjout(key, teamsUsed, rotation)) progresse = true;
+        }
       }
     }
 
@@ -728,8 +791,12 @@ function computeGroupesEquitables(matches, groupKeyFn, nbTerrains, poidsGroupeFn
  * d'un de ses matchs : les groupes plus lourds avancent plus souvent,
  * au prorata de leur charge réelle de travail plutôt qu'au même
  * rythme absolu pour tous.
+ * competitionKeyFn (facultatif) identifie la compétition d'un match :
+ * si fourni, chaque rotation répartit ses créneaux entre compétitions
+ * au prorata exact de leur poids, plutôt que de laisser une compétition
+ * ayant plus de poules dépasser sa part sur une même rotation.
  */
-async function persisterRotations(matches, groupKeyFn, poidsGroupeFn) {
+async function persisterRotations(matches, groupKeyFn, poidsGroupeFn, competitionKeyFn) {
   const nbTerrains = Math.max(1, tournoi ? tournoi.nb_terrains : 1);
   const aNumeroter = matches.filter(m => !m.heure_lancement && (m.rotation === null || m.rotation === undefined));
   if (aNumeroter.length === 0) return;
@@ -740,7 +807,7 @@ async function persisterRotations(matches, groupKeyFn, poidsGroupeFn) {
   const dejaNumerotes = matches.filter(m => m.rotation !== null && m.rotation !== undefined);
   const departNumero = dejaNumerotes.length > 0 ? Math.max(...dejaNumerotes.map(m => m.rotation)) : 0;
 
-  const groupes = computeGroupesEquitables(aNumeroter, groupKeyFn, nbTerrains, poidsGroupeFn);
+  const groupes = computeGroupesEquitables(aNumeroter, groupKeyFn, nbTerrains, poidsGroupeFn, competitionKeyFn);
   for (let i = 0; i < groupes.length; i++) {
     const ids = groupes[i].map(m => m.id);
     const { error } = await sbClient.from('matchs').update({ rotation: departNumero + i + 1 }).in('id', ids);
@@ -1117,7 +1184,7 @@ async function saveMatchField(matchId, field, value) {
         .not('equipe1_id', 'is', null)
         .not('equipe2_id', 'is', null)
         .eq('tournoi_competition_id', matchSuivant.tournoi_competition_id);
-      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket);
+      await persisterRotations(matchsFinaleConnus || [], m => `${m.tournoi_competition_id}|${m.phase}`, poidsParTailleBracket, m => m.tournoi_competition_id);
     }
   }
 
