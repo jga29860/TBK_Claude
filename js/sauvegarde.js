@@ -26,6 +26,8 @@ const TABLES = [
   { key: 'inscriptions', label: 'Inscriptions saison', description: 'Adhésions à la saison en cours.' },
   { key: 'connexions_log', label: 'Journal des connexions', description: 'Historique des tentatives de connexion (réussies et échouées) au site.' },
   { key: 'visites_pages_log', label: 'Journal des visites publiques', description: 'Visites des pages ne nécessitant pas de connexion (accueil, inscription publique, bénévoles...).' },
+  { key: 'boutique_articles', label: 'Articles boutique', description: 'Articles proposés à la vente (nom, prix, tailles, photo, dates).' },
+  { key: 'boutique_commandes', label: 'Commandes boutique', description: 'Demandes des membres (article + taille), statut et paiement.' },
 ];
 
 let rowCounts = {};

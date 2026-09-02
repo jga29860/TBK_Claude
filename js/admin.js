@@ -17,6 +17,8 @@ const PAGE_CATALOG = [
   { key: 'benevoles', label: 'Bénévoles tournoi' },
   { key: 'agenda', label: 'Agenda du club' },
   { key: 'jeu_cartes', label: 'Jeu de cartes' },
+  { key: 'boutique', label: 'Boutique - Achat' },
+  { key: 'boutique_gestion', label: 'Boutique - Gestion' },
   { key: 'documentation', label: 'Documentation' },
   { key: 'administration', label: 'Administration' },
 ];

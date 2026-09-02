@@ -788,6 +788,27 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .score-set-inline{ display:inline-flex; align-items:center; white-space:nowrap; flex-wrap:nowrap; }
 .match-table .planning-nowrap{ white-space:nowrap; }
 
+/* ===== Boutique ===== */
+.boutique-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:20px; margin-top:16px; }
+.boutique-card{
+  border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--white);
+  display:flex; flex-direction:column;
+}
+.boutique-card--inactif{ opacity:0.6; }
+.boutique-card-img{ width:100%; height:170px; object-fit:cover; background:var(--pale); }
+.boutique-card-img--vide{ display:flex; align-items:center; justify-content:center; font-size:2.5rem; }
+.boutique-card-body{ padding:14px 16px; display:flex; flex-direction:column; gap:6px; }
+.boutique-card-body h3{ margin:0; font-size:1.05rem; }
+.boutique-card-desc{ font-size:0.85rem; color: var(--ink-soft); margin:0; }
+.boutique-card-prix{ font-size:1.15rem; font-weight:800; color: var(--green); margin:2px 0; }
+.boutique-card-dates{ font-size:0.75rem; color: var(--ink-soft); margin:0; }
+.boutique-card-actions{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+.boutique-commande-zone{ display:flex; gap:8px; margin-top:8px; }
+.boutique-commande-zone select{
+  flex:1; font-family: var(--font-body); padding:8px 10px; border-radius:8px; border:1px solid #a9d18e;
+}
+.commande-hint{ margin-top:4px; }
+
 /* ===== Synthèse phase finale (tableau en colonnes) ===== */
 .bracket-rounds{ display:flex; gap:20px; overflow-x:auto; padding-bottom:6px; margin-top:14px; }
 .bracket-round{ display:flex; flex-direction:column; gap:14px; min-width:220px; flex-shrink:0; }

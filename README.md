@@ -661,6 +661,26 @@ Corrigé : chaque rotation répartit désormais ses créneaux entre compétition
 
 Confirmé au passage : "Top 5 attente" se réinitialise déjà naturellement après régénération (c'est une valeur calculée à partir des matchs terminés, qui sont tous supprimés lors d'une régénération complète) — aucun code supplémentaire nécessaire sur ce point.
 
+## Nouvelle fonctionnalité — Boutique du club
+
+Exécutez `supabase/migration_boutique.sql`.
+
+Nouvelle page `boutique.html` permettant au bureau de proposer des articles à la vente aux membres. Cohérent avec le reste du site : paiement suivi manuellement par le bureau (comme les cotisations saison), pas de paiement en ligne.
+
+**2 nouveaux droits de page** (à attribuer manuellement aux profils souhaités depuis Administration → Profils — aucun profil n'y a accès par défaut) :
+- `boutique` : consultation du catalogue et passage de commandes.
+- `boutique_gestion` : en plus, gestion des articles (ajout/modification/suppression) et synthèse des demandes. Le profil admin y a toujours accès.
+
+**Un article** : nom, description, prix, photo, une ou plusieurs tailles disponibles (ex. "S, M, L, XL", ou "Unique" par défaut), dates de début/fin facultatives. N'apparaît dans le catalogue public que dans sa période de disponibilité ; le bureau voit tous les articles (y compris inactifs) dans son panneau de gestion.
+
+**Commande d'un membre** : choix de l'article + de la taille, en un clic. Nom, prix et taille sont figés au moment de la commande (restent cohérents même si l'article est modifié ensuite). Chaque membre retrouve l'historique de ses commandes dans "Mes commandes", avec possibilité d'annuler tant que la demande est "En attente".
+
+**Synthèse pour le bureau** :
+- Tableau agrégé quantités par article et taille (pratique pour commander en gros).
+- Détail des demandes avec recherche par demandeur, changement de statut (En attente/Confirmée/Récupérée/Annulée), et case "Payée".
+
+**Nouvelles tables** : `boutique_articles`, `boutique_commandes`. **Nouveau bucket de stockage** : `boutique-photos` (privé, lecture réservée aux comptes ayant accès à la boutique). Ajouté à la page Sauvegarde et à la documentation (nouvelle section 11).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

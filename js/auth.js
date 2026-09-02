@@ -206,6 +206,7 @@ const TOOL_LINKS = [
   { pageKeys: ['administration'], href: 'sauvegarde.html', label: 'Sauvegarde', group: 'Administration' },
   { pageKeys: ['administration'], href: 'suivi-connexions.html', label: 'Suivi des connexions', group: 'Administration' },
   { pageKeys: ['jeu_cartes'], href: 'jeu-de-cartes.html', label: 'Jeu de cartes', group: 'Club' },
+  { pageKeys: ['boutique', 'boutique_gestion'], href: 'boutique.html', label: 'Boutique', group: 'Club' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda du club', group: 'Administration' },
 ];
 const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];

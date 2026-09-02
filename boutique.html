@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Boutique — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Vie du club</p>
+  <h1>Boutique</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Vous n'avez pas accès à cette page. Un administrateur peut vous y donner accès depuis Administration → Profils.</p>
+  </div>
+
+  <div id="content" hidden>
+
+    <!-- ===== Gestion des articles : réservé au bureau ===== -->
+    <section class="admin-section" id="gestionSection" hidden>
+      <h2>Gérer les articles</h2>
+      <form id="articleForm" class="contact-form">
+        <div class="field-grid">
+          <label>Nom de l'article
+            <input type="text" name="nom" required placeholder="Ex. T-shirt du club">
+          </label>
+          <label>Prix (€)
+            <input type="number" name="prix" min="0" step="0.01" required>
+          </label>
+          <label>Tailles disponibles (séparées par des virgules)
+            <input type="text" name="tailles" placeholder="S, M, L, XL" value="Unique">
+          </label>
+          <label>Date de début (facultatif)
+            <input type="date" name="date_debut">
+          </label>
+          <label>Date de fin (facultatif)
+            <input type="date" name="date_fin">
+          </label>
+          <label>Photo (facultatif)
+            <input type="file" name="photo" accept="image/*">
+          </label>
+        </div>
+        <label>Description
+          <textarea name="description" rows="2" placeholder="Détails de l'article…"></textarea>
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="articleSubmitBtn">Ajouter l'article</button>
+          <button type="button" class="btn btn-ghost" id="articleCancelBtn" hidden>Annuler la modification</button>
+        </div>
+        <p class="form-hint" id="articleFormHint"></p>
+      </form>
+
+      <h3 class="admin-subheading">Tous les articles</h3>
+      <div id="articlesGestionListe" class="boutique-grid"></div>
+    </section>
+
+    <!-- ===== Synthèse des demandes : réservé au bureau ===== -->
+    <section class="admin-section" id="syntheseSection" hidden>
+      <h2>Synthèse des demandes</h2>
+
+      <h3 class="admin-subheading">Quantités par article et taille</h3>
+      <div class="table-wrap">
+        <table class="schedule" id="syntheseTable">
+          <thead><tr><th>Article</th><th>Taille</th><th>Quantité</th><th>Payées</th></tr></thead>
+          <tbody id="syntheseTableBody"></tbody>
+        </table>
+      </div>
+
+      <h3 class="admin-subheading">Détail des demandes</h3>
+      <div class="inline-form" style="margin-bottom:10px;">
+        <input type="text" id="commandesSearchInput" placeholder="Rechercher un demandeur…">
+      </div>
+      <div class="table-wrap">
+        <table class="schedule" id="commandesTable">
+          <thead><tr><th>Demandeur</th><th>Article</th><th>Taille</th><th>Prix</th><th>Statut</th><th>Payée</th><th>Date</th><th></th></tr></thead>
+          <tbody id="commandesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Catalogue : visible par tout membre ayant accès ===== -->
+    <section class="admin-section">
+      <h2>Catalogue</h2>
+      <div id="catalogueContainer" class="boutique-grid"></div>
+    </section>
+
+    <!-- ===== Mes commandes ===== -->
+    <section class="admin-section">
+      <h2>Mes commandes</h2>
+      <div id="mesCommandesContainer"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/boutique.js"></script>
+</body>
+</html>

@@ -115,6 +115,8 @@
             <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
             <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar)</td></tr>
             <tr><td>jeu_cartes</td><td>jeu-de-cartes.html</td><td>Composition aléatoire d'équipes par tirage de cartes</td></tr>
+            <tr><td>boutique</td><td>boutique.html</td><td>Consultation du catalogue et passage de commandes</td></tr>
+            <tr><td>boutique_gestion</td><td>boutique.html (gestion + synthèse)</td><td>Ajout/modification/suppression des articles, suivi des demandes</td></tr>
             <tr><td>documentation</td><td>documentation.html</td><td>Consultation de la documentation fonctionnelle</td></tr>
             <tr><td>administration</td><td>admin.html, sauvegarde.html</td><td>Gestion des comptes, profils, paramètres, sauvegarde</td></tr>
           </tbody>
@@ -356,9 +358,34 @@
       </ul>
     </section>
 
-    <!-- ===== 11. SUIVI DES CONNEXIONS ===== -->
+    <!-- ===== 11. BOUTIQUE ===== -->
+    <section class="admin-section" id="boutique">
+      <h2>11. Boutique (boutique.html)</h2>
+      <p>Vente d'articles en lien avec le club (textile, accessoires…) aux membres. Le paiement est suivi manuellement par le bureau — comme pour les cotisations saison — il n'y a pas de paiement en ligne sur le site.</p>
+
+      <h3 class="admin-subheading">11.1 Droits de page</h3>
+      <ul>
+        <li><strong>boutique</strong> : consultation du catalogue et passage de commandes (article + taille).</li>
+        <li><strong>boutique_gestion</strong> : en plus, gestion des articles (ajout/modification/suppression) et synthèse des demandes. Le profil admin y a toujours accès.</li>
+      </ul>
+      <p>Aucun de ces droits n'est accordé par défaut à un profil existant — un administrateur doit les ajouter explicitement aux profils souhaités (ex. "membre" pour boutique, "bureau" pour boutique_gestion) depuis Administration → Profils.</p>
+
+      <h3 class="admin-subheading">11.2 Un article</h3>
+      <p>Caractérisé par un nom, une description, un prix, une photo, une ou plusieurs tailles disponibles (séparées par des virgules à la saisie, ex. "S, M, L, XL" — ou une taille unique par défaut pour un article non textile), et des dates de début/fin facultatives. Un article n'apparaît dans le catalogue public que s'il est dans sa période de disponibilité ; le bureau, lui, voit tous les articles (y compris passés ou à venir) dans son panneau de gestion, avec une mention "inactif" le cas échéant.</p>
+
+      <h3 class="admin-subheading">11.3 Commande d'un membre</h3>
+      <p>Un membre choisit un article et une taille, puis clique sur "Commander" — la demande est enregistrée immédiatement (nom de l'article, prix et taille figés au moment de la commande, pour rester cohérents même si l'article est modifié ensuite). Chaque membre retrouve l'historique de ses propres commandes dans "Mes commandes", avec possibilité d'annuler tant que la demande est encore "En attente".</p>
+
+      <h3 class="admin-subheading">11.4 Synthèse pour le bureau</h3>
+      <ul>
+        <li><strong>Quantités par article et taille</strong> : tableau agrégé, pratique pour savoir combien commander de chaque taille en gros (ex. "5 × Taille M").</li>
+        <li><strong>Détail des demandes</strong> : liste complète avec recherche par demandeur, changement de statut (En attente / Confirmée / Récupérée / Annulée) et case à cocher "Payée" — mise à jour immédiate en base à chaque changement.</li>
+      </ul>
+    </section>
+
+    <!-- ===== 12. SUIVI DES CONNEXIONS ===== -->
     <section class="admin-section" id="suivi-connexions">
-      <h2>11. Suivi des connexions (suivi-connexions.html)</h2>
+      <h2>12. Suivi des connexions (suivi-connexions.html)</h2>
       <p>Réservée au profil administrateur. Journalise automatiquement chaque tentative de connexion au site (réussie ou échouée) : identifiant utilisé, date et heure, appareil/navigateur, et motif en cas d'échec — utile pour repérer des tentatives suspectes ou vérifier l'activité récente.</p>
       <ul>
         <li>Compteurs en un coup d'œil : total, connexions réussies, connexions échouées.</li>
@@ -367,16 +394,16 @@
       </ul>
       <p><em>Note de conception</em> : l'adresse IP n'est volontairement pas collectée (nécessiterait un service tiers externe, pour un intérêt limité sur un site de club face à la sensibilité de cette donnée).</p>
 
-      <h3 class="admin-subheading">11.1 Visites des pages sans connexion requise</h3>
+      <h3 class="admin-subheading">12.1 Visites des pages sans connexion requise</h3>
       <p>Cette même page journalise aussi automatiquement les visites sur les pages accessibles à tous, sans compte : accueil, demande d'inscription publique, bénévoles, connexion/inscription, réinitialisation de mot de passe, politique de confidentialité. Répartition par page en un coup d'œil, journal détaillé (date, provenance, appareil), et purge en un clic des entrées de plus de 90 jours.</p>
     </section>
 
     <!-- ===== 12. BASE DE DONNÉES ===== -->
     <section class="admin-section" id="base-donnees">
-      <h2>12. Structure de la base de données</h2>
+      <h2>13. Structure de la base de données</h2>
       <p>Base de données hébergée par Supabase (PostgreSQL). Chaque table est protégée par des règles de sécurité (Row Level Security) qui définissent, ligne par ligne, qui peut lire ou modifier quoi.</p>
 
-      <h3 class="admin-subheading">12.1 Comptes et profils</h3>
+      <h3 class="admin-subheading">13.1 Comptes et profils</h3>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
@@ -390,7 +417,7 @@
         </table>
       </div>
 
-      <h3 class="admin-subheading">12.2 Vie du club</h3>
+      <h3 class="admin-subheading">13.2 Vie du club</h3>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
@@ -398,6 +425,8 @@
             <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres (avec auteur, date, pièce jointe facultative).</td></tr>
             <tr><td>annonces_commentaires</td><td>Fil de discussion indenté sous chaque annonce (réponses imbriquées).</td></tr>
             <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.</td></tr>
+            <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité).</td></tr>
+            <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande), statut et paiement.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
             <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
@@ -407,7 +436,7 @@
         </table>
       </div>
 
-      <h3 class="admin-subheading">12.3 Tournois — cœur du système</h3>
+      <h3 class="admin-subheading">13.3 Tournois — cœur du système</h3>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
@@ -424,7 +453,7 @@
         </table>
       </div>
 
-      <h3 class="admin-subheading">12.4 Principes de sécurité (RLS)</h3>
+      <h3 class="admin-subheading">13.4 Principes de sécurité (RLS)</h3>
       <ul>
         <li>Chaque table sensible vérifie le profil de la personne connectée via une fonction "current_user_has_access".</li>
         <li>Certaines actions (validation d'inscription, suppression de profil, écriture sur les tournois) sont réservées aux profils précis nommés dans ce document.</li>
@@ -432,16 +461,21 @@
         <li>Le formulaire public de demande d'inscription dispose d'un droit d'écriture volontairement restreint : il ne peut créer qu'une inscription "En attente", jamais la valider lui-même.</li>
       </ul>
 
-      <h3 class="admin-subheading">12.5 Stockage de fichiers (Supabase Storage)</h3>
-      <p>Au-delà des tables, un espace de stockage de fichiers <strong>privé</strong> nommé <code>certificats-medicaux</code> héberge les photos de certificats médicaux prises depuis la page Inscriptions. Aucune lecture publique n'est possible : l'accès (lecture, dépôt, suppression) est réservé aux comptes ayant le droit de page "inscriptions", exactement comme pour la table correspondante. La consultation d'un fichier se fait via un lien temporaire (2 minutes), généré à la demande à chaque clic sur "Voir le certificat" — jamais via une URL permanente.</p>
+      <h3 class="admin-subheading">13.5 Stockage de fichiers (Supabase Storage)</h3>
+      <p>Au-delà des tables, deux espaces de stockage de fichiers <strong>privés</strong> :</p>
+      <ul>
+        <li><code>certificats-medicaux</code> : photos de certificats médicaux prises depuis la page Inscriptions. Accès (lecture, dépôt, suppression) réservé aux comptes ayant le droit "inscriptions". Consultation via lien temporaire (2 minutes), généré à la demande.</li>
+        <li><code>boutique-photos</code> : photos des articles de la boutique. Lecture réservée aux comptes ayant accès à la boutique ("boutique" ou "boutique_gestion"), dépôt/suppression réservés à "boutique_gestion".</li>
+      </ul>
+      <p>Aucune lecture publique n'est possible sur ces deux espaces — jamais via une URL permanente.</p>
 
-      <h3 class="admin-subheading">12.6 Nettoyage automatique des réactions orphelines</h3>
+      <h3 class="admin-subheading">13.6 Nettoyage automatique des réactions orphelines</h3>
       <p>La table <code>annonces_reactions</code> pointe vers une annonce, un commentaire ou un message de tournoi sans lien de clé étrangère (elle peut viser l'une ou l'autre de ces 3 tables). Des déclencheurs SQL suppriment automatiquement les réactions correspondantes dès qu'une annonce, un commentaire ou un message de tournoi est supprimé, pour éviter toute accumulation silencieuse de données orphelines.</p>
     </section>
 
     <!-- ===== 12. GLOSSAIRE ===== -->
     <section class="admin-section" id="glossaire">
-      <h2>13. Glossaire</h2>
+      <h2>14. Glossaire</h2>
       <div class="table-wrap">
         <table class="schedule">
           <thead><tr><th>Terme</th><th>Signification</th></tr></thead>
