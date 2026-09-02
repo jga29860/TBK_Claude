@@ -681,6 +681,10 @@ Nouvelle page `boutique.html` permettant au bureau de proposer des articles à l
 
 **Nouvelles tables** : `boutique_articles`, `boutique_commandes`. **Nouveau bucket de stockage** : `boutique-photos` (privé, lecture réservée aux comptes ayant accès à la boutique). Ajouté à la page Sauvegarde et à la documentation (nouvelle section 11).
 
+## Suivi des connexions — purge complète (en plus de la purge à 90 jours)
+
+Ajout d'un bouton "Purger tout l'historique" sur les deux journaux de la page (connexions ET visites publiques), en plus du bouton existant limité aux entrées de plus de 90 jours. Confirmation renforcée (texte explicite sur le caractère définitif et irréversible) pour éviter tout clic accidentel. Aucun changement de base de données nécessaire — les règles de sécurité existantes autorisaient déjà la suppression sans restriction de date, seule l'interface manquait ce bouton.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

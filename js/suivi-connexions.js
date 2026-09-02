@@ -103,7 +103,9 @@ function bindEvents() {
   document.getElementById('filterEchecBtn').addEventListener('click', () => setFiltreStatut('echec'));
 
   document.getElementById('purgerBtn').addEventListener('click', purgerAnciennesEntrees);
+  document.getElementById('purgerToutBtn').addEventListener('click', purgerToutesEntrees);
   document.getElementById('purgerVisitesBtn').addEventListener('click', purgerAnciennesVisites);
+  document.getElementById('purgerToutVisitesBtn').addEventListener('click', purgerToutesVisites);
 }
 
 // ============================================================
@@ -198,6 +200,19 @@ async function purgerAnciennesVisites() {
   await chargerVisites();
 }
 
+async function purgerToutesVisites() {
+  if (!confirm("⚠️ Supprimer DÉFINITIVEMENT et IRRÉVERSIBLEMENT l'intégralité de l'historique des visites, sans exception d'ancienneté ? Cette action est impossible à annuler.")) return;
+
+  const hint = document.getElementById('visitesHint');
+  hint.textContent = 'Purge complète en cours…';
+
+  const { error } = await sbClient.from('visites_pages_log').delete().gte('created_at', '1970-01-01T00:00:00Z');
+  if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+
+  hint.textContent = 'Historique entièrement purgé.';
+  await chargerVisites();
+}
+
 function setFiltreStatut(statut) {
   filtreStatut = statut;
   ['filterAllBtn', 'filterSuccesBtn', 'filterEchecBtn'].forEach(id => document.getElementById(id).classList.remove('is-active'));
@@ -219,6 +234,19 @@ async function purgerAnciennesEntrees() {
   if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
 
   hint.textContent = 'Purge effectuée.';
+  await chargerLogs();
+}
+
+async function purgerToutesEntrees() {
+  if (!confirm("⚠️ Supprimer DÉFINITIVEMENT et IRRÉVERSIBLEMENT l'intégralité du journal des connexions, sans exception d'ancienneté ? Cette action est impossible à annuler.")) return;
+
+  const hint = document.getElementById('pageHint');
+  hint.textContent = 'Purge complète en cours…';
+
+  const { error } = await sbClient.from('connexions_log').delete().gte('created_at', '1970-01-01T00:00:00Z');
+  if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+
+  hint.textContent = 'Journal entièrement purgé.';
   await chargerLogs();
 }
 
