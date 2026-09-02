@@ -329,26 +329,44 @@ function nomDuTour(nbEquipes) {
 async function genererPhaseFinaleAuto(comp) {
   if (!poulesTerminees(comp)) return;
 
-  const dejaGeneree = matchsCache.some(m =>
-    m.tournoi_competition_id === comp.id && (m.phase === 'principale' || m.phase === 'consolante')
-  );
-  if (dejaGeneree) return;
+  // Vérification indépendante par tableau (et non plus globale) : permet
+  // de générer la Consolante manquante toute seule, sans jamais retoucher
+  // une Principale déjà existante — notamment pour auto-réparer les
+  // tournois touchés par le bug corrigé ci-dessous (Consolante restée
+  // vide alors que la Principale avait bien été générée).
+  const principaleExiste = matchsCache.some(m => m.tournoi_competition_id === comp.id && m.phase === 'principale');
+  const consolanteExiste = matchsCache.some(m => m.tournoi_competition_id === comp.id && m.phase === 'consolante');
+  if (principaleExiste && consolanteExiste) return;
 
-  const premiers = [], seconds = [], troisiemes = [], quatriemes = [];
+  // Principale = les 2 premiers de chaque poule. Consolante = tous les
+  // autres (3e, 4e, 5e...), quelle que soit la taille de la poule —
+  // volontairement pas limité à "3e vs 4e", qui ne fonctionnait pas dès
+  // qu'une poule n'avait pas exactement 4 équipes (poules de 3 par
+  // exemple : aucune 4e place n'existe alors nulle part, et la
+  // Consolante ne générait purement et simplement rien).
+  const premiers = [], seconds = [], consolantes = [];
   for (let p = 1; p <= comp.nb_poules; p++) {
     const classement = computeClassement(comp.id, p);
     if (classement[0]) premiers.push(classement[0].equipe);
     if (classement[1]) seconds.push(classement[1].equipe);
-    if (classement[2]) troisiemes.push(classement[2].equipe);
-    if (classement[3]) quatriemes.push(classement[3].equipe);
+    for (let rang = 2; rang < classement.length; rang++) {
+      if (classement[rang]) consolantes.push(classement[rang].equipe);
+    }
   }
+
+  // Découpe la liste des "non-podium" en 2 moitiés pour former le
+  // tableau Consolante (même principe que Principale : moitié A contre
+  // moitié B, décalée), quel que soit le nombre total d'équipes.
+  const moitieConsolante = Math.ceil(consolantes.length / 2);
+  const consolA = consolantes.slice(0, moitieConsolante);
+  const consolB = consolantes.slice(moitieConsolante);
 
   const dernierNumero = Math.max(0, ...matchsCache.filter(m => m.tournoi_competition_id === comp.id).map(m => m.numero));
   let numero = dernierNumero + 1;
 
   try {
-    numero = await genererBracket('principale', premiers, seconds, comp.id, numero);
-    numero = await genererBracket('consolante', troisiemes, quatriemes, comp.id, numero);
+    if (!principaleExiste) numero = await genererBracket('principale', premiers, seconds, comp.id, numero);
+    if (!consolanteExiste) numero = await genererBracket('consolante', consolA, consolB, comp.id, numero);
 
     // Numérote et enregistre les rotations pour les matchs de phase finale
     // désormais connus (au moins le 1er tour de chaque tableau).
