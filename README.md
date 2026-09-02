@@ -685,6 +685,17 @@ Nouvelle page `boutique.html` permettant au bureau de proposer des articles à l
 
 Ajout d'un bouton "Purger tout l'historique" sur les deux journaux de la page (connexions ET visites publiques), en plus du bouton existant limité aux entrées de plus de 90 jours. Confirmation renforcée (texte explicite sur le caractère définitif et irréversible) pour éviter tout clic accidentel. Aucun changement de base de données nécessaire — les règles de sécurité existantes autorisaient déjà la suppression sans restriction de date, seule l'interface manquait ce bouton.
 
+## Nouvelle fonctionnalité — Anti-pause Supabase (keepalive), fréquence configurable
+
+Exécutez `supabase/migration_keepalive.sql`.
+
+Le plan gratuit Supabase met le site en pause après 7 jours sans activité (erreur "Failed to fetch"). Comme un site statique GitHub Pages ne peut rien exécuter seul en arrière-plan, la solution repose sur un **GitHub Actions programmé** (nouveau fichier `.github/workflows/keepalive.yml`), qui s'exécute chaque jour sur les serveurs de GitHub et "touche" la base Supabase selon une fréquence réglable — sans jamais avoir à modifier ce fichier pour ajuster la fréquence.
+
+- **Nouveau réglage dans Administration** : section "Anti-pause Supabase", fréquence en jours (doit rester < 7), avec affichage de la date du dernier ping reçu.
+- **⚠️ Mise en place technique requise une seule fois** : le fichier `.github/workflows/keepalive.yml` contient des espaces réservés (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) à remplacer par les vraies valeurs du projet (identiques à `js/supabase-config.js`), puis à enregistrer sur la branche principale du dépôt. Sans cette étape, le workflow ne pourra pas contacter la bonne base.
+- Fonctionne via une fonction SQL dédiée et très restreinte (`enregistrer_keepalive_ping`), appelable sans connexion, qui ne fait qu'horodater un paramètre — aucun accès élargi accordé aux visiteurs anonymes.
+- Documentation mise à jour (nouvelle section 7.3 + 13.7).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

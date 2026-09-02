@@ -316,9 +316,19 @@
       <ul>
         <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
         <li><strong>Paramètres du site</strong> — email de contact du club, utilisé automatiquement sur les pages publiques.</li>
+        <li><strong>Anti-pause Supabase</strong> — voir 7.1 ci-dessous.</li>
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
         <li><strong>Utilisateurs</strong> — changement de profil, réinitialisation de mot de passe, suppression.</li>
         <li><strong>Invitations</strong> — pré-attribution d'un profil à un email.</li>
+      </ul>
+
+      <h3 class="admin-subheading">7.1 Anti-pause Supabase (keepalive)</h3>
+      <p>Le plan gratuit Supabase met le projet en pause après 7 jours sans activité (erreur "Failed to fetch" pour les utilisateurs, résolue en relançant le projet depuis le tableau de bord Supabase — voir 13.7). Un site statique comme celui-ci ne peut rien exécuter seul en arrière-plan : c'est un <strong>GitHub Actions programmé</strong> (fichier <code>.github/workflows/keepalive.yml</code> dans le dépôt) qui "touche" la base à intervalle régulier, sur les serveurs de GitHub.</p>
+      <ul>
+        <li>La <strong>fréquence</strong> (en jours, doit rester inférieure à 7) se règle directement depuis cette page — pas besoin de toucher au fichier du workflow pour l'ajuster.</li>
+        <li>Le GitHub Actions s'exécute chaque jour et vérifie s'il est temps de pinguer selon cette fréquence ; le réglage est donc pris en compte au plus tard le lendemain d'un changement.</li>
+        <li>La date du dernier ping reçu s'affiche sous le formulaire.</li>
+        <li>Mise en place technique la première fois : voir 13.7.</li>
       </ul>
     </section>
 
@@ -471,9 +481,18 @@
 
       <h3 class="admin-subheading">13.6 Nettoyage automatique des réactions orphelines</h3>
       <p>La table <code>annonces_reactions</code> pointe vers une annonce, un commentaire ou un message de tournoi sans lien de clé étrangère (elle peut viser l'une ou l'autre de ces 3 tables). Des déclencheurs SQL suppriment automatiquement les réactions correspondantes dès qu'une annonce, un commentaire ou un message de tournoi est supprimé, pour éviter toute accumulation silencieuse de données orphelines.</p>
+
+      <h3 class="admin-subheading">13.7 Mise en place de l'anti-pause Supabase (une seule fois)</h3>
+      <p>Après avoir exécuté <code>migration_keepalive.sql</code> :</p>
+      <ol>
+        <li>Ouvrez le fichier <code>.github/workflows/keepalive.yml</code> du dépôt GitHub.</li>
+        <li>Remplacez <code>SUPABASE_URL</code> et <code>SUPABASE_ANON_KEY</code> par les vraies valeurs (identiques à celles de <code>js/supabase-config.js</code>, trouvables dans Supabase → Project Settings → API). La clé "anon public" n'est pas un secret : elle est déjà visible par n'importe qui dans le code du site.</li>
+        <li>Enregistrez sur la branche principale du dépôt (indispensable pour qu'un workflow programmé s'exécute).</li>
+        <li>Vérifiable depuis l'onglet "Actions" du dépôt GitHub, où chaque exécution (quotidienne) et son résultat s'affichent — un déclenchement manuel immédiat y est aussi possible.</li>
+      </ol>
     </section>
 
-    <!-- ===== 12. GLOSSAIRE ===== -->
+    <!-- ===== 14. GLOSSAIRE ===== -->
     <section class="admin-section" id="glossaire">
       <h2>14. Glossaire</h2>
       <div class="table-wrap">

@@ -60,6 +60,8 @@ async function initAdminPage() {
   bindChangePasswordForm();
   bindParametresForm();
   await loadParametres();
+  bindKeepaliveForm();
+  await loadKeepalive();
   await loadRoles();
   await loadUsers();
   await loadInvitations();
@@ -90,6 +92,44 @@ function bindParametresForm() {
       .eq('cle', 'email_contact');
     if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
     hint.textContent = 'Email de contact mis à jour.';
+  });
+}
+
+// ===== Anti-pause Supabase (keepalive) =====
+
+async function loadKeepalive() {
+  const { data, error } = await sbClient.from('parametres_site').select('valeur, updated_at').eq('cle', 'keepalive_frequence_jours').single();
+  if (error) { console.error(error.message); return; }
+  document.getElementById('keepaliveFrequenceInput').value = data ? (data.valeur || '5') : '5';
+
+  const dernierPing = document.getElementById('keepaliveDernierPing');
+  if (data && data.updated_at) {
+    const heures = Math.round((Date.now() - new Date(data.updated_at)) / 3600000);
+    dernierPing.textContent = `Dernier ping reçu il y a ${heures < 24 ? heures + ' h' : Math.round(heures / 24) + ' j'} (${new Date(data.updated_at).toLocaleString('fr-FR')}).`;
+  }
+}
+
+function bindKeepaliveForm() {
+  const form = document.getElementById('keepaliveForm');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = 'true';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById('keepaliveHint');
+    const frequence = parseInt(document.getElementById('keepaliveFrequenceInput').value, 10);
+
+    if (!frequence || frequence < 1 || frequence > 6) {
+      hint.textContent = 'La fréquence doit être comprise entre 1 et 6 jours (le seuil de pause Supabase est de 7 jours).';
+      return;
+    }
+
+    hint.textContent = 'Enregistrement…';
+    const { error } = await sbClient
+      .from('parametres_site')
+      .update({ valeur: String(frequence) })
+      .eq('cle', 'keepalive_frequence_jours');
+    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+    hint.textContent = `Fréquence enregistrée : ping tous les ${frequence} jour(s). Le GitHub Actions programmé appliquera ce réglage à sa prochaine vérification (au plus tard le lendemain).`;
   });
 }
 
