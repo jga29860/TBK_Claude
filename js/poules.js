@@ -151,7 +151,14 @@ function computeClassement(competitionId, poule) {
     return { ...st, diffSets, diffPts, valeur };
   });
 
-  rows.sort((a, b) => b.valeur - a.valeur);
+  rows.sort((a, b) => {
+    if (b.valeur !== a.valeur) return b.valeur - a.valeur;
+    // À égalité parfaite (typiquement avant le début des matchs, où tout
+    // le monde est à 0) : la tête de poule s'affiche en premier.
+    const teteA = a.equipe.tete_de_poule ? 1 : 0;
+    const teteB = b.equipe.tete_de_poule ? 1 : 0;
+    return teteB - teteA;
+  });
   return rows;
 }
 

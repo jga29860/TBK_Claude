@@ -696,6 +696,26 @@ Le plan gratuit Supabase met le site en pause après 7 jours sans activité (err
 - Fonctionne via une fonction SQL dédiée et très restreinte (`enregistrer_keepalive_ping`), appelable sans connexion, qui ne fait qu'horodater un paramètre — aucun accès élargi accordé aux visiteurs anonymes.
 - Documentation mise à jour (nouvelle section 7.3 + 13.7).
 
+## Correction — bug de génération de la phase finale Consolante
+
+Bug confirmé et reproduit par simulation : la Consolante était construite à partir des "3èmes" contre les "4èmes" de chaque poule. Si aucune poule n'avait exactement 4 équipes (ex. poules de 3), la liste des "4èmes" restait vide alors que celle des "3èmes" ne l'était pas — la génération s'arrêtait alors silencieusement sans produire aucun match de Consolante, tout en générant normalement la Principale.
+
+Corrigé : la Consolante est désormais composée de **toutes** les équipes non qualifiées pour la Principale (3e, 4e, 5e... quelle que soit la taille de la poule), réparties en 2 moitiés pour former le tableau — fonctionne quel que soit le nombre d'équipes par poule.
+
+**Auto-réparation** : la vérification "phase déjà générée ?" est désormais indépendante par tableau (Principale / Consolante) au lieu d'être globale — un tournoi déjà touché par ce bug (Principale générée, Consolante vide) se corrige tout seul au prochain chargement de planning.html, sans jamais toucher à la Principale existante ni à ses scores.
+
+**Limite connue résiduelle** : si le nombre total d'équipes non qualifiées pour la Principale est impair, la dernière équipe de la moitié la plus nombreuse n'est pas appariée (comportement cohérent avec la limite déjà documentée sur les tableaux ne correspondant pas à une puissance de 2).
+
+## Trois corrections ciblées
+
+Exécutez `supabase/migration_droit_emargement_rls.sql`.
+
+- **Émargement bloqué en écriture** : le profil "tournois_emargement" pouvait voir la page emargement.html, mais toute tentative d'enregistrer présence/paiement était rejetée par la base (règle de sécurité `equipes_acces` ne le reconnaissait pas — seuls tournois_admin/tournois_gestion/tournois_inscriptions y figuraient). Corrigé, avec une portée précise : lecture des compétitions autorisée, mais pas leur modification (qui reste réservée à l'admin/gestion).
+- **Ordre des équipes avant le tournoi** : sur poules.html, tant qu'aucun match n'est joué (tout le monde à 0 point), l'ordre d'affichage était arbitraire faute de critère de départage. La tête de poule s'affiche désormais en premier dans ce cas ; dès les premiers résultats, le classement réel prend le relais normalement.
+- **Photo boutique sur mobile** : le champ photo du formulaire d'article propose désormais le choix natif "Prendre une photo / Choisir dans la galerie" sur mobile (ajout de `capture="environment"`, même mécanisme déjà en place pour le certificat médical).
+
+**Note technique** : le script de génération du document Word (`generate.js`) a été perdu suite à une réinitialisation de l'environnement de travail. Le Word a été mis à jour par une édition XML ciblée cette fois-ci (validée sans erreur), mais une reconstruction complète du script serait nécessaire pour garder ce mode de mise à jour pratique sur la durée — à signaler si des évolutions plus conséquentes de la documentation sont prévues prochainement.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
