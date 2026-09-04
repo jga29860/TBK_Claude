@@ -325,13 +325,18 @@ function bindMainForm() {
     } else {
       const { data: { session } } = await sbClient.auth.getSession();
       payload.created_by = session.user.id;
-      // Une inscription saisie directement par un membre connecté est
-      // considérée validée par lui (contrairement à une demande soumise
-      // par le formulaire public, qui reste "en attente").
-      payload.statut = 'validee';
-      payload.valide_par = session.user.id;
-      payload.valide_par_nom = currentAccess ? (currentAccess.display_name || afficherIdentifiant(currentAccess.email)) : null;
-      payload.valide_le = new Date().toISOString();
+      // Une inscription saisie directement par un membre connecté n'est
+      // considérée validée d'emblée que si les conditions de validation
+      // sont réellement réunies (cotisation payée + certificat valable) —
+      // sinon elle reste "en attente", comme une demande soumise via le
+      // formulaire public, pour éviter de valider par erreur un dossier
+      // incomplet.
+      if (conditionsValidationOk(payload).ok) {
+        payload.statut = 'validee';
+        payload.valide_par = session.user.id;
+        payload.valide_par_nom = currentAccess ? (currentAccess.display_name || afficherIdentifiant(currentAccess.email)) : null;
+        payload.valide_le = new Date().toISOString();
+      }
       ({ error } = await sbClient.from('inscriptions').insert(payload));
     }
 
@@ -398,6 +403,7 @@ async function loadInscriptions() {
       <td data-label="Actions">
         <div class="actions-stack">
           ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
+          ${isBureau && i.statut === 'validee' ? `<button type="button" class="btn btn-ghost btn-small devalider-btn" data-id="${i.id}">Annuler la validation</button>` : ''}
           <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${i.id}">${i.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
           ${i.certificat_photo_url ? `
             <button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${i.id}">Voir le certificat</button>
@@ -434,6 +440,21 @@ async function loadInscriptions() {
       // email), et l'élève au profil "membre" — best-effort, ne bloque
       // jamais la validation elle-même si ça échoue pour une raison ou une autre.
       sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: id }).catch(() => {});
+      await loadInscriptions();
+    });
+  });
+
+  tbody.querySelectorAll('.devalider-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (!confirm('Annuler la validation de cette inscription ? Elle repassera "En attente".')) return;
+      const { error } = await sbClient.from('inscriptions').update({
+        statut: 'en_attente',
+        valide_par: null,
+        valide_par_nom: null,
+        valide_le: null,
+      }).eq('id', id);
+      if (error) { alert('Erreur : ' + error.message); return; }
       await loadInscriptions();
     });
   });
