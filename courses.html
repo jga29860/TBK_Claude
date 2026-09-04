@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courses du tournoi — TBK</title>
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Réservé à l'organisation des tournois</p>
+  <h1 id="pageTitle">Courses du tournoi</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée aux profils Tournois (Administration, Gestion ou Courses/Achats).</p>
+  </div>
+
+  <div id="mainPanel" hidden>
+
+    <div id="pasDeTournoiMessage" class="status-panel" hidden>
+      <h2>Aucun tournoi en cours</h2>
+      <p>Cette page nécessite un tournoi actif (statut "en cours") pour fonctionner.</p>
+    </div>
+
+    <div id="contenuCourses" hidden>
+
+      <section class="admin-section">
+        <h2>Ajouter un article</h2>
+        <form id="articleCourseForm" class="inline-form">
+          <label>Libellé
+            <input type="text" name="libelle" required placeholder="Ex. Bouteilles d'eau">
+          </label>
+          <label>Quantité
+            <input type="number" name="quantite" min="0" step="0.01" value="1" required>
+          </label>
+          <label>Prix unitaire (€)
+            <input type="number" name="prix_unitaire" min="0" step="0.01" required>
+          </label>
+          <button type="submit" class="btn btn-primary btn-small" id="courseSubmitBtn">Ajouter</button>
+          <button type="button" class="btn btn-ghost btn-small" id="courseCancelBtn" hidden>Annuler la modification</button>
+        </form>
+        <p class="form-hint" id="courseFormHint"></p>
+      </section>
+
+      <section class="admin-section">
+        <h2>Liste des achats <span id="coursesCount" class="count-badge"></span></h2>
+        <div class="table-wrap">
+          <table class="schedule" id="coursesTable">
+            <thead><tr><th>Libellé</th><th>Quantité</th><th>Prix unitaire</th><th>Sous-total</th><th></th></tr></thead>
+            <tbody id="coursesTableBody"></tbody>
+          </table>
+        </div>
+        <p class="courses-total" id="coursesTotal"></p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/courses.js"></script>
+</body>
+</html>

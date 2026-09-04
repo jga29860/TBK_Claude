@@ -126,9 +126,7 @@ function rendreMesInformations(insc) {
 
   let certifLigne = '';
   if (champs.date_certif) {
-    const dateCertif = new Date(champs.date_certif);
-    const finValidite = new Date(dateCertif);
-    finValidite.setFullYear(finValidite.getFullYear() + 1);
+    const finValidite = finValiditeCertificat(champs.date_certif, insc.categorie);
     const expire = finValidite.getTime() < Date.now();
     const expireBientot = !expire && finValidite.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000;
     const etat = expire ? '⚠️ Expiré' : expireBientot ? '⚠️ À renouveler bientôt' : '✅ Valide';

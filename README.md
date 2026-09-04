@@ -716,6 +716,16 @@ Exécutez `supabase/migration_droit_emargement_rls.sql`.
 
 **Note technique** : le script de génération du document Word (`generate.js`) a été perdu suite à une réinitialisation de l'environnement de travail. Le Word a été mis à jour par une édition XML ciblée cette fois-ci (validée sans erreur), mais une reconstruction complète du script serait nécessaire pour garder ce mode de mise à jour pratique sur la durée — à signaler si des évolutions plus conséquentes de la documentation sont prévues prochainement.
 
+## Trois nouveautés — têtes de poule, validité du certificat, page Courses
+
+Exécutez `supabase/migration_tournoi_courses.sql`.
+
+- **Têtes de poule en premier (inscription tournoi)** : sur tournoi-inscriptions.html, chaque poule affiche désormais sa tête de poule en tête de liste, plutôt qu'un ordre arbitraire.
+- **Certificat médical valable selon la catégorie** : nouvelle règle centralisée (auth.js) — 3 ans de validité pour la catégorie Adulte, 1 an pour la catégorie Jeune (renouvellement annuel), calculée à partir de la vraie date du certificat (et non plus de la date d'envoi de la photo, comme c'était le cas par le passé). La validation d'une inscription (bouton "Valider") vérifie maintenant que le certificat est réellement **valable**, pas seulement renseigné. Le statut affiché sur inscriptions.html et sur membres.html ("Mes informations") suit désormais exactement la même règle.
+- **Nouvelle page "Courses du tournoi"** (`courses.html`) : suivi des achats effectués pour le tournoi (libellé, quantité, prix), avec ajout/modification/suppression et total automatique. Nouveau droit de page "tournois_courses" (à attribuer manuellement, ou déjà accessible aux profils tournois_admin/tournois_gestion).
+
+**Note technique** : le Word a de nouveau été mis à jour par édition XML ciblée (script `generate.js` toujours non reconstruit) — validé sans erreur, vérifié visuellement page par page.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

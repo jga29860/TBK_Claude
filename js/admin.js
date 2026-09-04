@@ -14,6 +14,7 @@ const PAGE_CATALOG = [
   { key: 'tournois_gestion', label: 'Tournois - Gestion' },
   { key: 'tournois_inscriptions', label: 'Tournois - Inscriptions' },
   { key: 'tournois_emargement', label: 'Tournois - Émargement' },
+  { key: 'tournois_courses', label: 'Tournois - Courses/Achats' },
   { key: 'benevoles', label: 'Bénévoles tournoi' },
   { key: 'agenda', label: 'Agenda du club' },
   { key: 'jeu_cartes', label: 'Jeu de cartes' },

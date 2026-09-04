@@ -136,7 +136,9 @@ function renderEquipesTable() {
   let html = '';
 
   poules.forEach(p => {
-    const equipesPoule = equipesCache.filter(e => e.poule === p);
+    const equipesPoule = equipesCache
+      .filter(e => e.poule === p)
+      .sort((a, b) => (b.tete_de_poule ? 1 : 0) - (a.tete_de_poule ? 1 : 0));
     html += renderPouleBlock(p, equipesPoule, isDouble);
   });
 

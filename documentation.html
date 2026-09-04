@@ -113,6 +113,7 @@
             <tr><td>tournois_gestion</td><td>mêmes pages que ci-dessus</td><td>Gestion des tournois (hors suppression)</td></tr>
             <tr><td>tournois_inscriptions</td><td>tournoi-inscriptions.html</td><td>Gestion des équipes inscrites et des poules, sans accès aux autres pages tournoi</td></tr>
             <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
+            <tr><td>tournois_courses</td><td>courses.html</td><td>Suivi des achats effectués pour le tournoi</td></tr>
             <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar)</td></tr>
             <tr><td>jeu_cartes</td><td>jeu-de-cartes.html</td><td>Composition aléatoire d'équipes par tirage de cartes</td></tr>
             <tr><td>boutique</td><td>boutique.html</td><td>Consultation du catalogue et passage de commandes</td></tr>
@@ -208,13 +209,19 @@
       <p>Un administrateur choisit quelles colonnes apparaissent dans le tableau des inscrits (la colonne "Nom" est toujours visible).</p>
 
       <h3 class="admin-subheading">5.6 Conditions requises pour valider une demande</h3>
-      <p>Le bouton "Valider" n'est activable que si 3 conditions sont réunies : le champ Cotisation payée est renseigné et différent de "Non" (peu importe la casse — utile si ce champ liste un mode de paiement plutôt qu'un simple Oui/Non), le champ Santé est différent de "En Attente", et une date de certificat est renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée, santé en attente").</p>
+      <p>Le bouton "Valider" n'est activable que si 3 conditions sont réunies : le champ Cotisation payée est renseigné et différent de "Non" (peu importe la casse — utile si ce champ liste un mode de paiement plutôt qu'un simple Oui/Non), le champ Santé est différent de "En Attente", et le certificat médical est <strong>valable</strong> (voir 5.8 — pas seulement renseigné). Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée" ou "certificat médical expiré (valable 3 ans pour la catégorie Adulte)").</p>
 
       <h3 class="admin-subheading">5.7 Notification des demandes en attente</h3>
       <p>Pour les profils "bureau" et "admin", un badge rouge "X demande(s) en attente" apparaît automatiquement dans le bandeau du site, sur <strong>toutes les pages</strong>, dès qu'au moins une inscription a le statut "En attente". Un clic dessus mène directement à la page Inscriptions. Le badge disparaît de lui-même une fois qu'il n'y a plus de demande en attente.</p>
 
-      <h3 class="admin-subheading">5.8 Photo du certificat médical</h3>
-      <p>Sur chaque demande, un bouton "📷 Certificat" ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur) et envoie la photo dans un espace de stockage privé et sécurisé, lié automatiquement à cette inscription. Une fois envoyée, la date d'envoi s'affiche, avec un avertissement quand le certificat approche de sa fin de validité d'1 an. Un bouton "Voir le certificat" génère un lien de consultation temporaire (2 minutes) à chaque demande — le fichier n'est jamais rendu public. Un bouton "Supprimer le certificat" permet de le retirer définitivement si besoin.</p>
+      <h3 class="admin-subheading">5.8 Photo et durée de validité du certificat médical</h3>
+      <p>Sur chaque demande, un bouton "📷 Certificat" ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur) et envoie la photo dans un espace de stockage privé et sécurisé, lié automatiquement à cette inscription. Un bouton "Voir le certificat" génère un lien de consultation temporaire (2 minutes) à chaque demande — le fichier n'est jamais rendu public. Un bouton "Supprimer le certificat" permet de le retirer définitivement si besoin.</p>
+      <p><strong>Durée de validité, selon la catégorie</strong> (calculée à partir de la date réelle du certificat, saisie dans le champ dédié — pas la date d'envoi de la photo) :</p>
+      <ul>
+        <li><strong>Catégorie Adulte</strong> — certificat valable 3 ans.</li>
+        <li><strong>Catégorie Jeune</strong> — certificat valable 1 an (renouvellement annuel obligatoire).</li>
+      </ul>
+      <p>Le statut affiché à côté de la photo ("valable jusqu'au…") tient compte de cette règle, avec un avertissement dès que l'échéance approche (30 jours) ou est dépassée. Cette même règle s'applique sur membres.html (section "Mes informations").</p>
 
       <h3 class="admin-subheading">5.9 Affichage optimisé pour mobile</h3>
       <p>Sur petit écran, le tableau des inscriptions devient une liste de fiches compactes : seul le nom et le prénom sont visibles. Un tap sur une fiche la déplie verticalement, affichant chaque information avec son libellé, suivie des boutons d'action empilés pleine largeur — bien plus lisible qu'un tableau large à faire défiler horizontalement. Sur grand écran, l'affichage reste un tableau classique, avec les boutons d'action regroupés en ligne compacte.</p>
@@ -253,7 +260,7 @@
       <p>Pour chaque équipe : Nom et Club par joueur (un en simple, deux en double).</p>
       <ul>
         <li><strong>Affectation aux poules</strong> — encadrement visuel par poule, compteur d'équipes.</li>
-        <li><strong>Tête de poule</strong> — une seule par poule, garantie en base.</li>
+        <li><strong>Tête de poule</strong> — une seule par poule, garantie en base ; toujours affichée en premier dans la liste de sa poule.</li>
         <li><strong>Échange entre poules</strong> — direct si la poule cible a de la place, sinon échange obligatoire avec une équipe de cette poule.</li>
         <li><strong>Compétition complète</strong> — les nouvelles inscriptions sont bloquées automatiquement dès que la capacité est atteinte.</li>
         <li>Bouton "Répartir automatiquement en poules" pour une distribution équilibrée en un clic.</li>
@@ -263,7 +270,10 @@
       <p>Bandeau du haut fixe : cotisation, recherche instantanée, compteur de présents / inscrits, montant réglé — recalculés en direct.</p>
       <p>L'émargement se fait <strong>par joueur</strong> (et non par équipe) : chaque joueur d'un double a ses propres cases Présent / Absent / Cotisation payée. Par défaut, chaque joueur est "absent" et "non payé" à l'inscription. Nom et club restent modifiables sur cette page. Un filtre permet d'afficher uniquement les équipes avec au moins un absent.</p>
 
-      <h3 class="admin-subheading">6.5 Phase Poule et classement (poules.html)</h3>
+      <h3 class="admin-subheading">6.5 Courses du tournoi (courses.html)</h3>
+      <p>Suivi des achats effectués pour le tournoi (boissons, collations, lots…) : ajout/modification/suppression d'un article (libellé, quantité, prix unitaire), avec un total automatique en bas de liste. Réservée aux profils Tournois (Administration, Gestion, ou le droit dédié "Tournois - Courses/Achats"). Nécessite un tournoi en cours.</p>
+
+      <h3 class="admin-subheading">6.6 Phase Poule et classement (poules.html)</h3>
       <p><strong>Accessible sans connexion</strong> — page de consultation ouverte à tous, avec filtres compétition/poule. Classement recalculé en direct.</p>
       <ul>
         <li>Un match se joue en 2 sets gagnants (jusqu'à 3 sets).</li>
@@ -272,7 +282,7 @@
       </ul>
       <p>Les matchs de chaque poule sont masqués par défaut (bouton "Afficher les matchs"). Sur mobile, chaque ligne (classement ou match) se déplie au tap pour révéler les détails, comme sur les autres tableaux du site.</p>
 
-      <h3 class="admin-subheading">6.6 Planning (planning.html)</h3>
+      <h3 class="admin-subheading">6.7 Planning (planning.html)</h3>
       <p>Page de pilotage du tournoi le jour J.</p>
       <p><strong>Réglages</strong> : heure de début, rotation (20 min par défaut), temps minimum de repos entre deux matchs — modifiables et enregistrés automatiquement. Durée moyenne des matchs calculée en direct.</p>
       <p><strong>Générer / régénérer tout le planning</strong> : réservé au profil administrateur. Un seul bouton régénère l'intégralité du planning pour tout le tournoi (toutes les compétitions à la fois) : efface définitivement tous les matchs de poule ET de phase finale existants (scores déjà saisis inclus), puis reconstruit tout depuis zéro.</p>
@@ -286,7 +296,7 @@
       <p><strong>Bandeau du haut</strong> : réglages, terrains, top 5, et une bande plein largeur (indicateurs + filtres + génération des matchs de poule, tout sur une seule ligne) restent visibles en permanence en haut de l'écran pendant le défilement de la liste des matchs.</p>
       <p><strong>Affichage mobile</strong> : le tableau à colonnes classiques (dense sur PC, une ligne par match) devient une liste de fiches sur petit écran — un tap sur l'identité du match (numéro + compétition) déplie la fiche pour révéler poule, équipes, terrain, scores, horaires et action.</p>
 
-      <h3 class="admin-subheading">6.7 Phases finales (Principale / Consolante)</h3>
+      <h3 class="admin-subheading">6.8 Phases finales (Principale / Consolante)</h3>
       <p>Générées <strong>automatiquement</strong> dès que tous les matchs de poule d'une compétition sont terminés.</p>
       <ul>
         <li>1er et 2e de chaque poule → Principale ; 3e et 4e → Consolante (règle fixe).</li>
@@ -296,10 +306,10 @@
       <p><em>Limite assumée</em> : tableau propre quand le nombre de poules qualificatives est une puissance de 2 (2, 4, 8, 16…) ; sinon certaines places peuvent rester vides.</p>
       <p>Les matchs de phase finale sont eux aussi regroupés en rotations équitables, avec une colonne "Compétition" précisant compétition, phase, et tour — nommé selon l'usage (1/8 de finale, 1/4, 1/2 finale, Finale). Principale et Consolante avancent au prorata du nombre total de matchs de leur propre tableau (et non du nombre d'équipes de la compétition) : si l'un des deux tableaux est plus petit que l'autre (cas limite ci-dessus), il reçoit proportionnellement moins de créneaux, pour que les deux terminent à peu près en même temps plutôt que l'un n'avance beaucoup plus vite que l'autre.</p>
 
-      <h3 class="admin-subheading">6.8 Synthèse Phase finale (phase-finale.html)</h3>
+      <h3 class="admin-subheading">6.9 Synthèse Phase finale (phase-finale.html)</h3>
       <p><strong>Accessible sans connexion</strong> — page de consultation ouverte à tous, présentant la phase finale en tableau à élimination directe classique, en colonnes par tour. Se met à jour automatiquement toutes les 20 secondes.</p>
 
-      <h3 class="admin-subheading">6.9 Bénévoles (tournoi-benevoles.html)</h3>
+      <h3 class="admin-subheading">6.10 Bénévoles (tournoi-benevoles.html)</h3>
       <p><strong>Accessible sans connexion</strong> — c'est la seule page du site conçue pour être ouverte à des visiteurs qui n'ont pas de compte (partageable largement, par exemple via un lien ou une affiche). Elle affiche les postes de bénévoles du tournoi actif.</p>
       <ul>
         <li><strong>Postes configurables</strong> par les organisateurs (droits "Tournois - Administration" ou "Tournois - Gestion") : nom, horaire facultatif, description facultative, nombre de places nécessaires.</li>
@@ -438,6 +448,7 @@
             <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.</td></tr>
             <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité).</td></tr>
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande), statut et paiement.</td></tr>
+            <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
             <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>

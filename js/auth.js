@@ -59,6 +59,26 @@ function estImage(chemin) {
   return /\.(jpe?g|png|gif|webp|heic|svg)$/i.test(chemin || '');
 }
 
+/**
+ * Date de fin de validité d'un certificat médical, selon la catégorie :
+ * 3 ans pour un adulte, 1 an pour un jeune (renouvellement annuel
+ * obligatoire). Centralisé ici pour que inscriptions.html et
+ * membres.html appliquent toujours exactement la même règle.
+ */
+function finValiditeCertificat(dateCertif, categorie) {
+  const fin = new Date(dateCertif);
+  const dureeAns = categorie === 'Jeune' ? 1 : 3;
+  fin.setFullYear(fin.getFullYear() + dureeAns);
+  return fin;
+}
+
+/** Un certificat est "valable" si sa date de fin de validité (calculée
+ *  selon la catégorie) n'est pas encore dépassée. */
+function certificatEstValide(dateCertif, categorie) {
+  if (!dateCertif) return false;
+  return finValiditeCertificat(dateCertif, categorie).getTime() >= Date.now();
+}
+
 function afficherIdentifiant(email) {
   if (estIdentifiantTechnique(email)) return email.split('@')[0];
   return email;
@@ -197,6 +217,7 @@ const TOOL_LINKS = [
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournois.html', label: 'Tournois', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_emargement'], href: 'emargement.html', label: 'Émargement', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_courses'], href: 'courses.html', label: 'Courses du tournoi', group: 'Tournoi' },
   { pageKeys: ['benevoles', 'tournois_admin', 'tournois_gestion'], href: 'tournoi-benevoles.html', label: 'Bénévoles', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'poules.html', label: 'Phase Poule', group: 'Tournoi' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'phase-finale.html', label: 'Phase finale', group: 'Tournoi' },

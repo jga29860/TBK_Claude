@@ -402,7 +402,7 @@ async function loadInscriptions() {
           ${i.certificat_photo_url ? `
             <button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${i.id}">Voir le certificat</button>
             <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${i.id}">Supprimer le certificat</button>
-            <span class="certificat-date">${escapeHtml(dateCertificat(i.certificat_photo_url))}</span>
+            <span class="certificat-date">${escapeHtml(dateCertificat(i))}</span>
           ` : ''}
           ${renderRattachementWidget(i)}
           <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
@@ -507,7 +507,12 @@ function conditionsValidationOk(record) {
   const motifs = [];
   if (!estValeurAffirmative(champs.cotisation_payee)) motifs.push('cotisation non payée');
   if (!champs.sante || champs.sante === 'En Attente') motifs.push('santé en attente');
-  if (!champs.date_certif) motifs.push('date de certificat non renseignée');
+  if (!champs.date_certif) {
+    motifs.push('date de certificat non renseignée');
+  } else if (!certificatEstValide(champs.date_certif, record.categorie)) {
+    const dureeAns = record.categorie === 'Jeune' ? 1 : 3;
+    motifs.push(`certificat médical expiré (valable ${dureeAns} an${dureeAns > 1 ? 's' : ''} pour la catégorie ${record.categorie || '?'})`);
+  }
   return { ok: motifs.length === 0, motifs };
 }
 
@@ -619,19 +624,19 @@ async function voirCertificat(id) {
   window.open(data.signedUrl, '_blank');
 }
 
-/** Le nom du fichier contient l'horodatage de la prise de photo
- *  (ex. "abc123/1787600000000.jpg") : pas besoin de colonne dédiée
- *  pour savoir quand le certificat a été envoyé. */
-function dateCertificat(chemin) {
-  const nomFichier = chemin.split('/').pop() || '';
-  const timestamp = parseInt(nomFichier.split('.')[0], 10);
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  const unAnPlusTard = new Date(timestamp);
-  unAnPlusTard.setFullYear(unAnPlusTard.getFullYear() + 1);
-  const expireBientot = unAnPlusTard.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000; // < 30 jours
-  const texte = `envoyé le ${date.toLocaleDateString('fr-FR')}`;
-  return expireBientot ? `${texte} ⚠️ à renouveler bientôt` : texte;
+/** Statut de validité du certificat, basé sur la vraie date du
+ *  certificat (champs.date_certif) et la catégorie — 3 ans pour un
+ *  adulte, 1 an pour un jeune (voir finValiditeCertificat, auth.js). */
+function dateCertificat(record) {
+  const champs = record.champs || {};
+  if (!champs.date_certif) return '';
+  const fin = finValiditeCertificat(champs.date_certif, record.categorie);
+  const expire = fin.getTime() < Date.now();
+  const expireBientot = !expire && fin.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000; // < 30 jours
+  const texte = `valable jusqu'au ${fin.toLocaleDateString('fr-FR')}`;
+  if (expire) return `${texte} ⚠️ expiré`;
+  if (expireBientot) return `${texte} ⚠️ à renouveler bientôt`;
+  return texte;
 }
 
 async function supprimerCertificat(id) {
