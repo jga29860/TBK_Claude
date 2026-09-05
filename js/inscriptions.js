@@ -618,7 +618,11 @@ function conditionsValidationOk(record) {
 function templateRecommande(record) {
   const champs = record.champs || {};
   if (record.statut === 'validee') return 'inscription_validee';
-  if (!estValeurAffirmative(champs.cotisation_payee)) return 'cotisation_absente';
+  const cotisationManquante = !estValeurAffirmative(champs.cotisation_payee);
+  const santeManquante = !champs.sante || champs.sante === 'En Attente';
+  if (cotisationManquante && santeManquante) return 'cotisation_et_sante_absentes';
+  if (cotisationManquante) return 'cotisation_absente';
+  if (santeManquante) return 'certificat_medical_attendu';
   return 'certificat_medical_attendu';
 }
 
@@ -631,6 +635,7 @@ function renderEmailRelanceWidget(record) {
     ['cotisation_absente', '✉️ Cotisation manquante'],
     ['certificat_medical_attendu', '✉️ Certificat médical attendu'],
     ['qs_sport_attendu', '✉️ QS Sport attendu'],
+    ['cotisation_et_sante_absentes', '✉️ Cotisation + document santé manquants'],
     ['inscription_validee', '✉️ Bienvenue (validée)'],
   ];
 
@@ -958,6 +963,7 @@ const LABELS_TEMPLATES_EMAIL = {
   cotisation_absente: 'Cotisation manquante',
   certificat_medical_attendu: 'Certificat médical attendu',
   qs_sport_attendu: 'QS Sport attendu',
+  cotisation_et_sante_absentes: 'Cotisation + document santé manquants',
   inscription_validee: 'Inscription validée (bienvenue)',
 };
 
