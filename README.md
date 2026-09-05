@@ -770,6 +770,23 @@ Exécutez `supabase/migration_email_templates_inscriptions.sql`.
 
 **Petit oubli corrigé au passage** : la table `tournoi_courses` (fonctionnalité d'un tour précédent) n'avait jamais été ajoutée au tableau de référence de la base de données dans le document Word — corrigé en même temps que l'ajout de `inscriptions_email_templates`.
 
+## Emails de relance — 5ème modèle : cotisation + document santé manquants
+
+Exécutez `supabase/migration_email_template_combine.sql` (en plus de la migration du tour précédent si pas déjà fait).
+
+Nouveau modèle "Cotisation + document santé manquants", pré-sélectionné automatiquement quand la cotisation ET le certificat médical/QS Sport manquent tous les deux en même temps — plutôt que de forcer l'envoi de deux emails séparés. Testé sur les 4 combinaisons possibles (rien fourni, cotisation seule, santé seule, validée) : la recommandation se comporte correctement dans tous les cas.
+
+## Inscriptions — règle de document santé précise + couleurs de ligne
+
+Exécutez `supabase/migration_precision_message_sante.sql`.
+
+**Règle de document santé précisée** (testée sur 4 scénarios, comportement conforme) :
+- Catégorie **Jeune** : toujours un certificat médical neuf exigé chaque année (jamais de QS Sport pour un mineur).
+- Catégorie **Adulte** : certificat neuf exigé si aucun certificat n'a jamais été renseigné, ou si le certificat existant a plus de 37 mois (expiré) ; dans les autres cas (certificat encore dans sa fenêtre de validité), un simple QS Sport suffit pour la saison — cohérent avec la règle fédérale réelle (certificat valable 3 ans, questionnaire de santé les années intermédiaires).
+- Le modèle d'email combiné ("Cotisation + document santé manquants") utilise désormais une nouvelle variable `{document_sante}`, qui précise automatiquement lequel des deux documents est concerné, plutôt que de mentionner vaguement "un certificat médical ou le questionnaire de santé".
+
+**Couleurs de ligne dans le tableau des inscrits** : bleu clair pour la catégorie Jeune, orange clair pour Adulte, vert dès que l'inscription est validée (prioritaire sur la couleur de catégorie). Légende ajoutée au-dessus du tableau.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

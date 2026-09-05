@@ -211,6 +211,7 @@
 
       <h3 class="admin-subheading">5.5 Colonnes affichées</h3>
       <p>Un administrateur choisit quelles colonnes apparaissent dans le tableau des inscrits (la colonne "Nom" est toujours visible).</p>
+      <p><strong>Couleurs de ligne</strong> : bleu clair pour la catégorie Jeune, orange clair pour Adulte, vert dès que l'inscription est validée (prioritaire sur la couleur de catégorie). Légende rappelée au-dessus du tableau.</p>
 
       <h3 class="admin-subheading">5.6 Conditions requises pour valider une demande</h3>
       <p>Le bouton "Valider" n'est activable que si 3 conditions sont réunies : le champ Cotisation payée est renseigné et différent de "Non" (peu importe la casse — utile si ce champ liste un mode de paiement plutôt qu'un simple Oui/Non), le champ Santé est différent de "En Attente", et le certificat médical est <strong>valable</strong> (voir 5.8 — pas seulement renseigné). Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée" ou "certificat médical expiré (valable 3 ans et 1 mois pour la catégorie Adulte)").</p>
@@ -249,12 +250,13 @@
       <p>Chaque inscription ayant une adresse email renseignée affiche un menu déroulant + un bouton "Envoyer" dans ses actions. Le modèle le plus pertinent est pré-sélectionné automatiquement selon l'état de la demande (cotisation non payée, certificat attendu, ou inscription validée), mais reste modifiable avant l'envoi.</p>
       <ul>
         <li>Ouvre le client email de la personne connectée (mailto), avec le destinataire, le sujet et le corps du message déjà remplis — comme pour le bouton de contact du bandeau (voir 1.2), rien n'est envoyé automatiquement : il faut valider l'envoi depuis son propre client email.</li>
-        <li>4 modèles disponibles : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Inscription validée (bienvenue).</li>
+        <li>5 modèles disponibles : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Cotisation + document santé manquants (relance combinée quand les deux manquent à la fois), Inscription validée (bienvenue).</li>
         <li><strong>Important sur le mot de passe</strong> : le modèle "Inscription validée" ne peut pas "rappeler" un mot de passe — c'est techniquement impossible pour n'importe quel système, les mots de passe n'étant jamais stockés en clair. Il invite donc la personne à créer son compte (si elle n'en a pas) ou à utiliser "Mot de passe oublié" (si elle l'a perdu).</li>
+        <li><strong>Quel document de santé demander ?</strong> déterminé automatiquement : catégorie Jeune → toujours un certificat médical neuf (exigé chaque année, jamais de QS Sport pour un mineur) ; catégorie Adulte → certificat neuf si aucun certificat n'a jamais été renseigné, ou si le certificat existant a plus de 37 mois (expiré) ; dans les autres cas (certificat existant encore dans sa fenêtre de validité), un simple QS Sport suffit pour la saison. Le modèle combiné utilise la variable <code>{document_sante}</code> pour préciser automatiquement lequel des deux est concerné.</li>
       </ul>
 
       <h3 class="admin-subheading">5.13 Modèles d'emails (configuration, profil admin)</h3>
-      <p>Dans la section Configuration de cette page, le contenu (sujet + corps) des 4 modèles d'emails ci-dessus est entièrement personnalisable. Variables disponibles, remplacées automatiquement à l'envoi : <code>{prenom}</code>, <code>{nom}</code>, <code>{montant}</code> (cotisation attendue), <code>{email}</code> (adresse de la personne), <code>{url_site}</code> (adresse du site).</p>
+      <p>Dans la section Configuration de cette page, le contenu (sujet + corps) des 5 modèles d'emails ci-dessus est entièrement personnalisable. Variables disponibles, remplacées automatiquement à l'envoi : <code>{prenom}</code>, <code>{nom}</code>, <code>{montant}</code> (cotisation attendue), <code>{email}</code> (adresse de la personne), <code>{url_site}</code> (adresse du site), <code>{document_sante}</code> (résout en "un certificat médical" ou "le questionnaire de santé (QS Sport)" selon la règle décrite en 5.12).</p>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->

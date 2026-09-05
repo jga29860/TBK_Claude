@@ -434,6 +434,14 @@ function inscriptionCorrespondFiltres(insc, columns) {
 /** Rendu (et rebranchement des actions) du corps du tableau, à partir
  *  d'inscriptionsCache filtré par les filtres de colonne actifs — sans
  *  recharger depuis la base, pour un filtrage instantané. */
+/** Couleur de ligne du tableau : validée (prioritaire sur tout le
+ *  reste) > catégorie Jeune > catégorie Adulte. */
+function classeCouleurLigne(record) {
+  if (record.statut === 'validee') return 'ligne-validee';
+  if (record.categorie === 'Jeune') return 'ligne-jeune';
+  return 'ligne-adulte';
+}
+
 function renderInscriptionsTableBody(columns) {
   const tbody = document.getElementById('inscriptionsTableBody');
 
@@ -449,7 +457,7 @@ function renderInscriptionsTableBody(columns) {
   }
 
   tbody.innerHTML = liste.map(i => `
-    <tr data-id="${i.id}">
+    <tr data-id="${i.id}" class="${classeCouleurLigne(i)}">
       <td class="cell-nom">
         <span class="cell-nom-chevron">▸</span>
         <span class="cell-nom-texte">${escapeHtml(i.nom)} ${escapeHtml(i.prenom || '')}</span>
@@ -615,14 +623,39 @@ function conditionsValidationOk(record) {
   return { ok: motifs.length === 0, motifs };
 }
 
+/**
+ * Détermine quel document de santé demander pour cette inscription,
+ * selon les règles du club :
+ * - Catégorie Jeune : un certificat médical NEUF est exigé chaque
+ *   année (jamais de simple QS Sport pour les mineurs).
+ * - Catégorie Adulte : certificat neuf exigé si aucun certificat n'a
+ *   jamais été renseigné (date vide), ou si le certificat existant a
+ *   plus de 37 mois (expiré selon la règle en place) ; dans les
+ *   autres cas (certificat existant, encore dans sa fenêtre de
+ *   validité), un simple QS Sport suffit pour cette saison.
+ * Retourne 'certificat' ou 'qs_sport'.
+ */
+function typeDocumentSanteRequis(record) {
+  const champs = record.champs || {};
+  const dateCertif = champs.date_certif;
+
+  if (record.categorie === 'Jeune') return 'certificat';
+  if (!dateCertif) return 'certificat';
+  if (!certificatEstValide(dateCertif, record.categorie)) return 'certificat';
+  return 'qs_sport';
+}
+
 function templateRecommande(record) {
   const champs = record.champs || {};
   if (record.statut === 'validee') return 'inscription_validee';
+
   const cotisationManquante = !estValeurAffirmative(champs.cotisation_payee);
   const santeManquante = !champs.sante || champs.sante === 'En Attente';
+  const besoinCertificat = typeDocumentSanteRequis(record) === 'certificat';
+
   if (cotisationManquante && santeManquante) return 'cotisation_et_sante_absentes';
   if (cotisationManquante) return 'cotisation_absente';
-  if (santeManquante) return 'certificat_medical_attendu';
+  if (santeManquante) return besoinCertificat ? 'certificat_medical_attendu' : 'qs_sport_attendu';
   return 'certificat_medical_attendu';
 }
 
@@ -671,6 +704,9 @@ function envoyerEmailRelance(id) {
     montant: Number(record.cotisation || 0).toFixed(2),
     email: destinataire,
     url_site: baseUrl,
+    document_sante: typeDocumentSanteRequis(record) === 'certificat'
+      ? 'un certificat médical'
+      : 'le questionnaire de santé (QS Sport)',
   };
   const substituer = (texte) => (texte || '').replace(/\{(\w+)\}/g, (m, k) => (valeurs[k] !== undefined ? valeurs[k] : m));
 

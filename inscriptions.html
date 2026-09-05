@@ -99,6 +99,11 @@
     <!-- ===== Liste des inscriptions ===== -->
     <section class="admin-section">
       <h2>Inscrits — 2026/2027 <span id="inscriptionsCount" class="count-badge"></span></h2>
+      <div class="couleurs-legende">
+        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#e3f2fd;"></span>Jeune</span>
+        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#fff3e0;"></span>Adulte</span>
+        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#d9f2d9;"></span>Validée</span>
+      </div>
       <div class="inline-form" style="margin-bottom:14px;">
         <button type="button" class="btn btn-ghost btn-small" id="relierComptesBtn">Relier automatiquement les comptes existants</button>
         <p class="form-hint" id="relierComptesHint" style="margin:0;">Utile une seule fois pour les inscriptions déjà validées avant cette fonctionnalité — les nouvelles se relient désormais automatiquement.</p>
@@ -180,7 +185,7 @@
       </form>
 
       <h3 class="admin-subheading">Modèles d'emails de relance</h3>
-      <p class="section-lead">Contenu utilisé par le bouton "Envoyer" présent sur chaque inscription. Variables disponibles : <code>{prenom}</code>, <code>{nom}</code>, <code>{montant}</code> (cotisation), <code>{email}</code>, <code>{url_site}</code>.</p>
+      <p class="section-lead">Contenu utilisé par le bouton "Envoyer" présent sur chaque inscription. Variables disponibles : <code>{prenom}</code>, <code>{nom}</code>, <code>{montant}</code> (cotisation), <code>{email}</code>, <code>{url_site}</code>, <code>{document_sante}</code> (résout automatiquement en "un certificat médical" ou "le questionnaire de santé (QS Sport)" selon la catégorie et l'ancienneté du certificat — utile dans le modèle combiné).</p>
       <div id="emailTemplatesContainer"></div>
     </section>
 
