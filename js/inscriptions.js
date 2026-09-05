@@ -22,6 +22,8 @@ let colonnesCache = [];    // clés des colonnes sélectionnées pour le tableau
 let editingId = null;      // id en cours d'édition, ou null pour une nouvelle inscription
 let certificatCibleId = null; // id de l'inscription visée par la prochaine photo de certificat
 let profilesCache = [];    // comptes existants, pour le rattachement manuel d'une inscription
+let emailTemplatesCache = {}; // { cle: {sujet, corps} } — modèles d'emails de relance
+let filtresColonnes = {};  // { colKey: texte du filtre } — filtres actifs par colonne
 let isAdminUser = false;
 let isBureau = false;
 let currentAccess = null;
@@ -48,6 +50,7 @@ async function initInscriptionsPage() {
   await loadChamps();
   await loadAffichage();
   await loadProfilesPourRattachement();
+  await loadEmailTemplates();
   await loadInscriptions();
 
   bindMainForm();
@@ -64,6 +67,13 @@ async function loadProfilesPourRattachement() {
   const { data, error } = await sbClient.from('profiles').select('id, email, display_name').order('display_name', { ascending: true });
   if (error) { console.error(error.message); return; }
   profilesCache = data || [];
+}
+
+async function loadEmailTemplates() {
+  const { data, error } = await sbClient.from('inscriptions_email_templates').select('cle, sujet, corps');
+  if (error) { console.error(error.message); return; }
+  emailTemplatesCache = {};
+  (data || []).forEach(t => { emailTemplatesCache[t.cle] = { sujet: t.sujet, corps: t.corps }; });
 }
 
 async function loadBareme() {
@@ -386,12 +396,59 @@ async function loadInscriptions() {
   inscriptionsCache = data || [];
   document.getElementById('inscriptionsCount').textContent = `(${inscriptionsCache.length})`;
 
+  renderInscriptionsTableBody(columns);
+}
+
+/** Valeur "brute" (texte simple, sans mise en forme) d'une colonne —
+ *  utilisée pour le filtrage par colonne, séparément de
+ *  formatColumnValue qui peut renvoyer du HTML échappé. */
+function getColumnRawText(record, key) {
+  if (key === 'prenom') return record.prenom || '';
+  if (key === 'categorie') return record.categorie || '';
+  if (key === 'bad_ping') return record.bad_ping || '';
+  if (key === 'ufolep_fsgt') return record.ufolep_fsgt ? 'Oui' : 'Non';
+  if (key === 'membre_bureau') return record.membre_bureau ? 'Oui' : 'Non';
+  if (key === 'cotisation') return String(record.cotisation ?? '');
+  const champ = champsCache.find(c => c.key === key);
+  const val = record.champs ? record.champs[key] : undefined;
+  if (!champ || val === undefined || val === null || val === '') return '';
+  if (champ.type === 'booleen') return val ? 'Oui' : 'Non';
+  return String(val);
+}
+
+/** Une inscription correspond-elle à tous les filtres de colonne
+ *  actuellement saisis (texte contenu, insensible à la casse) ? */
+function inscriptionCorrespondFiltres(insc, columns) {
+  for (const [colKey, texte] of Object.entries(filtresColonnes)) {
+    if (!texte) continue;
+    const texteLower = texte.toLowerCase();
+    let valeur;
+    if (colKey === '__nom') valeur = `${insc.nom || ''} ${insc.prenom || ''}`;
+    else if (colKey === '__statut') valeur = insc.statut === 'validee' ? 'validée' : 'en attente';
+    else valeur = getColumnRawText(insc, colKey);
+    if (!String(valeur).toLowerCase().includes(texteLower)) return false;
+  }
+  return true;
+}
+
+/** Rendu (et rebranchement des actions) du corps du tableau, à partir
+ *  d'inscriptionsCache filtré par les filtres de colonne actifs — sans
+ *  recharger depuis la base, pour un filtrage instantané. */
+function renderInscriptionsTableBody(columns) {
+  const tbody = document.getElementById('inscriptionsTableBody');
+
   if (inscriptionsCache.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Aucune inscription pour le moment.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = inscriptionsCache.map(i => `
+  const liste = inscriptionsCache.filter(i => inscriptionCorrespondFiltres(i, columns));
+  if (liste.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Aucune inscription ne correspond aux filtres.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = liste.map(i => `
     <tr data-id="${i.id}">
       <td class="cell-nom">
         <span class="cell-nom-chevron">▸</span>
@@ -411,6 +468,7 @@ async function loadInscriptions() {
             <span class="certificat-date">${escapeHtml(dateCertificat(i))}</span>
           ` : ''}
           ${renderRattachementWidget(i)}
+          ${renderEmailRelanceWidget(i)}
           <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
           <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
         </div>
@@ -456,6 +514,12 @@ async function loadInscriptions() {
       }).eq('id', id);
       if (error) { alert('Erreur : ' + error.message); return; }
       await loadInscriptions();
+    });
+  });
+
+  tbody.querySelectorAll('.envoyer-email-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      envoyerEmailRelance(btn.getAttribute('data-id'));
     });
   });
 
@@ -519,8 +583,22 @@ async function loadInscriptions() {
 }
 
 function renderInscriptionsTableHead(columns) {
-  const theadRow = document.querySelector('#inscriptionsTable thead tr');
-  theadRow.innerHTML = `<th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th>`;
+  const thead = document.querySelector('#inscriptionsTable thead');
+  const headerRow = `<tr><th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th></tr>`;
+  const filterRow = `<tr class="filtres-colonnes-row">
+    <th><input type="text" class="filtre-colonne-input" data-col="__nom" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes.__nom || '')}"></th>
+    ${columns.map(c => `<th><input type="text" class="filtre-colonne-input" data-col="${escapeHtml(c.key)}" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes[c.key] || '')}"></th>`).join('')}
+    <th><input type="text" class="filtre-colonne-input" data-col="__statut" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes.__statut || '')}"></th>
+    <th></th>
+  </tr>`;
+  thead.innerHTML = headerRow + filterRow;
+
+  thead.querySelectorAll('.filtre-colonne-input').forEach(input => {
+    input.addEventListener('input', () => {
+      filtresColonnes[input.getAttribute('data-col')] = input.value;
+      renderInscriptionsTableBody(columns);
+    });
+  });
 }
 
 function conditionsValidationOk(record) {
@@ -535,6 +613,66 @@ function conditionsValidationOk(record) {
     motifs.push(`certificat médical expiré (valable ${duree} pour la catégorie ${record.categorie || '?'})`);
   }
   return { ok: motifs.length === 0, motifs };
+}
+
+function templateRecommande(record) {
+  const champs = record.champs || {};
+  if (record.statut === 'validee') return 'inscription_validee';
+  if (!estValeurAffirmative(champs.cotisation_payee)) return 'cotisation_absente';
+  return 'certificat_medical_attendu';
+}
+
+function renderEmailRelanceWidget(record) {
+  const champs = record.champs || {};
+  const email = champs.email;
+  const recommande = templateRecommande(record);
+
+  const options = [
+    ['cotisation_absente', '✉️ Cotisation manquante'],
+    ['certificat_medical_attendu', '✉️ Certificat médical attendu'],
+    ['qs_sport_attendu', '✉️ QS Sport attendu'],
+    ['inscription_validee', '✉️ Bienvenue (validée)'],
+  ];
+
+  if (!email) {
+    return `<span class="form-hint" title="Aucune adresse email renseignée sur cette inscription">✉️ Email non renseigné</span>`;
+  }
+
+  return `
+    <div class="email-relance-widget">
+      <select class="email-relance-select" data-id="${record.id}">
+        ${options.map(([cle, label]) => `<option value="${cle}" ${cle === recommande ? 'selected' : ''}>${label}</option>`).join('')}
+      </select>
+      <button type="button" class="btn btn-ghost btn-small envoyer-email-btn" data-id="${record.id}">Envoyer</button>
+    </div>`;
+}
+
+function envoyerEmailRelance(id) {
+  const record = inscriptionsCache.find(i => i.id === id);
+  if (!record) return;
+  const champs = record.champs || {};
+  const destinataire = champs.email;
+  if (!destinataire) { alert("Aucune adresse email renseignée sur cette inscription — impossible d'envoyer."); return; }
+
+  const select = document.querySelector(`.email-relance-select[data-id="${id}"]`);
+  const cle = select ? select.value : templateRecommande(record);
+  const template = emailTemplatesCache[cle];
+  if (!template) { alert("Modèle introuvable — vérifiez la configuration dans Administration → Modèles d'emails."); return; }
+
+  const baseUrl = window.location.origin + window.location.pathname.replace(/inscriptions\.html$/, '');
+  const valeurs = {
+    prenom: record.prenom || '',
+    nom: record.nom || '',
+    montant: Number(record.cotisation || 0).toFixed(2),
+    email: destinataire,
+    url_site: baseUrl,
+  };
+  const substituer = (texte) => (texte || '').replace(/\{(\w+)\}/g, (m, k) => (valeurs[k] !== undefined ? valeurs[k] : m));
+
+  const sujet = substituer(template.sujet);
+  const corps = substituer(template.corps);
+
+  window.location.href = `mailto:${encodeURIComponent(destinataire)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
 }
 
 function renderRattachementWidget(record) {
@@ -812,6 +950,57 @@ function bindConfigForms() {
       await loadChamps();
     });
   }
+
+  renderEmailTemplatesConfig();
+}
+
+const LABELS_TEMPLATES_EMAIL = {
+  cotisation_absente: 'Cotisation manquante',
+  certificat_medical_attendu: 'Certificat médical attendu',
+  qs_sport_attendu: 'QS Sport attendu',
+  inscription_validee: 'Inscription validée (bienvenue)',
+};
+
+function renderEmailTemplatesConfig() {
+  const container = document.getElementById('emailTemplatesContainer');
+  if (!container) return;
+
+  const cles = Object.keys(LABELS_TEMPLATES_EMAIL);
+  container.innerHTML = cles.map(cle => {
+    const t = emailTemplatesCache[cle] || { sujet: '', corps: '' };
+    return `
+      <div class="email-template-bloc">
+        <h4 class="admin-subheading">${escapeHtml(LABELS_TEMPLATES_EMAIL[cle])}</h4>
+        <label>Sujet
+          <input type="text" class="email-template-sujet" data-cle="${cle}" value="${escapeHtml(t.sujet)}">
+        </label>
+        <label>Corps du message
+          <textarea class="email-template-corps" data-cle="${cle}" rows="6">${escapeHtml(t.corps)}</textarea>
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary btn-small email-template-save-btn" data-cle="${cle}">Enregistrer ce modèle</button>
+        </div>
+        <p class="form-hint" id="emailTemplateHint-${cle}"></p>
+      </div>`;
+  }).join('');
+
+  container.querySelectorAll('.email-template-save-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const cle = btn.getAttribute('data-cle');
+      const hint = document.getElementById(`emailTemplateHint-${cle}`);
+      const sujet = container.querySelector(`.email-template-sujet[data-cle="${cle}"]`).value.trim();
+      const corps = container.querySelector(`.email-template-corps[data-cle="${cle}"]`).value;
+
+      hint.textContent = 'Enregistrement…';
+      const { error } = await sbClient
+        .from('inscriptions_email_templates')
+        .update({ sujet, corps, updated_at: new Date().toISOString() })
+        .eq('cle', cle);
+      if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+      hint.textContent = 'Modèle enregistré.';
+      await loadEmailTemplates();
+    });
+  });
 }
 
 function escapeHtml(str) {

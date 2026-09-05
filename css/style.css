@@ -595,6 +595,29 @@ table.schedule .role-label-input{
   font-family: var(--font-body); font-size:0.82rem; max-width:200px;
 }
 
+.email-relance-widget{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; width:100%; }
+.email-relance-select{
+  border:1px solid var(--border); border-radius:6px; padding:6px 8px;
+  font-family: var(--font-body); font-size:0.82rem; max-width:220px;
+}
+
+/* Ligne de filtres par colonne, sous les en-têtes */
+.filtres-colonnes-row th{ padding:6px 8px !important; background: var(--white) !important; }
+.filtre-colonne-input{
+  width:100%; box-sizing:border-box; padding:5px 7px; font-size:0.78rem;
+  border:1px solid var(--border); border-radius:5px; font-family: var(--font-body); font-weight:400;
+}
+.filtre-colonne-input:focus{ outline:2px solid var(--green); }
+
+.email-template-bloc{
+  border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-top:14px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.email-template-bloc textarea{
+  font-family: var(--font-body); font-size:0.88rem; padding:8px 10px;
+  border-radius:6px; border:1px solid #a9d18e; resize:vertical;
+}
+
 @media (max-width: 760px){
   .actions-stack{ flex-direction:column; align-items:stretch; min-width:150px; }
   .actions-stack .btn{ width:100%; text-align:center; padding:10px 12px; font-size:0.85rem; }

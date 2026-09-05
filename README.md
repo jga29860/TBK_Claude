@@ -746,6 +746,30 @@ Corrigé : ce cas suit désormais exactement la même règle que le bouton "Vali
 - **Planning mobile — pliage de la partie haute** : nouveau bouton "⚙️ Réglages, terrains, top 5", visible uniquement sur mobile, repliant/dépliant cette zone (repliée par défaut) pour libérer un maximum d'espace pour la liste des matchs. Aucun changement sur PC — le bouton n'y apparaît même pas.
 - **Zone "Match" garantie sur une ligne** : la classe partagée par toutes les fiches dépliables du site (inscriptions, tournois, équipes, poules, planning) tronque désormais le texte avec "…" plutôt que de le faire passer à la ligne — bénéfice appliqué partout, pas seulement sur Planning.
 
+## Correction — troncature "une ligne" enfin effective + colonnes redimensionnables
+
+Cause du bug identifiée : le correctif précédent (troncature avec "…") ne pouvait pas fonctionner sur PC car le tableau utilisait une largeur de colonne libre (`table-layout: auto`) — sans largeur fixe, une colonne s'élargit simplement pour accueillir tout le texte au lieu de le tronquer. La cellule "Match" n'avait de plus aucune mise en forme adaptée sur PC (seulement sur mobile).
+
+Corrigé en profondeur, avec une vraie fonctionnalité en prime :
+- **Largeurs de colonnes fixes par défaut** sur le tableau des matchs (planning.html, PC uniquement) — la troncature "…" fonctionne enfin réellement dès qu'un texte dépasse.
+- **Redimensionnement à la main** : une poignée sur le bord droit de chaque en-tête de colonne permet de faire glisser pour l'élargir ou la rétrécir. Double-clic pour revenir à la largeur par défaut.
+- **Mémorisation** des largeurs choisies dans le navigateur (persistantes d'une session à l'autre, propres à chaque appareil).
+- Mobile non affecté (comportement en fiches dépliables inchangé, poignées de redimensionnement masquées).
+
+## Nouvelle fonctionnalité — filtres par colonne + emails de relance configurables
+
+Exécutez `supabase/migration_email_templates_inscriptions.sql`.
+
+**Point de sécurité clarifié en amont** : il est techniquement impossible de "rappeler" un mot de passe (jamais stocké en clair, par personne, sur aucun système bien conçu). Le modèle d'email "Inscription validée" invite donc la personne à créer son compte ou à utiliser "Mot de passe oublié", plutôt que de prétendre lui redonner un mot de passe.
+
+**Filtres par colonne** (inscriptions.html, PC uniquement) : une ligne de filtres texte sous les en-têtes du tableau, filtrage instantané et combinable, sans recharger la page. Limite connue : indisponible sur mobile, où l'en-tête est masqué par le motif de fiches dépliables.
+
+**Bouton d'envoi d'email par ligne** : menu déroulant + bouton "Envoyer" sur chaque inscription ayant un email renseigné. Pré-sélectionne le modèle le plus pertinent selon l'état de la demande (cotisation manquante / certificat attendu / validée), modifiable avant envoi. Utilise un lien `mailto:` classique (comme le bouton de contact du bandeau) — rien n'est envoyé automatiquement, la personne connectée valide depuis son propre client email.
+
+**4 modèles configurables en base**, éditables depuis Administration → section Configuration de la page Inscriptions : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Inscription validée (bienvenue). Variables disponibles : `{prenom}`, `{nom}`, `{montant}`, `{email}`, `{url_site}`.
+
+**Petit oubli corrigé au passage** : la table `tournoi_courses` (fonctionnalité d'un tour précédent) n'avait jamais été ajoutée au tableau de référence de la base de données dans le document Word — corrigé en même temps que l'ajout de `inscriptions_email_templates`.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -240,6 +240,21 @@
       </ul>
       <p><strong>Rattachement manuel</strong> — mode plus simple, ne dépendant pas d'une correspondance par email : sur chaque demande, le bureau/admin peut choisir un compte existant dans une liste déroulante et cliquer "Rattacher" (élève aussi le profil à "membre"). Un bouton "Délier" permet d'annuler un rattachement fait par erreur.</p>
       <p>Une fois relié (automatiquement ou manuellement), sur membres.html, la personne voit ses informations d'inscription (saison, statut, catégorie, pratique, cotisation, validité du certificat médical) directement sous "Mon compte", avant les annonces — uniquement les siennes, jamais celles des autres.</p>
+
+      <h3 class="admin-subheading">5.11 Filtres par colonne (PC uniquement)</h3>
+      <p>Une ligne de filtres texte apparaît sous les en-têtes du tableau des inscrits : tapez dans n'importe laquelle pour ne garder que les lignes correspondantes (filtrage instantané, insensible à la casse, sans recharger la page). Plusieurs filtres peuvent être combinés en même temps.</p>
+      <p><strong>Limite connue</strong> : sur mobile, l'en-tête du tableau (et donc la ligne de filtres) est masqué au profit du motif de fiches dépliables — les filtres par colonne ne sont donc disponibles que sur ordinateur pour l'instant.</p>
+
+      <h3 class="admin-subheading">5.12 Envoyer un email de relance</h3>
+      <p>Chaque inscription ayant une adresse email renseignée affiche un menu déroulant + un bouton "Envoyer" dans ses actions. Le modèle le plus pertinent est pré-sélectionné automatiquement selon l'état de la demande (cotisation non payée, certificat attendu, ou inscription validée), mais reste modifiable avant l'envoi.</p>
+      <ul>
+        <li>Ouvre le client email de la personne connectée (mailto), avec le destinataire, le sujet et le corps du message déjà remplis — comme pour le bouton de contact du bandeau (voir 1.2), rien n'est envoyé automatiquement : il faut valider l'envoi depuis son propre client email.</li>
+        <li>4 modèles disponibles : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Inscription validée (bienvenue).</li>
+        <li><strong>Important sur le mot de passe</strong> : le modèle "Inscription validée" ne peut pas "rappeler" un mot de passe — c'est techniquement impossible pour n'importe quel système, les mots de passe n'étant jamais stockés en clair. Il invite donc la personne à créer son compte (si elle n'en a pas) ou à utiliser "Mot de passe oublié" (si elle l'a perdu).</li>
+      </ul>
+
+      <h3 class="admin-subheading">5.13 Modèles d'emails (configuration, profil admin)</h3>
+      <p>Dans la section Configuration de cette page, le contenu (sujet + corps) des 4 modèles d'emails ci-dessus est entièrement personnalisable. Variables disponibles, remplacées automatiquement à l'envoi : <code>{prenom}</code>, <code>{nom}</code>, <code>{montant}</code> (cotisation attendue), <code>{email}</code> (adresse de la personne), <code>{url_site}</code> (adresse du site).</p>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->
@@ -299,6 +314,7 @@
       <p><strong>Saisie des scores</strong> : un clic sélectionne le contenu existant ; la touche Tabulation enchaîne les cases sans perte, même pendant le rechargement automatique. Chaque set (2 scores + tiret) reste toujours affiché sur une seule ligne, jamais coupé.</p>
       <p><strong>Bandeau du haut</strong> : réglages, terrains, top 5, et une bande plein largeur (indicateurs + filtres + génération des matchs de poule, tout sur une seule ligne) restent visibles en permanence en haut de l'écran pendant le défilement de la liste des matchs.</p>
       <p><strong>Affichage mobile</strong> : le tableau à colonnes classiques (dense sur PC, une ligne par match) devient une liste de fiches sur petit écran — un tap sur l'identité du match (numéro + compétition, toujours affichée sur une seule ligne, tronquée avec "…" si trop longue) déplie la fiche pour révéler poule, équipes, terrain, scores, horaires et action. Le bandeau du haut (réglages, terrains, top 5) est replié par défaut sur mobile — uniquement sur mobile, le PC reste inchangé — avec un bouton "⚙️ Réglages, terrains, top 5" pour le déplier au besoin, libérant un maximum d'espace pour la liste des matchs.</p>
+      <p><strong>Largeur des colonnes réglable (PC)</strong> : chaque colonne a une largeur fixe par défaut (le texte trop long est tronqué avec "…" plutôt que d'élargir la colonne indéfiniment). Une petite poignée sur le bord droit de chaque en-tête permet de faire glisser pour ajuster la largeur ; un double-clic dessus revient à la largeur par défaut. Les largeurs choisies sont mémorisées dans le navigateur (pas partagées entre appareils).</p>
 
       <h3 class="admin-subheading">6.8 Phases finales (Principale / Consolante)</h3>
       <p>Générées <strong>automatiquement</strong> dès que tous les matchs de poule d'une compétition sont terminés.</p>
@@ -453,6 +469,7 @@
             <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité).</td></tr>
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande), statut et paiement.</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
+            <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
             <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
