@@ -531,8 +531,8 @@ function conditionsValidationOk(record) {
   if (!champs.date_certif) {
     motifs.push('date de certificat non renseignée');
   } else if (!certificatEstValide(champs.date_certif, record.categorie)) {
-    const dureeAns = record.categorie === 'Jeune' ? 1 : 3;
-    motifs.push(`certificat médical expiré (valable ${dureeAns} an${dureeAns > 1 ? 's' : ''} pour la catégorie ${record.categorie || '?'})`);
+    const duree = record.categorie === 'Jeune' ? '1 an' : '3 ans et 1 mois';
+    motifs.push(`certificat médical expiré (valable ${duree} pour la catégorie ${record.categorie || '?'})`);
   }
   return { ok: motifs.length === 0, motifs };
 }
@@ -646,8 +646,8 @@ async function voirCertificat(id) {
 }
 
 /** Statut de validité du certificat, basé sur la vraie date du
- *  certificat (champs.date_certif) et la catégorie — 3 ans pour un
- *  adulte, 1 an pour un jeune (voir finValiditeCertificat, auth.js). */
+ *  certificat (champs.date_certif) et la catégorie — 3 ans et 1 mois
+ *  pour un adulte, 1 an pour un jeune (voir finValiditeCertificat, auth.js). */
 function dateCertificat(record) {
   const champs = record.champs || {};
   if (!champs.date_certif) return '';

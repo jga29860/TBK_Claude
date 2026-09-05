@@ -67,8 +67,9 @@ function estImage(chemin) {
  */
 function finValiditeCertificat(dateCertif, categorie) {
   const fin = new Date(dateCertif);
-  const dureeAns = categorie === 'Jeune' ? 1 : 3;
-  fin.setFullYear(fin.getFullYear() + dureeAns);
+  // 3 ans + 1 mois (37 mois) pour un adulte ; 1 an (12 mois) pour un jeune.
+  const dureeMois = categorie === 'Jeune' ? 12 : 37;
+  fin.setMonth(fin.getMonth() + dureeMois);
   return fin;
 }
 
