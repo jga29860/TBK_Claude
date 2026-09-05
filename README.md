@@ -726,6 +726,26 @@ Exécutez `supabase/migration_tournoi_courses.sql`.
 
 **Note technique** : le Word a de nouveau été mis à jour par édition XML ciblée (script `generate.js` toujours non reconstruit) — validé sans erreur, vérifié visuellement page par page.
 
+## Correction — inscription auto-validée sans vérification des conditions
+
+Bug confirmé : une inscription saisie directement par le bureau (formulaire principal, pas le formulaire public) était **automatiquement** marquée "validée" à la création, sans jamais vérifier si la cotisation était payée ou le certificat valable — un comportement pré-existant devenu incohérent avec la règle de validation qu'on vient de renforcer (cotisation payée + certificat valable).
+
+Corrigé : ce cas suit désormais exactement la même règle que le bouton "Valider" — une inscription saisie par le bureau n'est automatiquement validée que si les conditions sont réellement réunies au moment de la saisie ; sinon elle reste "En attente" comme une demande publique.
+
+**Nouveau bouton "Annuler la validation"** sur toute inscription déjà validée, pour la repasser "En attente" en cas d'erreur — utile pour corriger une fiche déjà touchée par ce bug, ou toute validation faite par erreur à l'avenir.
+
+## Trois ajustements — certificat 37 mois, menu défilant, planning ultra-compact
+
+- **Certificat médical Adulte : 3 ans → 3 ans et 1 mois (37 mois)** : nouvelle durée appliquée partout (règle centralisée dans auth.js), catégorie Jeune inchangée (1 an). Vérifié par calcul : un certificat du 15/08/2023 devient valable jusqu'au 15/09/2026.
+- **Menu "Organisation" défilant** : le menu déroulant (desktop) accumule de plus en plus d'entrées au fil des évolutions du site et pouvait dépasser la hauteur de l'écran, rendant les derniers éléments inaccessibles. Il défile désormais lui-même si nécessaire (`overflow-y:auto`), garantissant l'accès à tous les sous-menus quelle que soit la hauteur d'écran. Aucun changement côté mobile (déjà intégré au défilement normal de la page).
+- **Planning — bandeau du haut réduit au maximum** : nouvelle passe de compaction agressive (padding, espacements et polices réduits partout : réglages, QR codes, terrains, top 5, bandeau filtres/génération) pour libérer un maximum d'espace vertical pour la liste des matchs juste en dessous.
+
+## Trois nouveautés — contact email, planning mobile compact, une ligne garantie
+
+- **Bouton contact email dans l'en-tête** (icône ✉️, présente sur les 21 pages du site) : ouvre le client email du visiteur avec l'adresse "Email de contact du club" (Administration → Paramètres du site) déjà en destinataire. Aucun envoi automatique — la personne valide elle-même depuis son client email. Les 3 pages sans en-tête complet (inscription-publique, politique-confidentialité, reset-password) ont reçu un petit script dédié pour fonctionner de façon autonome.
+- **Planning mobile — pliage de la partie haute** : nouveau bouton "⚙️ Réglages, terrains, top 5", visible uniquement sur mobile, repliant/dépliant cette zone (repliée par défaut) pour libérer un maximum d'espace pour la liste des matchs. Aucun changement sur PC — le bouton n'y apparaît même pas.
+- **Zone "Match" garantie sur une ligne** : la classe partagée par toutes les fiches dépliables du site (inscriptions, tournois, équipes, poules, planning) tronque désormais le texte avec "…" plutôt que de le faire passer à la ligne — bénéfice appliqué partout, pas seulement sur Planning.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

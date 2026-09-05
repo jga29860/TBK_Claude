@@ -271,6 +271,13 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 
 /* ===== Auth / Espace membres / Admin ===== */
 .auth-state{ font-size:0.85rem; display:flex; align-items:center; gap:10px; }
+
+.header-icon-btn{
+  font-size:1.25rem; text-decoration:none; display:inline-flex; align-items:center;
+  justify-content:center; width:34px; height:34px; border-radius:8px;
+  transition: background 0.15s ease; flex-shrink:0;
+}
+.header-icon-btn:hover{ background: var(--pale); }
 .nav-auth-name{
   display:inline-flex; align-items:center; gap:6px;
   background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
@@ -613,7 +620,7 @@ table.schedule .role-label-input{
     display:flex; align-items:center; gap:8px; cursor:pointer;
     font-weight:700; padding:14px; background:var(--pale);
   }
-  .cell-nom-texte{ flex:1; min-width:0; }
+  .cell-nom-texte{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .cell-nom-statut-mobile{ display:inline-block; flex-shrink:0; }
   .cell-nom-statut-mobile .statut-badge{ font-size:0.7rem; padding:3px 8px; }
   .cell-nom-chevron{ transition: transform .15s ease; color:var(--green); font-weight:900; }
@@ -1033,6 +1040,24 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
    maximum (padding et polices compactés) pour laisser un maximum
    d'espace aux matchs affichés en dessous. */
 .planning-top-section{ position: sticky; top: 68px; z-index: 15; padding: 10px 16px; }
+
+/* Bouton de pliage de la partie haute (réglages/terrains/top5), visible
+   UNIQUEMENT sur mobile — repliée par défaut pour laisser un maximum
+   d'espace aux matchs. Le PC n'est jamais concerné, tout reste affiché
+   comme avant. */
+.planning-top-toggle-mobile{
+  display:none; width:100%; align-items:center; justify-content:space-between;
+  background:none; border:none; cursor:pointer; font-family: var(--font-body);
+  font-weight:700; font-size:0.85rem; color: var(--dark); padding:4px 2px;
+}
+.planning-top-toggle-chevron{ transition: transform 0.15s ease; color: var(--green); font-weight:900; }
+@media (max-width: 760px){
+  .planning-top-toggle-mobile{ display:flex; }
+  .planning-top-row, .planning-qr-row{ display:none; }
+  .planning-top-section.planning-top-expanded .planning-top-toggle-chevron{ transform: rotate(180deg); }
+  .planning-top-section.planning-top-expanded .planning-top-row{ display:grid; margin-top:10px; }
+  .planning-top-section.planning-top-expanded .planning-qr-row{ display:flex; }
+}
 .planning-toolbar-row{
   display:flex; align-items:center; flex-wrap:nowrap; gap:8px; width:100%;
   margin-top:8px; padding-top:8px; border-top:1px solid var(--border);

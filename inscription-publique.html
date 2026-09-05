@@ -19,6 +19,7 @@
     <nav class="main-nav">
       <a href="index.html#club">Le club</a>
     </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
   </div>
 </header>
 
@@ -95,5 +96,17 @@
 <script src="js/supabase-config.js"></script>
 <script src="js/inscription-publique.js"></script>
 <script src="js/visite-log.js"></script>
+<script>
+  // Email de contact dans l'en-tête, paramétrable depuis admin.html
+  (async () => {
+    const headerMail = document.getElementById('headerContactMail');
+    if (!headerMail) return;
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await sb.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
+    if (error || !data || !data.valeur) return;
+    headerMail.href = `mailto:${data.valeur}?subject=${encodeURIComponent('Contact depuis le site TBK')}`;
+    headerMail.hidden = false;
+  })();
+</script>
 </body>
 </html>

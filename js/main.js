@@ -109,11 +109,21 @@ if (qrImg) {
 // ===== Email de contact (paramétrable depuis admin.html) =====
 (async () => {
   const mailtoLink = document.getElementById('mailtoTournoi');
-  if (!mailtoLink || typeof sbClient === 'undefined') return;
+  const headerMail = document.getElementById('headerContactMail');
+  if ((!mailtoLink && !headerMail) || typeof sbClient === 'undefined') return;
+
   const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
   if (error || !data || !data.valeur) return;
   const email = data.valeur;
-  const currentHref = mailtoLink.getAttribute('href') || '';
-  const subjectMatch = currentHref.match(/\?(.*)$/);
-  mailtoLink.href = `mailto:${email}${subjectMatch ? '?' + subjectMatch[1] : ''}`;
+
+  if (mailtoLink) {
+    const currentHref = mailtoLink.getAttribute('href') || '';
+    const subjectMatch = currentHref.match(/\?(.*)$/);
+    mailtoLink.href = `mailto:${email}${subjectMatch ? '?' + subjectMatch[1] : ''}`;
+  }
+
+  if (headerMail) {
+    headerMail.href = `mailto:${email}?subject=${encodeURIComponent('Contact depuis le site TBK')}`;
+    headerMail.hidden = false;
+  }
 })();

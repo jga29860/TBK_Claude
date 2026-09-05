@@ -61,6 +61,13 @@ async function initPage() {
     renderMatchsRotations();
   });
 
+  // Pliage de la partie haute (réglages/terrains/top5) sur mobile
+  // uniquement — repliée par défaut pour laisser un maximum d'espace
+  // aux matchs. Sans effet sur PC (le bouton n'y est pas visible).
+  document.getElementById('togglePlanningTopBtn').addEventListener('click', () => {
+    document.getElementById('planningTopSection').classList.toggle('planning-top-expanded');
+  });
+
   // QR codes d'accès public (sans connexion) aux pages Phase Poule et
   // Phase finale, à partager sur place (affiche imprimée, écran...).
   const baseUrl = window.location.origin + window.location.pathname.replace(/planning\.html$/, '');

@@ -18,6 +18,7 @@
     <nav class="main-nav">
       <a href="index.html#club">Le club</a>
     </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
     <span class="auth-state" id="authState"></span>
     <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -44,8 +45,12 @@
     <div id="planningContent" hidden>
 
       <!-- ===== Bandeau du haut : réglages + terrains + top 5, sur la même ligne ===== -->
-      <section class="admin-section planning-top-section">
-        <div class="planning-top-row">
+      <section class="admin-section planning-top-section" id="planningTopSection">
+        <button type="button" id="togglePlanningTopBtn" class="planning-top-toggle-mobile">
+          <span>⚙️ Réglages, terrains, top 5</span>
+          <span class="planning-top-toggle-chevron">▾</span>
+        </button>
+        <div class="planning-top-row" id="planningTopRow">
 
           <div class="planning-settings">
             <div class="field-grid">
