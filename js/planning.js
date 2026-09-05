@@ -1009,6 +1009,113 @@ function renderLigneMatch(m, infoLabel, poule) {
     </tr>`;
 }
 
+/** Largeurs de colonnes par défaut (px) — utilisées tant que la personne
+ *  n'a pas fait glisser une poignée pour les ajuster elle-même. */
+const LARGEURS_COLONNES_DEFAUT = {
+  poule: {
+    match: 170, poule: 70, equipe1: 150, equipe2: 150, terrain: 70, statut: 90,
+    set1: 75, set2: 75, set3: 75, heure: 95, duree: 95, actions: 95,
+  },
+  finale: {
+    match: 220, equipe1: 150, equipe2: 150, terrain: 70, statut: 90,
+    set1: 75, set2: 75, set3: 75, heure: 95, duree: 95, actions: 95,
+  },
+};
+
+/** Largeurs enregistrées par la personne (localStorage), le cas échéant. */
+function chargerLargeursColonnes(type) {
+  try {
+    const brut = localStorage.getItem('planning_largeurs_' + type);
+    return brut ? JSON.parse(brut) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function sauvegarderLargeurColonne(type, col, largeurPx) {
+  const largeurs = chargerLargeursColonnes(type);
+  largeurs[col] = largeurPx;
+  try {
+    localStorage.setItem('planning_largeurs_' + type, JSON.stringify(largeurs));
+  } catch (e) { /* stockage indisponible, tant pis */ }
+}
+
+/** Génère le <colgroup> + l'en-tête <th> avec poignées de redimensionnement,
+ *  pour un type de tableau donné ("poule" ou "finale"). */
+function renderEnTeteMatchTable(type) {
+  const defauts = LARGEURS_COLONNES_DEFAUT[type];
+  const sauvegardees = chargerLargeursColonnes(type);
+  const largeur = (col) => sauvegardees[col] || defauts[col];
+
+  const colonnes = type === 'poule'
+    ? [
+        ['match', 'Match'], ['poule', 'Poule'], ['equipe1', 'Équipe 1'], ['equipe2', 'Équipe 2'],
+        ['terrain', 'Terrain'], ['statut', 'Statut'], ['set1', 'Set 1'], ['set2', 'Set 2'], ['set3', 'Set 3'],
+        ['heure', 'Heure lancement'], ['duree', 'Durée'], ['actions', ''],
+      ]
+    : [
+        ['match', 'Match'], ['equipe1', 'Équipe 1'], ['equipe2', 'Équipe 2'],
+        ['terrain', 'Terrain'], ['statut', 'Statut'], ['set1', 'Set 1'], ['set2', 'Set 2'], ['set3', 'Set 3'],
+        ['heure', 'Heure lancement'], ['duree', 'Durée'], ['actions', ''],
+      ];
+
+  const colgroup = `<colgroup>${colonnes.map(([col]) => `<col data-col="${col}" style="width:${largeur(col)}px">`).join('')}</colgroup>`;
+  const thead = `<thead><tr>${colonnes.map(([col, label], i) => `
+    <th data-col="${col}">${escapeHtml(label)}${i < colonnes.length - 1 ? `<span class="col-resize-handle" data-col="${col}" data-type="${type}" title="Glisser pour redimensionner • Double-clic pour réinitialiser"></span>` : ''}</th>
+  `).join('')}</tr></thead>`;
+
+  return colgroup + thead;
+}
+
+/** Active le glisser-déposer des poignées de redimensionnement (rebinding
+ *  sûr à chaque rendu, puisque les tableaux sont régénérés à chaque
+ *  rechargement des matchs). */
+function bindColResizeHandles() {
+  document.querySelectorAll('.col-resize-handle').forEach(handle => {
+    if (handle.dataset.bound) return;
+    handle.dataset.bound = 'true';
+
+    handle.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      const th = handle.closest('th');
+      const table = handle.closest('table');
+      const col = handle.getAttribute('data-col');
+      const type = handle.getAttribute('data-type');
+      const colonneEl = table.querySelector(`colgroup col[data-col="${col}"]`);
+      if (!th || !colonneEl) return;
+
+      const startX = e.clientX;
+      const startWidth = th.offsetWidth;
+      handle.classList.add('is-resizing');
+
+      function onMouseMove(ev) {
+        const nouvelleLargeur = Math.max(40, startWidth + (ev.clientX - startX));
+        colonneEl.style.width = nouvelleLargeur + 'px';
+      }
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        handle.classList.remove('is-resizing');
+        sauvegarderLargeurColonne(type, col, parseInt(colonneEl.style.width, 10));
+      }
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+
+    // Double-clic : revient à la largeur par défaut de cette colonne.
+    handle.addEventListener('dblclick', () => {
+      const table = handle.closest('table');
+      const col = handle.getAttribute('data-col');
+      const type = handle.getAttribute('data-type');
+      const colonneEl = table.querySelector(`colgroup col[data-col="${col}"]`);
+      if (!colonneEl) return;
+      const defaut = LARGEURS_COLONNES_DEFAUT[type][col];
+      colonneEl.style.width = defaut + 'px';
+      sauvegarderLargeurColonne(type, col, defaut);
+    });
+  });
+}
+
 function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
   const rows = matchs.map(m => {
     const comp = competitionsCache.find(c => c.id === m.tournoi_competition_id);
@@ -1020,12 +1127,7 @@ function renderRotationBlock(numeroRotation, matchs, heureEstimeeRotation) {
       <h3 class="poule-block-title">Rotation ${numeroRotation} <span class="poule-count">(estimée ${heureEstimeeRotation})</span></h3>
       <div class="table-wrap">
         <table class="schedule table-center match-table">
-          <thead>
-            <tr>
-              <th>Match</th><th>Poule</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
-              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
-            </tr>
-          </thead>
+          ${renderEnTeteMatchTable('poule')}
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -1097,12 +1199,7 @@ function renderBracketRotationBlock(numeroRotation, matchs, noms) {
       <h3 class="poule-block-title">Rotation ${numeroRotation}</h3>
       <div class="table-wrap">
         <table class="schedule table-center match-table">
-          <thead>
-            <tr>
-              <th>Match</th><th>Équipe 1</th><th>Équipe 2</th><th>Terrain</th><th>Statut</th>
-              <th>Set 1</th><th>Set 2</th><th>Set 3</th><th>Heure lancement</th><th>Durée</th><th></th>
-            </tr>
-          </thead>
+          ${renderEnTeteMatchTable('finale')}
           <tbody>${rows}</tbody>
         </table>
       </div>
@@ -1120,6 +1217,8 @@ function getTerrainsLibres() {
 }
 
 function bindMatchRowEvents() {
+  bindColResizeHandles();
+
   document.querySelectorAll('.match-table .cell-nom').forEach(cell => {
     cell.addEventListener('click', () => {
       cell.closest('tr').classList.toggle('row-expanded');

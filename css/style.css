@@ -796,6 +796,33 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .score-set-inline{ display:inline-flex; align-items:center; white-space:nowrap; flex-wrap:nowrap; }
 .match-table .planning-nowrap{ white-space:nowrap; }
 
+/* Largeurs de colonnes fixes (indispensable pour que la troncature
+   "…" fonctionne réellement : sans cela, une colonne s'élargit à
+   l'infini au lieu de tronquer). Largeurs ajustables via les poignées
+   de redimensionnement ci-dessous, mémorisées par navigateur. */
+.match-table{ table-layout: fixed; }
+.match-table th{
+  position:relative; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:14px;
+}
+.match-table td.cell-nom{ display:flex; align-items:center; gap:6px; overflow:hidden; }
+.match-table td.planning-nowrap, .match-table td[data-label]{
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+.col-resize-handle{
+  position:absolute; top:0; right:0; width:8px; height:100%; cursor:col-resize; user-select:none; z-index:2;
+}
+.col-resize-handle::after{
+  content:''; position:absolute; top:15%; bottom:15%; right:2px; width:2px; background: rgba(255,255,255,0.5);
+}
+.col-resize-handle:hover::after, .col-resize-handle.is-resizing::after{ background: var(--white); width:3px; }
+.col-resize-handle:hover, .col-resize-handle.is-resizing{ background: rgba(255,255,255,0.15); }
+
+@media (max-width: 760px){
+  .match-table{ table-layout: auto; }
+  .col-resize-handle{ display:none; }
+}
+
 /* ===== Boutique ===== */
 .boutique-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:20px; margin-top:16px; }
 .boutique-card{
