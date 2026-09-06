@@ -787,6 +787,11 @@ Exécutez `supabase/migration_precision_message_sante.sql`.
 
 **Couleurs de ligne dans le tableau des inscrits** : bleu clair pour la catégorie Jeune, orange clair pour Adulte, vert dès que l'inscription est validée (prioritaire sur la couleur de catégorie). Légende ajoutée au-dessus du tableau.
 
+## Inscriptions — actions regroupées dans un panneau + email du club en copie
+
+- **Ligne simplifiée à Modifier/Supprimer** : toutes les autres actions (Valider/Annuler la validation, Certificat, Rattachement du compte, Envoyer un email) sont désormais regroupées dans un nouveau panneau "Actions pour cette inscription", qui apparaît sous le formulaire dès qu'on clique sur "Modifier" une personne — la ligne du tableau reste épurée.
+- **Email du club en copie (Cc)** : l'adresse "Email de contact du club" (Administration → Paramètres du site) est désormais automatiquement mise en copie de chaque email de relance envoyé, pour que le bureau garde une trace de l'échange. Correction technique au passage : encodage manuel du lien mailto (plutôt que `URLSearchParams`, qui encode les espaces en "+", mal interprété par certains clients email).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

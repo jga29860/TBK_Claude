@@ -585,6 +585,11 @@ table.schedule .role-label-input{
 
 /* ===== Actions en colonne (inscriptions, etc.) — optimisé PC + mobile ===== */
 .actions-stack{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; min-width:240px; }
+
+.edit-actions-panel{
+  margin-top:18px; padding:16px; background: var(--pale); border-radius:10px; border:1px solid #d6e5d1;
+}
+.edit-actions-panel .admin-subheading{ margin-top:0; }
 .actions-stack .btn{ flex: 0 0 auto; white-space:nowrap; }
 .certificat-date{ font-size:0.72rem; color:var(--ink-soft); width:100%; }
 

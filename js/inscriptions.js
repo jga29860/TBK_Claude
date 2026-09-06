@@ -23,6 +23,7 @@ let editingId = null;      // id en cours d'édition, ou null pour une nouvelle 
 let certificatCibleId = null; // id de l'inscription visée par la prochaine photo de certificat
 let profilesCache = [];    // comptes existants, pour le rattachement manuel d'une inscription
 let emailTemplatesCache = {}; // { cle: {sujet, corps} } — modèles d'emails de relance
+let emailClubCache = '';   // email de contact du club (parametres_site), mis en copie des relances
 let filtresColonnes = {};  // { colKey: texte du filtre } — filtres actifs par colonne
 let isAdminUser = false;
 let isBureau = false;
@@ -51,6 +52,7 @@ async function initInscriptionsPage() {
   await loadAffichage();
   await loadProfilesPourRattachement();
   await loadEmailTemplates();
+  await loadEmailClub();
   await loadInscriptions();
 
   bindMainForm();
@@ -74,6 +76,12 @@ async function loadEmailTemplates() {
   if (error) { console.error(error.message); return; }
   emailTemplatesCache = {};
   (data || []).forEach(t => { emailTemplatesCache[t.cle] = { sujet: t.sujet, corps: t.corps }; });
+}
+
+async function loadEmailClub() {
+  const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
+  if (error) { console.error(error.message); return; }
+  emailClubCache = data ? (data.valeur || '') : '';
 }
 
 async function loadBareme() {
@@ -367,6 +375,7 @@ function resetForm() {
   document.getElementById('formTitle').textContent = 'Nouvelle inscription';
   document.getElementById('submitBtn').textContent = "Enregistrer l'inscription";
   document.getElementById('cancelEditBtn').hidden = true;
+  document.getElementById('editActionsPanel').hidden = true;
   renderDynamicFormFields();
   calculerCotisation();
 }
@@ -467,16 +476,6 @@ function renderInscriptionsTableBody(columns) {
       <td data-label="Statut">${renderStatutCell(i)}</td>
       <td data-label="Actions">
         <div class="actions-stack">
-          ${isBureau && i.statut === 'en_attente' ? renderValiderBtn(i) : ''}
-          ${isBureau && i.statut === 'validee' ? `<button type="button" class="btn btn-ghost btn-small devalider-btn" data-id="${i.id}">Annuler la validation</button>` : ''}
-          <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${i.id}">${i.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
-          ${i.certificat_photo_url ? `
-            <button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${i.id}">Voir le certificat</button>
-            <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${i.id}">Supprimer le certificat</button>
-            <span class="certificat-date">${escapeHtml(dateCertificat(i))}</span>
-          ` : ''}
-          ${renderRattachementWidget(i)}
-          ${renderEmailRelanceWidget(i)}
           <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
           <button type="button" class="btn btn-danger btn-small delete-inscription-btn">Supprimer</button>
         </div>
@@ -487,90 +486,6 @@ function renderInscriptionsTableBody(columns) {
   tbody.querySelectorAll('.cell-nom').forEach(cell => {
     cell.addEventListener('click', () => {
       cell.closest('tr').classList.toggle('row-expanded');
-    });
-  });
-
-  tbody.querySelectorAll('.valider-inscription-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.closest('tr').getAttribute('data-id');
-      if (!confirm('Valider cette demande d\'inscription ?')) return;
-      const { data: { session } } = await sbClient.auth.getSession();
-      const { error } = await sbClient.from('inscriptions').update({
-        statut: 'validee',
-        valide_par: session.user.id,
-        valide_par_nom: currentAccess ? (currentAccess.display_name || afficherIdentifiant(currentAccess.email)) : null,
-        valide_le: new Date().toISOString(),
-      }).eq('id', id);
-      if (error) { alert('Erreur : ' + error.message); return; }
-      // Rattache l'inscription au compte existant de la personne (même
-      // email), et l'élève au profil "membre" — best-effort, ne bloque
-      // jamais la validation elle-même si ça échoue pour une raison ou une autre.
-      sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: id }).catch(() => {});
-      await loadInscriptions();
-    });
-  });
-
-  tbody.querySelectorAll('.devalider-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-id');
-      if (!confirm('Annuler la validation de cette inscription ? Elle repassera "En attente".')) return;
-      const { error } = await sbClient.from('inscriptions').update({
-        statut: 'en_attente',
-        valide_par: null,
-        valide_par_nom: null,
-        valide_le: null,
-      }).eq('id', id);
-      if (error) { alert('Erreur : ' + error.message); return; }
-      await loadInscriptions();
-    });
-  });
-
-  tbody.querySelectorAll('.envoyer-email-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      envoyerEmailRelance(btn.getAttribute('data-id'));
-    });
-  });
-
-  tbody.querySelectorAll('.certificat-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      certificatCibleId = e.target.getAttribute('data-id');
-      document.getElementById('certificatFileInput').click();
-    });
-  });
-
-  tbody.querySelectorAll('.voir-certificat-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.getAttribute('data-id');
-      await voirCertificat(id);
-    });
-  });
-
-  tbody.querySelectorAll('.supprimer-certificat-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.getAttribute('data-id');
-      await supprimerCertificat(id);
-    });
-  });
-
-  tbody.querySelectorAll('.rattacher-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.getAttribute('data-id');
-      const select = tbody.querySelector(`.rattachement-select[data-id="${id}"]`);
-      const profileId = select ? select.value : '';
-      if (!profileId) { alert('Choisissez un compte dans la liste.'); return; }
-      const { error } = await sbClient.rpc('lier_inscription_profil_manuel', { p_inscription_id: id, p_profile_id: profileId });
-      if (error) { alert('Erreur : ' + error.message); return; }
-      await loadInscriptions();
-    });
-  });
-
-  tbody.querySelectorAll('.delier-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.getAttribute('data-id');
-      if (!confirm('Délier cette inscription de son compte ?')) return;
-      const { error } = await sbClient.rpc('delier_inscription', { p_inscription_id: id });
-      if (error) { alert('Erreur : ' + error.message); return; }
-      await loadInscriptions();
     });
   });
 
@@ -713,7 +628,13 @@ function envoyerEmailRelance(id) {
   const sujet = substituer(template.sujet);
   const corps = substituer(template.corps);
 
-  window.location.href = `mailto:${encodeURIComponent(destinataire)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  // Construction manuelle (plutôt que URLSearchParams, qui encoderait les
+  // espaces en "+" au lieu de "%20" — mal interprété par certains clients
+  // email dans un lien mailto).
+  let lien = `mailto:${encodeURIComponent(destinataire)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  if (emailClubCache) lien += `&cc=${encodeURIComponent(emailClubCache)}`;
+
+  window.location.href = lien;
 }
 
 function renderRattachementWidget(record) {
@@ -907,11 +828,110 @@ function editInscription(id) {
   document.getElementById('cotisationInput').value = Number(record.cotisation).toFixed(2);
 
   renderDynamicFormFields(record.champs || {});
+  renderEditActionsPanel(record);
 
   document.getElementById('formTitle').textContent = `Modifier : ${record.nom} ${record.prenom}`;
   document.getElementById('submitBtn').textContent = 'Mettre à jour';
   document.getElementById('cancelEditBtn').hidden = false;
   form.scrollIntoView({ behavior: 'smooth' });
+}
+
+/** Panneau d'actions propre à une inscription existante (validation,
+ *  certificat, rattachement, email de relance) — regroupées ici plutôt
+ *  que sur la ligne du tableau, pour ne garder que Modifier/Supprimer
+ *  dans la liste. */
+function renderEditActionsPanel(record) {
+  const panel = document.getElementById('editActionsPanel');
+  const content = document.getElementById('editActionsContent');
+
+  content.innerHTML = `
+    ${isBureau && record.statut === 'en_attente' ? renderValiderBtn(record) : ''}
+    ${isBureau && record.statut === 'validee' ? `<button type="button" class="btn btn-ghost btn-small devalider-btn" data-id="${record.id}">Annuler la validation</button>` : ''}
+    <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${record.id}">${record.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
+    ${record.certificat_photo_url ? `
+      <button type="button" class="btn btn-ghost btn-small voir-certificat-btn" data-id="${record.id}">Voir le certificat</button>
+      <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${record.id}">Supprimer le certificat</button>
+      <span class="certificat-date">${escapeHtml(dateCertificat(record))}</span>
+    ` : ''}
+    ${renderRattachementWidget(record)}
+    ${renderEmailRelanceWidget(record)}
+  `;
+
+  panel.hidden = false;
+
+  const btnValider = content.querySelector('.valider-inscription-btn');
+  if (btnValider) {
+    btnValider.addEventListener('click', async () => {
+      if (!confirm('Valider cette demande d\'inscription ?')) return;
+      const { data: { session } } = await sbClient.auth.getSession();
+      const { error } = await sbClient.from('inscriptions').update({
+        statut: 'validee',
+        valide_par: session.user.id,
+        valide_par_nom: currentAccess ? (currentAccess.display_name || afficherIdentifiant(currentAccess.email)) : null,
+        valide_le: new Date().toISOString(),
+      }).eq('id', record.id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: record.id }).catch(() => {});
+      await loadInscriptions();
+      resetForm();
+    });
+  }
+
+  const btnDevalider = content.querySelector('.devalider-btn');
+  if (btnDevalider) {
+    btnDevalider.addEventListener('click', async () => {
+      if (!confirm('Annuler la validation de cette inscription ? Elle repassera "En attente".')) return;
+      const { error } = await sbClient.from('inscriptions').update({
+        statut: 'en_attente', valide_par: null, valide_par_nom: null, valide_le: null,
+      }).eq('id', record.id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadInscriptions();
+      resetForm();
+    });
+  }
+
+  content.querySelector('.certificat-btn').addEventListener('click', () => {
+    certificatCibleId = record.id;
+    document.getElementById('certificatFileInput').click();
+  });
+
+  const btnVoir = content.querySelector('.voir-certificat-btn');
+  if (btnVoir) btnVoir.addEventListener('click', () => voirCertificat(record.id));
+
+  const btnSupprimerCert = content.querySelector('.supprimer-certificat-btn');
+  if (btnSupprimerCert) {
+    btnSupprimerCert.addEventListener('click', async () => {
+      await supprimerCertificat(record.id);
+      editInscription(record.id); // rafraîchit le panneau avec l'état à jour
+    });
+  }
+
+  const btnRattacher = content.querySelector('.rattacher-btn');
+  if (btnRattacher) {
+    btnRattacher.addEventListener('click', async () => {
+      const select = content.querySelector(`.rattachement-select[data-id="${record.id}"]`);
+      const profileId = select ? select.value : '';
+      if (!profileId) { alert('Choisissez un compte dans la liste.'); return; }
+      const { error } = await sbClient.rpc('lier_inscription_profil_manuel', { p_inscription_id: record.id, p_profile_id: profileId });
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadInscriptions();
+      editInscription(record.id);
+    });
+  }
+
+  const btnDelier = content.querySelector('.delier-btn');
+  if (btnDelier) {
+    btnDelier.addEventListener('click', async () => {
+      if (!confirm('Délier cette inscription de son compte ?')) return;
+      const { error } = await sbClient.rpc('delier_inscription', { p_inscription_id: record.id });
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadInscriptions();
+      editInscription(record.id);
+    });
+  }
+
+  const btnEnvoyer = content.querySelector('.envoyer-email-btn');
+  if (btnEnvoyer) btnEnvoyer.addEventListener('click', () => envoyerEmailRelance(record.id));
 }
 
 // ============================================================
