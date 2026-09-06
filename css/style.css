@@ -633,9 +633,16 @@ table.schedule .role-label-input{
   border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-top:14px;
   display:flex; flex-direction:column; gap:10px;
 }
+.email-template-bloc label{
+  display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:700; color: var(--dark);
+}
+.email-template-bloc input[type="text"]{
+  width:100%; box-sizing:border-box; font-family: var(--font-body); font-size:0.9rem;
+  padding:8px 10px; border-radius:6px; border:1px solid #a9d18e;
+}
 .email-template-bloc textarea{
-  font-family: var(--font-body); font-size:0.88rem; padding:8px 10px;
-  border-radius:6px; border:1px solid #a9d18e; resize:vertical;
+  width:100%; box-sizing:border-box; font-family: var(--font-body); font-size:0.88rem; padding:8px 10px;
+  border-radius:6px; border:1px solid #a9d18e; resize:vertical; min-height:190px;
 }
 
 @media (max-width: 760px){

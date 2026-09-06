@@ -1037,7 +1037,7 @@ function renderEmailTemplatesConfig() {
           <input type="text" class="email-template-sujet" data-cle="${cle}" value="${escapeHtml(t.sujet)}">
         </label>
         <label>Corps du message
-          <textarea class="email-template-corps" data-cle="${cle}" rows="6">${escapeHtml(t.corps)}</textarea>
+          <textarea class="email-template-corps" data-cle="${cle}" rows="9">${escapeHtml(t.corps)}</textarea>
         </label>
         <div class="form-actions">
           <button type="button" class="btn btn-primary btn-small email-template-save-btn" data-cle="${cle}">Enregistrer ce modèle</button>
