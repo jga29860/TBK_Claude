@@ -176,9 +176,12 @@ async function renderAuthState() {
   }
 
   let html = `<a href="membres.html" class="nav-auth-name" title="Mon compte">${escapeHtml(access.display_name || afficherIdentifiant(access.email))} <small>(${escapeHtml(access.roleLabel)})</small></a>`;
-  html += await renderPendingInscriptionsBadge(access);
+  html += ' <span id="pendingBadgeContainer"></span>';
   html += ' <button id="logoutBtn" class="nav-auth-link nav-auth-btn" type="button">Se déconnecter</button>';
   el.innerHTML = html;
+
+  await refreshPendingInscriptionsBadge(access);
+  subscribeToPendingInscriptionsBadge(access);
 
   const btn = document.getElementById('logoutBtn');
   if (btn) {
@@ -191,20 +194,53 @@ async function renderAuthState() {
 
 /**
  * Pour les profils "bureau" et "admin" : signale le nombre de demandes
- * d'inscription saison encore en attente de validation, sur toutes les
- * pages du site (pas seulement sur inscriptions.html).
+ * d'inscription saison encore en attente de validation ("En attente" ou
+ * "Éléments demandés"), sur toutes les pages du site (pas seulement sur
+ * inscriptions.html). Met uniquement à jour le conteneur du badge, sans
+ * toucher au reste du bandeau.
  */
-async function renderPendingInscriptionsBadge(access) {
-  if (!access || (access.role !== 'bureau' && access.role !== 'admin')) return '';
+async function refreshPendingInscriptionsBadge(access) {
+  const container = document.getElementById('pendingBadgeContainer');
+  if (!container) return;
+
+  if (!access || (access.role !== 'bureau' && access.role !== 'admin')) {
+    container.innerHTML = '';
+    return;
+  }
 
   const { count, error } = await sbClient
     .from('inscriptions')
     .select('id', { count: 'exact', head: true })
-    .eq('statut', 'en_attente');
+    .in('statut', ['en_attente', 'elements_demandes']);
 
-  if (error || !count) return '';
+  if (error || !count) {
+    container.innerHTML = '';
+    return;
+  }
 
-  return ` <a href="inscriptions.html" class="pending-badge">${count} demande${count > 1 ? 's' : ''} en attente</a>`;
+  container.innerHTML = `<a href="inscriptions.html" class="pending-badge">${count} demande${count > 1 ? 's' : ''} en attente</a>`;
+}
+
+let pendingBadgeChannel = null;
+
+/**
+ * Abonnement Supabase Realtime : dès qu'une inscription est ajoutée,
+ * modifiée ou supprimée (par n'importe quel visiteur, sur n'importe
+ * quelle page), le badge se recalcule et se met à jour en direct,
+ * sans qu'aucun rechargement de page ne soit nécessaire. Un seul
+ * abonnement actif à la fois par page (les rappels successifs de
+ * renderAuthState ne dupliquent pas le canal).
+ */
+function subscribeToPendingInscriptionsBadge(access) {
+  if (!access || (access.role !== 'bureau' && access.role !== 'admin')) return;
+  if (pendingBadgeChannel) return; // déjà abonné sur cette page
+
+  pendingBadgeChannel = sbClient
+    .channel('badge-inscriptions-en-attente')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'inscriptions' }, () => {
+      refreshPendingInscriptionsBadge(access);
+    })
+    .subscribe();
 }
 
 /**

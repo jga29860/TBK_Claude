@@ -251,7 +251,10 @@ function bindArticleForm() {
 async function chargerCommandes() {
   // RLS filtre automatiquement : un membre simple ne voit que ses
   // propres commandes, le bureau/admin voit toutes les commandes.
-  const { data, error } = await sbClient.from('boutique_commandes').select('*').order('created_at', { ascending: false });
+  // Limité aux 300 plus récentes pour éviter un ralentissement au fil
+  // des saisons (même précaution déjà appliquée au fil d'actualité des
+  // annonces du club).
+  const { data, error } = await sbClient.from('boutique_commandes').select('*').order('created_at', { ascending: false }).limit(300);
   if (error) { console.error(error.message); return; }
   commandesCache = data || [];
 

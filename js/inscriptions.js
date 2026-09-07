@@ -433,7 +433,11 @@ function inscriptionCorrespondFiltres(insc, columns) {
     const texteLower = texte.toLowerCase();
     let valeur;
     if (colKey === '__nom') valeur = `${insc.nom || ''} ${insc.prenom || ''}`;
-    else if (colKey === '__statut') valeur = insc.statut === 'validee' ? 'validée' : 'en attente';
+    else if (colKey === '__statut') {
+      valeur = insc.statut === 'validee' ? 'validée'
+        : insc.statut === 'elements_demandes' ? 'éléments demandés'
+        : 'en attente';
+    }
     else valeur = getColumnRawText(insc, colKey);
     if (!String(valeur).toLowerCase().includes(texteLower)) return false;
   }
@@ -600,7 +604,7 @@ function renderEmailRelanceWidget(record) {
     </div>`;
 }
 
-function envoyerEmailRelance(id) {
+async function envoyerEmailRelance(id) {
   const record = inscriptionsCache.find(i => i.id === id);
   if (!record) return;
   const champs = record.champs || {};
@@ -635,6 +639,19 @@ function envoyerEmailRelance(id) {
   if (emailClubCache) lien += `&cc=${encodeURIComponent(emailClubCache)}`;
 
   window.location.href = lien;
+
+  // Une relance (pas le modèle "Bienvenue") sur une inscription pas
+  // encore validée passe automatiquement au statut "Éléments
+  // demandés", pour distinguer visuellement les demandes déjà
+  // relancées de celles jamais encore contactées.
+  if (cle !== 'inscription_validee' && record.statut === 'en_attente') {
+    const { error } = await sbClient.from('inscriptions').update({ statut: 'elements_demandes' }).eq('id', id);
+    if (!error) {
+      record.statut = 'elements_demandes';
+      renderInscriptionsTableBody(getAvailableColumns().filter(c => colonnesCache.includes(c.key)));
+      if (editingId === id) renderEditActionsPanel(getLiveEditRecord() || record);
+    }
+  }
 }
 
 function renderRattachementWidget(record) {
@@ -793,6 +810,9 @@ function renderStatutCell(record) {
     const quand = record.valide_le ? new Date(record.valide_le).toLocaleDateString('fr-FR') : '';
     return `<span class="statut-badge statut-en-cours" title="Validée par ${qui}${quand ? ' le ' + quand : ''}">Validée</span>`;
   }
+  if (record.statut === 'elements_demandes') {
+    return `<span class="statut-badge" style="background:#fde9c8; color:#7a4a00;" title="Un email de relance a été envoyé pour demander les éléments manquants">Éléments demandés</span>`;
+  }
   return `<span class="statut-badge statut-cloture" style="background:#ffe9d9; color:#8a4a12;">En attente</span>`;
 }
 
@@ -829,11 +849,45 @@ function editInscription(id) {
 
   renderDynamicFormFields(record.champs || {});
   renderEditActionsPanel(record);
+  bindLiveEditRefresh();
 
   document.getElementById('formTitle').textContent = `Modifier : ${record.nom} ${record.prenom}`;
   document.getElementById('submitBtn').textContent = 'Mettre à jour';
   document.getElementById('cancelEditBtn').hidden = false;
   form.scrollIntoView({ behavior: 'smooth' });
+}
+
+/** Reconstruit un enregistrement "en direct" à partir des valeurs
+ *  actuellement saisies dans le formulaire (pas encore enregistrées),
+ *  en conservant le statut/certificat/etc. du dernier état connu en
+ *  base — pour que le panneau d'actions (bouton Valider, modèle
+ *  d'email recommandé) réagisse immédiatement à la saisie, sans
+ *  attendre l'enregistrement. */
+function getLiveEditRecord() {
+  const base = inscriptionsCache.find(i => i.id === editingId);
+  if (!base) return null;
+  const form = document.getElementById('inscriptionForm');
+  return {
+    ...base,
+    categorie: document.getElementById('categorieInput').value,
+    champs: collectDynamicFieldValues(form),
+  };
+}
+
+/** Rebranche (une seule fois par ouverture du formulaire) le
+ *  rafraîchissement en direct du panneau d'actions à chaque saisie. */
+function bindLiveEditRefresh() {
+  const form = document.getElementById('inscriptionForm');
+  if (form.dataset.liveRefreshBound) return;
+  form.dataset.liveRefreshBound = 'true';
+
+  const rafraichir = () => {
+    if (!editingId) return; // pas de panneau d'actions en mode "nouvelle inscription"
+    const live = getLiveEditRecord();
+    if (live) renderEditActionsPanel(live);
+  };
+  form.addEventListener('input', rafraichir);
+  form.addEventListener('change', rafraichir);
 }
 
 /** Panneau d'actions propre à une inscription existante (validation,
@@ -845,7 +899,7 @@ function renderEditActionsPanel(record) {
   const content = document.getElementById('editActionsContent');
 
   content.innerHTML = `
-    ${isBureau && record.statut === 'en_attente' ? renderValiderBtn(record) : ''}
+    ${isBureau && record.statut !== 'validee' ? renderValiderBtn(record) : ''}
     ${isBureau && record.statut === 'validee' ? `<button type="button" class="btn btn-ghost btn-small devalider-btn" data-id="${record.id}">Annuler la validation</button>` : ''}
     <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${record.id}">${record.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
     ${record.certificat_photo_url ? `

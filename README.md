@@ -792,6 +792,31 @@ Exécutez `supabase/migration_precision_message_sante.sql`.
 - **Ligne simplifiée à Modifier/Supprimer** : toutes les autres actions (Valider/Annuler la validation, Certificat, Rattachement du compte, Envoyer un email) sont désormais regroupées dans un nouveau panneau "Actions pour cette inscription", qui apparaît sous le formulaire dès qu'on clique sur "Modifier" une personne — la ligne du tableau reste épurée.
 - **Email du club en copie (Cc)** : l'adresse "Email de contact du club" (Administration → Paramètres du site) est désormais automatiquement mise en copie de chaque email de relance envoyé, pour que le bureau garde une trace de l'échange. Correction technique au passage : encodage manuel du lien mailto (plutôt que `URLSearchParams`, qui encode les espaces en "+", mal interprété par certains clients email).
 
+## Ajustement — champs de saisie des modèles d'emails agrandis
+
+Les champs "Sujet" et "Corps du message" des modèles d'emails de relance (Administration → Configuration, page Inscriptions) n'avaient aucune largeur définie et prenaient la taille minuscule par défaut du navigateur. Corrigé : ces champs occupent maintenant toute la largeur disponible du panneau, avec une hauteur de départ plus généreuse pour le corps du message (9 lignes au lieu de 6). Les libellés ("Sujet", "Corps du message") sont aussi correctement mis en forme au-dessus de leur champ, plutôt qu'en ligne par défaut du navigateur.
+
+## Audit du site et du code — correction d'une requête sans limite
+
+Audit complet mené sur toutes les fonctionnalités ajoutées depuis le dernier contrôle (boutique, courses, emails de relance, keepalive) : sécurité (RLS) et documentation confirmées à jour, aucune faille détectée.
+
+**Un point corrigé immédiatement** : la liste des commandes boutique (vue bureau) se chargeait sans aucune limite ni tri par période — même schéma de problème déjà rencontré et corrigé sur le fil d'actualité des annonces. Limité aux 300 commandes les plus récentes pour éviter un ralentissement progressif au fil des saisons.
+
+**Points identifiés mais non traités pour l'instant** (à la demande de l'utilisateur, améliorations de confort) :
+- Page Courses du tournoi pas encore optimisée pour mobile (motif "fiches dépliables" pas encore appliqué à son tableau).
+- Script de génération du Word (`generate.js`) toujours perdu depuis une réinitialisation technique — le Word reste à jour via des éditions XML ciblées à chaque tour, fonctionnel mais plus fragile qu'un vrai script.
+- Quelques fichiers obsolètes accumulés dans les téléchargements (fonction Edge annulée, scripts de diagnostic/simulation ponctuels) — sans risque, juste de l'encombrement.
+
+## Page Inscriptions — panneau en direct, badge temps réel, statut "Éléments demandés"
+
+Exécutez `supabase/migration_statut_elements_demandes.sql` puis `supabase/migration_realtime_badge_inscriptions.sql`.
+
+**1. Panneau d'actions en direct** : dans le panneau "Actions pour cette inscription" (après clic sur "Modifier"), le bouton "Valider" apparaît/disparaît désormais immédiatement à chaque saisie (cotisation, santé, certificat) — plus besoin d'enregistrer d'abord pour voir si la validation est possible.
+
+**2. Badge "demandes en attente" en temps réel** — nouveauté technique : première utilisation de Supabase Realtime sur ce site. Le badge du bandeau (visible sur toutes les pages, profils bureau/admin) se met à jour automatiquement dès qu'une inscription est ajoutée, modifiée ou supprimée par n'importe qui, sans rechargement de page. ⚠️ **Nécessite que la réplication logique soit activée sur votre projet Supabase** — standard sur les projets récents, mais si le badge ne se met pas à jour en direct après déploiement, vérifiez dans Supabase → Database → Replication que la table `inscriptions` apparaît bien cochée pour `supabase_realtime` (la migration l'active automatiquement, mais certains projets très anciens peuvent nécessiter une activation manuelle de la fonctionnalité elle-même).
+
+**3. Nouveau statut "Éléments demandés"** : positionné automatiquement dès qu'un email de relance (hors modèle "Bienvenue") est envoyé pour une inscription "En attente". Le bouton "Valider" reste disponible sur ce statut. Comptabilisé dans le badge de demandes en attente, avec son propre badge visuel orange dans le tableau.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
