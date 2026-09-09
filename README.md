@@ -829,6 +829,22 @@ Exécutez `supabase/migration_suivi_modification_inscriptions.sql`.
 
 ⚠️ **Point à tester particulièrement soigneusement** : la logique du filtre sport dans l'envoi groupé (Bad/Ping/les deux), qui est la partie la plus sujette à interprétation de ce tour.
 
+## Envoi groupé — liste récapitulative par email
+
+- **Accès admin confirmé** : vérifié des deux côtés (affichage de la section + branchement des actions), aucun changement nécessaire, déjà correctement restreint.
+- **Nouveau bouton "✉️ Envoyer la liste par email"** : en plus de l'envoi individuel ligne par ligne déjà en place, un seul clic génère un email récapitulatif listant toutes les inscriptions du dernier filtrage (nom, catégorie, sport, cotisation, statut, email), avec les critères de filtrage rappelés en objet. Destinataire pré-rempli avec l'adresse de contact du club, modifiable avant envoi. Avertissement affiché au-delà de 30 résultats (risque de troncature côté client email).
+
+## Correctif — bouton "Envoyer la liste par email" peu visible sur mobile
+
+Le bouton utilisait un style discret ("ghost" : fond blanc, fine bordure verte) qui pouvait se fondre dans la page sur un écran étroit, surtout combiné avec le paragraphe d'explication juste en dessous. Corrigé : style plein (vert, comme les autres actions principales) + empilement pleine largeur garanti sur mobile (plus de risque de compression dans une ligne flex trop courte).
+
+**Point d'incertitude à confirmer** : n'ayant pas pu reproduire directement sur un vrai appareil mobile, ce correctif cible la cause la plus probable (contraste/discrétion du style, pas une règle qui le masquait complètement). À confirmer après déploiement — si le bouton reste invisible, une capture d'écran aiderait à cibler précisément.
+
+## Résumé sport/catégorie + email de liste mieux structuré
+
+- **Résumé sport/catégorie** : à droite du titre "Inscrits — [saison]", un petit texte en police réduite affiche désormais "X Bad · X Ping · X Jeune · X Adulte" (les personnes pratiquant les deux sports comptent dans Bad ET Ping), mis à jour à chaque chargement de la liste.
+- **Email de liste mieux structuré** : les liens mailto ne pouvant contenir que du texte brut (pas de HTML), la mise en forme passe par une meilleure structuration du texte — bandeau de titre, filtres et date d'extraction rappelés, regroupement par catégorie (Adultes/Jeunes) avec sous-total par groupe, icône de statut (✅/🟠/⏳) par personne, email sur sa propre ligne. Testé et vérifié avec un jeu de données d'exemple.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

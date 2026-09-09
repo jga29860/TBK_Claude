@@ -565,6 +565,7 @@ table.schedule .role-label-input{
 .btn-danger:hover{ background:#900000 !important; }
 
 .count-badge{ font-family: var(--font-mono); font-size:0.85rem; color: var(--ink-soft); font-weight:400; }
+.inscriptions-stats{ font-size:0.75rem; color: var(--ink-soft); font-weight:400; font-family: var(--font-body); }
 
 .sr-only{
   position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;

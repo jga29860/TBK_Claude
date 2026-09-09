@@ -407,6 +407,7 @@ async function loadInscriptions() {
 
   inscriptionsCache = data || [];
   document.getElementById('inscriptionsCount').textContent = `(${inscriptionsCache.length})`;
+  renderStatsInscrits();
 
   renderInscriptionsTableBody(columns);
 }
@@ -1127,6 +1128,23 @@ const LABELS_TEMPLATES_EMAIL = {
 /** Sport joué : "Bad" et "Ping" englobent aussi "Bad et Ping" (qui
  *  pratique les deux joue forcément aussi à ce sport-là) ; "Bad et
  *  Ping" en filtre isole uniquement ceux qui pratiquent les deux. */
+/** Petit résumé "X Bad · X Ping · X Jeune · X Adulte" affiché à côté du
+ *  titre du tableau. "Bad" et "Ping" comptent aussi les personnes qui
+ *  pratiquent les deux (même logique que le filtre sport de l'envoi
+ *  groupé, voir matchSportGroupe). */
+function renderStatsInscrits() {
+  const el = document.getElementById('inscriptionsStats');
+  if (!el) return;
+  if (inscriptionsCache.length === 0) { el.textContent = ''; return; }
+
+  const nbBad = inscriptionsCache.filter(i => i.bad_ping === 'Bad' || i.bad_ping === 'Bad et Ping').length;
+  const nbPing = inscriptionsCache.filter(i => i.bad_ping === 'Ping' || i.bad_ping === 'Bad et Ping').length;
+  const nbJeune = inscriptionsCache.filter(i => i.categorie === 'Jeune').length;
+  const nbAdulte = inscriptionsCache.filter(i => i.categorie === 'Adulte').length;
+
+  el.textContent = `${nbBad} Bad · ${nbPing} Ping · ${nbJeune} Jeune · ${nbAdulte} Adulte`;
+}
+
 function matchSportGroupe(insc, sportFiltre) {
   if (!sportFiltre) return true;
   if (sportFiltre === 'Bad et Ping') return insc.bad_ping === 'Bad et Ping';
@@ -1235,23 +1253,62 @@ function decrireFiltresGroupe() {
 /** Envoie un unique email récapitulatif listant toutes les inscriptions
  *  du dernier filtrage — à distinguer de "Envoyer" par ligne, qui
  *  envoie une relance individuelle à une seule personne. */
+/** Icône et libellé de statut, réutilisés pour un affichage plus clair
+ *  et cohérent dans la liste texte envoyée par email. */
+function iconeStatutInscription(statut) {
+  if (statut === 'validee') return '✅';
+  if (statut === 'elements_demandes') return '🟠';
+  return '⏳';
+}
+function texteStatutInscription(statut) {
+  if (statut === 'validee') return 'Validée';
+  if (statut === 'elements_demandes') return 'Éléments demandés';
+  return 'En attente';
+}
+
+/** Un email envoyé par mailto ne peut contenir que du texte brut (pas
+ *  de mise en forme HTML) — l'amélioration "visuelle" passe donc par
+ *  une meilleure structuration du texte : en-tête, regroupement par
+ *  catégorie, icônes de statut, alignement cohérent. */
 function envoyerListeGroupeParEmail() {
   if (dernierResultatsGroupe.length === 0) return;
 
   const filtresTexte = decrireFiltresGroupe();
   const sujet = `TBK — Liste des inscriptions (${filtresTexte})`;
+  const dateExtraction = new Date().toLocaleDateString('fr-FR');
 
-  const lignes = dernierResultatsGroupe.map(i => {
+  const ligneParPersonne = (i) => {
     const champs = i.champs || {};
     const email = champs.email || 'email non renseigné';
-    const cotisation = estValeurAffirmative(champs.cotisation_payee) ? 'cotisation payée' : 'cotisation non payée';
-    const statutTexte = i.statut === 'validee' ? 'Validée' : i.statut === 'elements_demandes' ? 'Éléments demandés' : 'En attente';
-    return `- ${i.nom} ${i.prenom || ''} — ${i.categorie || '?'} — ${i.bad_ping || '?'} — ${cotisation} — ${statutTexte} — ${email}`;
-  });
+    const cotisation = estValeurAffirmative(champs.cotisation_payee) ? '💶 Cotisation payée' : '💶 Cotisation non payée';
+    return `  ${iconeStatutInscription(i.statut)} ${i.nom} ${i.prenom || ''} — ${i.bad_ping || '?'} — ${cotisation} — ${texteStatutInscription(i.statut)}\n     ✉ ${email}`;
+  };
 
-  const corps = `Liste des inscriptions saison filtrées (${filtresTexte}) :\n\n${lignes.join('\n')}\n\nTotal : ${dernierResultatsGroupe.length} inscription${dernierResultatsGroupe.length > 1 ? 's' : ''}.`;
+  const adultes = dernierResultatsGroupe.filter(i => i.categorie === 'Adulte');
+  const jeunes = dernierResultatsGroupe.filter(i => i.categorie === 'Jeune');
+  const autres = dernierResultatsGroupe.filter(i => i.categorie !== 'Adulte' && i.categorie !== 'Jeune');
 
-  let lien = `mailto:${emailClubCache ? encodeURIComponent(emailClubCache) : ''}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  const sections = [];
+  if (adultes.length) sections.push(`— ADULTES (${adultes.length}) —\n\n${adultes.map(ligneParPersonne).join('\n\n')}`);
+  if (jeunes.length) sections.push(`— JEUNES (${jeunes.length}) —\n\n${jeunes.map(ligneParPersonne).join('\n\n')}`);
+  if (autres.length) sections.push(`— AUTRES (${autres.length}) —\n\n${autres.map(ligneParPersonne).join('\n\n')}`);
+
+  const corps = [
+    '════════════════════════════════',
+    ' TBK — LISTE DES INSCRIPTIONS',
+    '════════════════════════════════',
+    '',
+    `Filtres appliqués : ${filtresTexte}`,
+    `Extraction du : ${dateExtraction}`,
+    `Total : ${dernierResultatsGroupe.length} inscription${dernierResultatsGroupe.length > 1 ? 's' : ''}`,
+    '',
+    sections.join('\n\n'),
+    '',
+    '────────────────────────────────',
+    'Envoyé automatiquement depuis la page Inscriptions du site TBK.',
+  ].join('\n');
+
+  const lien = `mailto:${emailClubCache ? encodeURIComponent(emailClubCache) : ''}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
   window.location.href = lien;
 }
 
