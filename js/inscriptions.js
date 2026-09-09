@@ -1166,7 +1166,10 @@ function bindEnvoiGroupe() {
   });
 }
 
+let dernierResultatsGroupe = []; // dernier filtrage effectué, pour l'envoi de la liste par email
+
 function renderResultatsGroupe(resultats) {
+  dernierResultatsGroupe = resultats;
   const container = document.getElementById('resultatsGroupeContainer');
 
   if (resultats.length === 0) {
@@ -1175,9 +1178,16 @@ function renderResultatsGroupe(resultats) {
   }
 
   const sansEmail = resultats.filter(i => !(i.champs && i.champs.email)).length;
+  const avertissementLongueur = resultats.length > 30
+    ? ' ⚠️ Liste longue : certains clients email peuvent tronquer un message aussi long.'
+    : '';
 
   container.innerHTML = `
     <p class="form-hint">${resultats.length} inscription${resultats.length > 1 ? 's' : ''} correspondante${resultats.length > 1 ? 's' : ''}${sansEmail > 0 ? ` (dont ${sansEmail} sans adresse email, non envoyable${sansEmail > 1 ? 's' : ''})` : ''}.</p>
+    <div class="inline-form" style="margin-bottom:12px;">
+      <button type="button" class="btn btn-ghost btn-small" id="envoyerListeGroupeBtn">✉️ Envoyer la liste par email</button>
+      <p class="form-hint" style="margin:0;">Envoie un seul email récapitulatif listant ces ${resultats.length} inscription${resultats.length > 1 ? 's' : ''} (pas une relance individuelle à chaque personne).${avertissementLongueur}</p>
+    </div>
     <div class="table-wrap">
       <table class="schedule">
         <thead><tr><th>Nom</th><th>Email</th><th>Statut</th><th></th></tr></thead>
@@ -1201,6 +1211,48 @@ function renderResultatsGroupe(resultats) {
       envoyerEmailRelance(btn.getAttribute('data-id'), modele);
     });
   });
+
+  document.getElementById('envoyerListeGroupeBtn').addEventListener('click', envoyerListeGroupeParEmail);
+}
+
+/** Texte décrivant les filtres actuellement sélectionnés, pour le
+ *  sujet/l'introduction de l'email récapitulatif. */
+function decrireFiltresGroupe() {
+  const sport = document.getElementById('filtreGroupeSport').value;
+  const categorie = document.getElementById('filtreGroupeCategorie').value;
+  const cotisation = document.getElementById('filtreGroupeCotisation').value;
+  const certificat = document.getElementById('filtreGroupeCertificat').value;
+
+  const morceaux = [];
+  if (sport) morceaux.push(`sport : ${sport === 'Bad' ? 'Badminton' : sport === 'Ping' ? 'Tennis de table' : 'les deux'}`);
+  if (categorie) morceaux.push(`catégorie : ${categorie}`);
+  if (cotisation) morceaux.push(`cotisation : ${cotisation === 'payee' ? 'payée' : 'non payée'}`);
+  if (certificat) morceaux.push(`certificat/QS Sport : ${certificat === 'valide' ? 'valable' : 'expiré ou non renseigné'}`);
+
+  return morceaux.length ? morceaux.join(', ') : 'aucun filtre particulier';
+}
+
+/** Envoie un unique email récapitulatif listant toutes les inscriptions
+ *  du dernier filtrage — à distinguer de "Envoyer" par ligne, qui
+ *  envoie une relance individuelle à une seule personne. */
+function envoyerListeGroupeParEmail() {
+  if (dernierResultatsGroupe.length === 0) return;
+
+  const filtresTexte = decrireFiltresGroupe();
+  const sujet = `TBK — Liste des inscriptions (${filtresTexte})`;
+
+  const lignes = dernierResultatsGroupe.map(i => {
+    const champs = i.champs || {};
+    const email = champs.email || 'email non renseigné';
+    const cotisation = estValeurAffirmative(champs.cotisation_payee) ? 'cotisation payée' : 'cotisation non payée';
+    const statutTexte = i.statut === 'validee' ? 'Validée' : i.statut === 'elements_demandes' ? 'Éléments demandés' : 'En attente';
+    return `- ${i.nom} ${i.prenom || ''} — ${i.categorie || '?'} — ${i.bad_ping || '?'} — ${cotisation} — ${statutTexte} — ${email}`;
+  });
+
+  const corps = `Liste des inscriptions saison filtrées (${filtresTexte}) :\n\n${lignes.join('\n')}\n\nTotal : ${dernierResultatsGroupe.length} inscription${dernierResultatsGroupe.length > 1 ? 's' : ''}.`;
+
+  let lien = `mailto:${emailClubCache ? encodeURIComponent(emailClubCache) : ''}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  window.location.href = lien;
 }
 
 function renderEmailTemplatesConfig() {
