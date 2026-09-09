@@ -644,6 +644,16 @@ select.filtre-colonne-input{ background: var(--white); cursor:pointer; }
 }
 #resultatsGroupeContainer{ margin-top:14px; }
 
+/* Bouton d'envoi de la liste groupée : plein style (au lieu de
+   "ghost") pour rester bien visible même sur un écran étroit, et
+   empilé pleine largeur sur mobile pour éviter tout effet de
+   compression dans une ligne flex trop courte. */
+.envoi-liste-groupe-zone{ align-items:flex-start; }
+@media (max-width: 760px){
+  .envoi-liste-groupe-zone{ flex-direction:column; align-items:stretch; }
+  .envoi-liste-groupe-zone .btn{ width:100%; text-align:center; }
+}
+
 .email-template-bloc{
   border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-top:14px;
   display:flex; flex-direction:column; gap:10px;

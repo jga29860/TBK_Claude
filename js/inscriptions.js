@@ -1184,8 +1184,8 @@ function renderResultatsGroupe(resultats) {
 
   container.innerHTML = `
     <p class="form-hint">${resultats.length} inscription${resultats.length > 1 ? 's' : ''} correspondante${resultats.length > 1 ? 's' : ''}${sansEmail > 0 ? ` (dont ${sansEmail} sans adresse email, non envoyable${sansEmail > 1 ? 's' : ''})` : ''}.</p>
-    <div class="inline-form" style="margin-bottom:12px;">
-      <button type="button" class="btn btn-ghost btn-small" id="envoyerListeGroupeBtn">✉️ Envoyer la liste par email</button>
+    <div class="inline-form envoi-liste-groupe-zone" style="margin-bottom:12px;">
+      <button type="button" class="btn btn-primary" id="envoyerListeGroupeBtn">✉️ Envoyer la liste par email</button>
       <p class="form-hint" style="margin:0;">Envoie un seul email récapitulatif listant ces ${resultats.length} inscription${resultats.length > 1 ? 's' : ''} (pas une relance individuelle à chaque personne).${avertissementLongueur}</p>
     </div>
     <div class="table-wrap">
