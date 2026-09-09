@@ -263,6 +263,16 @@
 
       <h3 class="admin-subheading">5.14 Modèles d'emails (configuration, profil admin)</h3>
       <p>Dans la section Configuration de cette page, le contenu (sujet + corps) des 5 modèles d'emails ci-dessus est entièrement personnalisable. Variables disponibles, remplacées automatiquement à l'envoi : <code>{prenom}</code>, <code>{nom}</code>, <code>{montant}</code> (cotisation attendue), <code>{email}</code> (adresse de la personne), <code>{url_site}</code> (adresse du site), <code>{document_sante}</code> (résout en "un certificat médical" ou "le questionnaire de santé (QS Sport)" selon la règle décrite en 5.12).</p>
+
+      <h3 class="admin-subheading">5.15 Envoi groupé par critères (profil admin)</h3>
+      <p>Section réservée aux administrateurs, au-dessus du tableau des inscrits. Permet de filtrer les inscriptions de la saison sur plusieurs critères combinés à la fois : sport (Bad, Ping, ou les deux — "Bad" et "Ping" incluent aussi les personnes pratiquant les deux), catégorie (Adulte/Jeune), statut de la cotisation (payée/non payée), et validité du certificat médical/QS Sport (valable ou expiré/non renseigné, selon la même règle qu'en 5.9).</p>
+      <p>Le bouton "Filtrer" affiche la liste des inscriptions correspondantes (nom, email, statut), avec un bouton "Envoyer" par ligne qui utilise le modèle d'email choisi dans le menu déroulant au-dessus. Chaque envoi reste un lien mailto individuel (voir 5.13) — pas d'envoi groupé automatique en un seul clic, mais un parcours rapide ligne par ligne avec le même modèle pré-appliqué à chacune. Les inscriptions sans adresse email renseignée apparaissent dans la liste mais sans bouton d'envoi.</p>
+
+      <h3 class="admin-subheading">5.16 Filtres par colonne : listes déroulantes</h3>
+      <p>Les filtres par colonne (5.12) proposent désormais une liste déroulante avec les valeurs réellement possibles, plutôt qu'un champ texte libre, pour toute colonne à choix limité : Statut, Catégorie, Bad / Ping, UFOLEP / FSGT, Membre Bureau, et tout champ personnalisé de type "Liste" ou "Oui/Non". Les colonnes à valeurs trop nombreuses pour une liste (Nom, Cotisation, Commentaire, dates…) restent en texte libre.</p>
+
+      <h3 class="admin-subheading">5.17 Suivi de la dernière modification</h3>
+      <p>Chaque inscription enregistre automatiquement qui l'a modifiée en dernier et à quelle date — quelle que soit l'origine du changement (formulaire, validation, envoi d'un email de relance qui fait évoluer le statut...). Cette information est visible en haut du panneau "Actions pour cette inscription" (voir 5.4), et peut aussi être ajoutée comme colonne du tableau depuis "Colonnes affichées" (5.5).</p>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->
@@ -479,7 +489,7 @@
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
-            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée).</td></tr>
+            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée + colonnes <code>modifie_par</code>/<code>modifie_par_nom</code>/<code>modifie_le</code> remplies automatiquement par un déclencheur à chaque modification).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
             <tr><td>bareme_cotisations</td><td>Montants utilisés pour le calcul de la cotisation saison.</td></tr>
             <tr><td>inscriptions_affichage</td><td>Colonnes choisies pour le tableau des inscriptions saison.</td></tr>

@@ -13,6 +13,7 @@ const FIXED_COLUMNS = [
   { key: 'ufolep_fsgt', label: 'UFOLEP / FSGT' },
   { key: 'membre_bureau', label: 'Membre Bureau' },
   { key: 'cotisation', label: 'Cotisation' },
+  { key: 'derniere_modification', label: 'Dernière modification' },
 ];
 
 let champsCache = [];      // définition des champs personnalisés (inscription_champs)
@@ -46,6 +47,8 @@ async function initInscriptionsPage() {
   isAdminUser = access.pages.includes('administration');
   isBureau = access.role === 'bureau' || isAdminUser;
   document.getElementById('configSection').hidden = !isAdminUser;
+  document.getElementById('envoiGroupeSection').hidden = !isAdminUser;
+  if (isAdminUser) bindEnvoiGroupe();
 
   await loadBareme();
   await loadChamps();
@@ -418,6 +421,7 @@ function getColumnRawText(record, key) {
   if (key === 'ufolep_fsgt') return record.ufolep_fsgt ? 'Oui' : 'Non';
   if (key === 'membre_bureau') return record.membre_bureau ? 'Oui' : 'Non';
   if (key === 'cotisation') return String(record.cotisation ?? '');
+  if (key === 'derniere_modification') return formatDerniereModification(record);
   const champ = champsCache.find(c => c.key === key);
   const val = record.champs ? record.champs[key] : undefined;
   if (!champ || val === undefined || val === null || val === '') return '';
@@ -509,19 +513,49 @@ function renderInscriptionsTableBody(columns) {
   });
 }
 
+/** Options d'une liste déroulante de filtre pour une colonne donnée, ou
+ *  null si un champ texte libre est plus adapté (ex. commentaire, nom). */
+function getFilterOptions(colKey) {
+  if (colKey === '__statut') return ['En attente', 'Éléments demandés', 'Validée'];
+  if (colKey === 'categorie') return ['Adulte', 'Jeune'];
+  if (colKey === 'bad_ping') return ['Bad', 'Ping', 'Bad et Ping'];
+  if (colKey === 'ufolep_fsgt' || colKey === 'membre_bureau') return ['Oui', 'Non'];
+  const champ = champsCache.find(c => c.key === colKey);
+  if (champ && champ.type === 'liste' && champ.options) return champ.options;
+  if (champ && champ.type === 'booleen') return ['Oui', 'Non'];
+  return null;
+}
+
+function renderFiltreColonneCell(colKey) {
+  const options = getFilterOptions(colKey);
+  const valeurActuelle = filtresColonnes[colKey] || '';
+
+  if (!options) {
+    return `<th><input type="text" class="filtre-colonne-input" data-col="${escapeHtml(colKey)}" placeholder="Filtrer…" value="${escapeHtml(valeurActuelle)}"></th>`;
+  }
+
+  return `<th>
+    <select class="filtre-colonne-input filtre-colonne-select" data-col="${escapeHtml(colKey)}">
+      <option value="">Tous</option>
+      ${options.map(o => `<option value="${escapeHtml(o)}" ${o === valeurActuelle ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('')}
+    </select>
+  </th>`;
+}
+
 function renderInscriptionsTableHead(columns) {
   const thead = document.querySelector('#inscriptionsTable thead');
   const headerRow = `<tr><th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th></tr>`;
   const filterRow = `<tr class="filtres-colonnes-row">
     <th><input type="text" class="filtre-colonne-input" data-col="__nom" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes.__nom || '')}"></th>
-    ${columns.map(c => `<th><input type="text" class="filtre-colonne-input" data-col="${escapeHtml(c.key)}" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes[c.key] || '')}"></th>`).join('')}
-    <th><input type="text" class="filtre-colonne-input" data-col="__statut" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes.__statut || '')}"></th>
+    ${columns.map(c => renderFiltreColonneCell(c.key)).join('')}
+    ${renderFiltreColonneCell('__statut')}
     <th></th>
   </tr>`;
   thead.innerHTML = headerRow + filterRow;
 
   thead.querySelectorAll('.filtre-colonne-input').forEach(input => {
-    input.addEventListener('input', () => {
+    const evenement = input.tagName === 'SELECT' ? 'change' : 'input';
+    input.addEventListener(evenement, () => {
       filtresColonnes[input.getAttribute('data-col')] = input.value;
       renderInscriptionsTableBody(columns);
     });
@@ -604,7 +638,7 @@ function renderEmailRelanceWidget(record) {
     </div>`;
 }
 
-async function envoyerEmailRelance(id) {
+async function envoyerEmailRelance(id, modeleForce) {
   const record = inscriptionsCache.find(i => i.id === id);
   if (!record) return;
   const champs = record.champs || {};
@@ -612,7 +646,7 @@ async function envoyerEmailRelance(id) {
   if (!destinataire) { alert("Aucune adresse email renseignée sur cette inscription — impossible d'envoyer."); return; }
 
   const select = document.querySelector(`.email-relance-select[data-id="${id}"]`);
-  const cle = select ? select.value : templateRecommande(record);
+  const cle = modeleForce || (select ? select.value : templateRecommande(record));
   const template = emailTemplatesCache[cle];
   if (!template) { alert("Modèle introuvable — vérifiez la configuration dans Administration → Modèles d'emails."); return; }
 
@@ -824,6 +858,7 @@ function formatColumnValue(record, key) {
   if (key === 'ufolep_fsgt') return record.ufolep_fsgt ? 'Oui' : 'Non';
   if (key === 'membre_bureau') return record.membre_bureau ? 'Oui' : 'Non';
   if (key === 'cotisation') return `${Number(record.cotisation).toFixed(2)} €`;
+  if (key === 'derniere_modification') return formatDerniereModification(record);
 
   // Champs personnalisés
   const champ = champsCache.find(c => c.key === key);
@@ -831,6 +866,17 @@ function formatColumnValue(record, key) {
   if (!champ || val === undefined || val === null || val === '') return '—';
   if (champ.type === 'booleen') return val ? 'Oui' : 'Non';
   return escapeHtml(String(val));
+}
+
+/** Texte "Prénom Nom, le JJ/MM/AAAA à HH:MM" pour la colonne/l'info de
+ *  dernière modification — alimentée automatiquement par un trigger
+ *  côté base de données à chaque mise à jour de l'inscription. */
+function formatDerniereModification(record) {
+  if (!record.modifie_le) return '—';
+  const qui = record.modifie_par_nom ? escapeHtml(record.modifie_par_nom) : 'un membre du bureau';
+  const quand = new Date(record.modifie_le);
+  const dateTexte = quand.toLocaleDateString('fr-FR') + ' à ' + quand.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return `${qui}, le ${dateTexte}`;
 }
 
 function editInscription(id) {
@@ -899,6 +945,7 @@ function renderEditActionsPanel(record) {
   const content = document.getElementById('editActionsContent');
 
   content.innerHTML = `
+    ${record.modifie_le ? `<p class="derniere-modif-info">Dernière modification : ${formatDerniereModification(record)}</p>` : ''}
     ${isBureau && record.statut !== 'validee' ? renderValiderBtn(record) : ''}
     ${isBureau && record.statut === 'validee' ? `<button type="button" class="btn btn-ghost btn-small devalider-btn" data-id="${record.id}">Annuler la validation</button>` : ''}
     <button type="button" class="btn btn-ghost btn-small certificat-btn" data-id="${record.id}">${record.certificat_photo_url ? '📷 Certificat ✓' : '📷 Certificat'}</button>
@@ -1076,6 +1123,85 @@ const LABELS_TEMPLATES_EMAIL = {
   cotisation_et_sante_absentes: 'Cotisation + document santé manquants',
   inscription_validee: 'Inscription validée (bienvenue)',
 };
+
+/** Sport joué : "Bad" et "Ping" englobent aussi "Bad et Ping" (qui
+ *  pratique les deux joue forcément aussi à ce sport-là) ; "Bad et
+ *  Ping" en filtre isole uniquement ceux qui pratiquent les deux. */
+function matchSportGroupe(insc, sportFiltre) {
+  if (!sportFiltre) return true;
+  if (sportFiltre === 'Bad et Ping') return insc.bad_ping === 'Bad et Ping';
+  if (sportFiltre === 'Bad') return insc.bad_ping === 'Bad' || insc.bad_ping === 'Bad et Ping';
+  if (sportFiltre === 'Ping') return insc.bad_ping === 'Ping' || insc.bad_ping === 'Bad et Ping';
+  return true;
+}
+
+function bindEnvoiGroupe() {
+  document.getElementById('filtrerGroupeBtn').addEventListener('click', () => {
+    const sport = document.getElementById('filtreGroupeSport').value;
+    const categorie = document.getElementById('filtreGroupeCategorie').value;
+    const cotisationFiltre = document.getElementById('filtreGroupeCotisation').value;
+    const certificatFiltre = document.getElementById('filtreGroupeCertificat').value;
+
+    const resultats = inscriptionsCache.filter(insc => {
+      if (sport && !matchSportGroupe(insc, sport)) return false;
+      if (categorie && insc.categorie !== categorie) return false;
+
+      const champs = insc.champs || {};
+      if (cotisationFiltre) {
+        const paye = estValeurAffirmative(champs.cotisation_payee);
+        if (cotisationFiltre === 'payee' && !paye) return false;
+        if (cotisationFiltre === 'non_payee' && paye) return false;
+      }
+
+      if (certificatFiltre) {
+        const valide = certificatEstValide(champs.date_certif, insc.categorie);
+        if (certificatFiltre === 'valide' && !valide) return false;
+        if (certificatFiltre === 'invalide' && valide) return false;
+      }
+
+      return true;
+    });
+
+    renderResultatsGroupe(resultats);
+  });
+}
+
+function renderResultatsGroupe(resultats) {
+  const container = document.getElementById('resultatsGroupeContainer');
+
+  if (resultats.length === 0) {
+    container.innerHTML = '<p class="form-hint">Aucune inscription ne correspond à ces critères.</p>';
+    return;
+  }
+
+  const sansEmail = resultats.filter(i => !(i.champs && i.champs.email)).length;
+
+  container.innerHTML = `
+    <p class="form-hint">${resultats.length} inscription${resultats.length > 1 ? 's' : ''} correspondante${resultats.length > 1 ? 's' : ''}${sansEmail > 0 ? ` (dont ${sansEmail} sans adresse email, non envoyable${sansEmail > 1 ? 's' : ''})` : ''}.</p>
+    <div class="table-wrap">
+      <table class="schedule">
+        <thead><tr><th>Nom</th><th>Email</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          ${resultats.map(i => `
+            <tr>
+              <td data-label="Nom">${escapeHtml(i.nom)} ${escapeHtml(i.prenom || '')}</td>
+              <td data-label="Email">${i.champs && i.champs.email ? escapeHtml(i.champs.email) : '—'}</td>
+              <td data-label="Statut">${renderStatutCell(i)}</td>
+              <td data-label="Action">${i.champs && i.champs.email ? `<button type="button" class="btn btn-primary btn-small envoyer-groupe-btn" data-id="${i.id}">Envoyer</button>` : ''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  container.querySelectorAll('.envoyer-groupe-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modele = document.getElementById('modeleGroupeSelect').value;
+      envoyerEmailRelance(btn.getAttribute('data-id'), modele);
+    });
+  });
+}
 
 function renderEmailTemplatesConfig() {
   const container = document.getElementById('emailTemplatesContainer');

@@ -103,6 +103,56 @@
       </div>
     </section>
 
+    <!-- ===== Envoi groupé par critères (profil admin) ===== -->
+    <section class="admin-section" id="envoiGroupeSection" hidden>
+      <h2>Envoi groupé par critères</h2>
+      <p class="section-lead">Filtrer les inscriptions de la saison selon plusieurs critères à la fois, pour envoyer le même email de relance à toutes les personnes concernées.</p>
+      <div class="filtres-groupe-grid">
+        <label>Sport
+          <select id="filtreGroupeSport">
+            <option value="">Tous</option>
+            <option value="Bad">Badminton (Bad ou Bad et Ping)</option>
+            <option value="Ping">Tennis de table (Ping ou Bad et Ping)</option>
+            <option value="Bad et Ping">Les deux uniquement</option>
+          </select>
+        </label>
+        <label>Catégorie
+          <select id="filtreGroupeCategorie">
+            <option value="">Toutes</option>
+            <option value="Adulte">Adulte</option>
+            <option value="Jeune">Jeune</option>
+          </select>
+        </label>
+        <label>Statut cotisation
+          <select id="filtreGroupeCotisation">
+            <option value="">Toutes</option>
+            <option value="payee">Payée</option>
+            <option value="non_payee">Non payée</option>
+          </select>
+        </label>
+        <label>Certificat / QS Sport
+          <select id="filtreGroupeCertificat">
+            <option value="">Tous</option>
+            <option value="valide">Valable</option>
+            <option value="invalide">Expiré ou non renseigné</option>
+          </select>
+        </label>
+      </div>
+      <div class="inline-form" style="margin-top:12px;">
+        <button type="button" class="btn btn-primary btn-small" id="filtrerGroupeBtn">Filtrer</button>
+        <label style="display:flex; align-items:center; gap:8px; font-weight:400;">Modèle d'email à utiliser
+          <select id="modeleGroupeSelect">
+            <option value="cotisation_absente">Cotisation manquante</option>
+            <option value="certificat_medical_attendu">Certificat médical attendu</option>
+            <option value="qs_sport_attendu">QS Sport attendu</option>
+            <option value="cotisation_et_sante_absentes">Cotisation + document santé manquants</option>
+            <option value="inscription_validee">Bienvenue (validée)</option>
+          </select>
+        </label>
+      </div>
+      <div id="resultatsGroupeContainer"></div>
+    </section>
+
     <!-- ===== Liste des inscriptions ===== -->
     <section class="admin-section">
       <h2>Inscrits — 2026/2027 <span id="inscriptionsCount" class="count-badge"></span></h2>

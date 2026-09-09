@@ -817,6 +817,18 @@ Exécutez `supabase/migration_statut_elements_demandes.sql` puis `supabase/migra
 
 **3. Nouveau statut "Éléments demandés"** : positionné automatiquement dès qu'un email de relance (hors modèle "Bienvenue") est envoyé pour une inscription "En attente". Le bouton "Valider" reste disponible sur ce statut. Comptabilisé dans le badge de demandes en attente, avec son propre badge visuel orange dans le tableau.
 
+## Inscriptions — suivi de modification, envoi groupé, filtres en liste déroulante
+
+Exécutez `supabase/migration_suivi_modification_inscriptions.sql`.
+
+**1. Suivi de dernière modification** : nouveau déclencheur SQL (`trg_inscriptions_modification`) qui enregistre automatiquement qui a modifié une inscription et à quelle date, quelle que soit l'origine du changement (formulaire, validation, envoi d'email qui change le statut...). Visible en haut du panneau d'actions, disponible aussi comme colonne optionnelle du tableau.
+
+**2. Envoi groupé par critères** (admin uniquement) : nouvelle section au-dessus du tableau, filtrant sur sport (Bad/Ping/les deux — attention à la logique : "Bad" et "Ping" incluent aussi ceux qui pratiquent "Bad et Ping", seul le choix "Les deux uniquement" les isole spécifiquement) + catégorie + statut cotisation + validité du certificat. Affiche la liste correspondante avec un bouton "Envoyer" par ligne (le modèle choisi globalement s'applique à chaque envoi individuel — reste des liens mailto un par un, pas un vrai envoi groupé automatique, cette limite technique étant inhérente à mailto).
+
+**3. Filtres par colonne en liste déroulante** : Statut, Catégorie, Bad/Ping, UFOLEP/FSGT, Membre Bureau et tout champ personnalisé de type Liste ou Oui/Non proposent désormais un menu déroulant avec les valeurs réellement possibles, plutôt qu'un champ texte libre.
+
+⚠️ **Point à tester particulièrement soigneusement** : la logique du filtre sport dans l'envoi groupé (Bad/Ping/les deux), qui est la partie la plus sujette à interprétation de ce tour.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -590,6 +590,9 @@ table.schedule .role-label-input{
   margin-top:18px; padding:16px; background: var(--pale); border-radius:10px; border:1px solid #d6e5d1;
 }
 .edit-actions-panel .admin-subheading{ margin-top:0; }
+.derniere-modif-info{
+  width:100%; margin:0 0 8px; font-size:0.8rem; color: var(--ink-soft); font-style:italic;
+}
 .actions-stack .btn{ flex: 0 0 auto; white-space:nowrap; }
 .certificat-date{ font-size:0.72rem; color:var(--ink-soft); width:100%; }
 
@@ -613,6 +616,7 @@ table.schedule .role-label-input{
   border:1px solid var(--border); border-radius:5px; font-family: var(--font-body); font-weight:400;
 }
 .filtre-colonne-input:focus{ outline:2px solid var(--green); }
+select.filtre-colonne-input{ background: var(--white); cursor:pointer; }
 
 /* Couleurs de ligne : catégorie (Jeune/Adulte), écrasées par le vert
    dès que l'inscription est validée. */
@@ -628,6 +632,17 @@ table.schedule .role-label-input{
 .couleurs-legende{ display:flex; gap:16px; flex-wrap:wrap; margin:8px 0 14px; }
 .couleurs-legende-item{ display:flex; align-items:center; gap:6px; font-size:0.82rem; color: var(--ink-soft); }
 .couleurs-legende-pastille{ width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,0.1); display:inline-block; }
+
+.filtres-groupe-grid{
+  display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px; margin-top:10px;
+}
+.filtres-groupe-grid label{
+  display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:700; color: var(--dark);
+}
+.filtres-groupe-grid select{
+  font-family: var(--font-body); font-size:0.9rem; padding:7px 9px; border-radius:6px; border:1px solid #a9d18e;
+}
+#resultatsGroupeContainer{ margin-top:14px; }
 
 .email-template-bloc{
   border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-top:14px;
