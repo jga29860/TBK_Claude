@@ -212,8 +212,9 @@ function bindArticleForm() {
 
     let photoUrl; // undefined = ne pas modifier ce champ (édition sans nouvelle photo)
     if (photo) {
-      const chemin = `${Date.now()}-${photo.name}`;
-      const { error: uploadError } = await sbClient.storage.from('boutique-photos').upload(chemin, photo, { upsert: true });
+      const photoConvertie = await convertirHeicSiBesoin(photo);
+      const chemin = `${Date.now()}-${photoConvertie.name}`;
+      const { error: uploadError } = await sbClient.storage.from('boutique-photos').upload(chemin, photoConvertie, { upsert: true });
       if (uploadError) { hint.textContent = 'Erreur envoi photo : ' + uploadError.message; return; }
       photoUrl = chemin;
     }

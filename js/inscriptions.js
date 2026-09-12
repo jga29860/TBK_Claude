@@ -730,9 +730,11 @@ function renderValiderBtn(record) {
 function bindCertificatInput() {
   const input = document.getElementById('certificatFileInput');
   input.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+    let file = e.target.files[0];
     e.target.value = ''; // permet de reprendre la même photo si besoin
     if (!file || !certificatCibleId) return;
+
+    file = await convertirHeicSiBesoin(file);
 
     const id = certificatCibleId;
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
@@ -786,15 +788,31 @@ async function voirCertificat(id) {
   const inscription = inscriptionsCache.find(i => i.id === id);
   if (!inscription || !inscription.certificat_photo_url) return;
 
+  // Ouvre l'onglet tout de suite, dans le même geste utilisateur que le
+  // clic (avant tout "await") — sinon certains navigateurs, notamment sur
+  // mobile, bloquent silencieusement l'ouverture comme un pop-up une fois
+  // l'appel réseau terminé, sans afficher la moindre erreur. Le lien signé
+  // y est injecté ensuite, une fois récupéré.
+  const nouvelOnglet = window.open('', '_blank');
+
   const { data, error } = await sbClient.storage
     .from('certificats-medicaux')
     .createSignedUrl(inscription.certificat_photo_url, 120);
 
   if (error) {
+    if (nouvelOnglet) nouvelOnglet.close();
     alert("Erreur d'accès au certificat : " + error.message);
     return;
   }
-  window.open(data.signedUrl, '_blank');
+
+  if (nouvelOnglet && !nouvelOnglet.closed) {
+    nouvelOnglet.location.href = data.signedUrl;
+  } else {
+    // Si l'onglet a malgré tout été bloqué à l'ouverture, on retente une
+    // dernière fois avec l'URL déjà connue (parfois accepté si le blocage
+    // portait seulement sur l'onglet vide).
+    window.open(data.signedUrl, '_blank');
+  }
 }
 
 /** Statut de validité du certificat, basé sur la vraie date du

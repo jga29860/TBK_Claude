@@ -60,6 +60,34 @@ function estImage(chemin) {
 }
 
 /**
+ * Convertit un fichier HEIC/HEIF (format enregistré par défaut par
+ * l'appareil photo d'un iPhone) en JPEG, avant tout envoi vers le
+ * stockage. Sans cette conversion, une photo prise sur iPhone s'affiche
+ * correctement uniquement dans Safari (seul navigateur à savoir décoder
+ * le HEIC) — partout ailleurs (Chrome, Firefox, la plupart des
+ * navigateurs Android...), l'image apparaît cassée pour quiconque essaie
+ * de la consulter, même si l'envoi lui-même a parfaitement réussi.
+ * Retourne le fichier tel quel s'il n'est pas au format HEIC/HEIF, ou si
+ * la conversion échoue pour une raison quelconque (mieux vaut tenter
+ * l'envoi du fichier original que de bloquer complètement la personne).
+ */
+async function convertirHeicSiBesoin(fichier) {
+  const estHeic = /^image\/hei[cf]/i.test(fichier.type || '') || /\.hei[cf]$/i.test(fichier.name || '');
+  if (!estHeic) return fichier;
+  if (typeof heic2any === 'undefined') return fichier;
+
+  try {
+    const resultat = await heic2any({ blob: fichier, toType: 'image/jpeg', quality: 0.85 });
+    const blobFinal = Array.isArray(resultat) ? resultat[0] : resultat;
+    const nouveauNom = fichier.name.replace(/\.hei[cf]$/i, '.jpg');
+    return new File([blobFinal], nouveauNom, { type: 'image/jpeg' });
+  } catch (e) {
+    console.error('Conversion HEIC échouée, envoi du fichier original :', e);
+    return fichier;
+  }
+}
+
+/**
  * Date de fin de validité d'un certificat médical, selon la catégorie :
  * 3 ans pour un adulte, 1 an pour un jeune (renouvellement annuel
  * obligatoire). Centralisé ici pour que inscriptions.html et

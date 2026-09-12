@@ -855,6 +855,30 @@ Le bouton utilisait un style discret ("ghost" : fond blanc, fine bordure verte) 
 
 ⚠️ **Point à tester particulièrement soigneusement** : la saisie rapide de plusieurs scores à la suite (Tabulation entre les cases), qui est le point le plus délicat de ce tour.
 
+## Phase finale — traits de connexion entre les matchs
+
+Après une proposition validée avec l'utilisateur (traits appliqués aux deux phases Principale/Consolante, conservés même sur mobile), implémentation d'un tracé SVG en "coude" (horizontal/vertical/horizontal) entre chaque match et le match suivant qui accueillera son vainqueur.
+
+**Choix technique** : calcul basé sur le vrai lien `match_suivant_id` en base (pas une simple règle d'appariement par position), donc fiable même si le tableau n'est pas une puissance de 2 parfaite. Le SVG est positionné à l'intérieur du conteneur qui défile horizontalement (et non au-dessus), pour que les traits suivent correctement les cartes pendant le défilement sur mobile — point de vigilance identifié et corrigé avant livraison. Recalcul automatique au redimensionnement de fenêtre (rotation d'écran, etc.), en plus du rechargement périodique déjà en place (20 secondes).
+
+L'espacement vertical des tours resserrés (demi-finale, finale) a aussi été ajusté (répartition égale sur la hauteur du tour le plus fourni) pour éviter des traits trop obliques.
+
+## Correction — "Voir le certificat" bloqué chez certains utilisateurs
+
+**Diagnostic** : le lien signé s'ouvrait via `window.open()` APRÈS l'appel réseau de génération du lien (un `await`) — beaucoup de navigateurs, notamment sur mobile, traitent une ouverture d'onglet intervenant après une opération asynchrone comme un pop-up non sollicité et la bloquent silencieusement, sans aucune erreur visible. Explique un comportement incohérent d'un appareil/navigateur à l'autre (fonctionne pour certains, pas pour d'autres), exactement le symptôme signalé.
+
+**Corrigé** : l'onglet s'ouvre désormais immédiatement au clic (dans le geste utilisateur, avant tout appel réseau), puis le lien signé y est injecté une fois récupéré — préserve la confiance du navigateur envers l'ouverture.
+
+**Point à vérifier en complément si le problème persiste pour une personne précise** : dans Administration → Profils, confirmer que son rôle dispose bien du droit de page "Inscriptions" — cette configuration vit dans votre base de données, pas dans le code, donc je n'ai pas pu la vérifier moi-même à distance.
+
+## Correction — photos HEIC (iPhone) illisibles pour les autres
+
+**Diagnostic confirmé** : un iPhone avec les réglages caméra par défaut enregistre ses photos au format HEIC. Ce format ne s'affiche correctement que dans Safari — dans tous les autres navigateurs (Chrome, Firefox, la plupart des navigateurs Android), l'image apparaît cassée. Le code traitait pourtant `.heic` comme un format d'image normal (`estImage()`), sans jamais le convertir — d'où le symptôme signalé : ça fonctionne pour la personne qui prend la photo (souvent sur Safari), mais casse pour tous les autres qui essaient de la consulter.
+
+**Corrigé** : ajout de la bibliothèque `heic2any` (conversion HEIC → JPEG directement dans le navigateur, avant l'envoi), appliquée aux deux endroits concernés du site : le certificat médical (inscriptions.js) et les photos d'articles boutique (boutique.js). La conversion échoue silencieusement vers l'envoi du fichier original en cas de problème (jamais de blocage complet de la personne).
+
+⚠️ **Limite à connaître** : cette correction ne s'applique qu'aux nouveaux envois. Une photo déjà envoyée au format HEIC avant cette mise à jour reste cassée pour les autres et devra être renvoyée pour être corrigée.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
