@@ -25,6 +25,15 @@ async function initPage() {
 
   await chargerDonnees(tournoi.id);
   pollTimer = setInterval(() => chargerDonnees(tournoi.id), 20000);
+
+  // Redimensionnement (rotation d'écran, fenêtre PC) : les traits de
+  // connexion sont calculés en pixels réels, donc à recalculer sans
+  // recharger les données.
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(dessinerTousLesConnecteurs, 200);
+  });
 }
 
 async function chargerDonnees(tournoiId) {
@@ -137,6 +146,65 @@ function renderTout() {
 
     return `<section class="admin-section"><h2>${escapeHtml(comp.nom)}</h2>${blocsPhases}</section>`;
   }).join('');
+
+  // Les cartes sont dans le DOM : on peut maintenant mesurer leur position
+  // réelle pour tracer les traits de connexion entre chaque match et le
+  // suivant (celui qui accueillera son vainqueur).
+  requestAnimationFrame(dessinerTousLesConnecteurs);
+}
+
+function dessinerTousLesConnecteurs() {
+  document.querySelectorAll('.bracket-rounds').forEach(wrapper => {
+    dessinerConnecteurs(wrapper);
+  });
+}
+
+/** Trace, en SVG superposé au tableau, un trait "en coude" (horizontal /
+ *  vertical / horizontal) entre chaque match et le match suivant qui
+ *  accueillera son vainqueur — en s'appuyant sur le vrai lien
+ *  match_suivant_id de la base, donc fiable même si le tableau n'est pas
+ *  une puissance de 2 parfaite. Le SVG est à l'intérieur du conteneur
+ *  qui défile horizontalement (et non au-dessus), pour que les traits
+ *  suivent les cartes pendant le défilement sur mobile. */
+function dessinerConnecteurs(wrapper) {
+  const svg = wrapper.querySelector('.bracket-connecteurs');
+  const largeurTotale = wrapper.scrollWidth;
+  const hauteurTotale = wrapper.scrollHeight;
+  svg.setAttribute('width', largeurTotale);
+  svg.setAttribute('height', hauteurTotale);
+  svg.setAttribute('viewBox', `0 0 ${largeurTotale} ${hauteurTotale}`);
+
+  // Référentiel de mesure : le coin du contenu défilable de .bracket-rounds
+  // (et non le viewport), pour que les positions restent justes quel que
+  // soit le défilement horizontal en cours.
+  const rectWrapper = wrapper.getBoundingClientRect();
+  const decalageX = rectWrapper.left - wrapper.scrollLeft;
+  const decalageY = rectWrapper.top;
+
+  const cartes = wrapper.querySelectorAll('.bracket-match');
+  const traits = [];
+
+  cartes.forEach(carte => {
+    const matchId = carte.getAttribute('data-match-id');
+    const match = matchsCache.find(m => m.id === matchId);
+    if (!match || !match.match_suivant_id) return;
+
+    const carteSuivante = wrapper.querySelector(`.bracket-match[data-match-id="${match.match_suivant_id}"]`);
+    if (!carteSuivante) return; // match suivant hors de ce tableau (autre phase/compétition)
+
+    const rectSource = carte.getBoundingClientRect();
+    const rectCible = carteSuivante.getBoundingClientRect();
+
+    const xDepart = rectSource.right - decalageX;
+    const yDepart = rectSource.top + rectSource.height / 2 - decalageY;
+    const xArrivee = rectCible.left - decalageX;
+    const yArrivee = rectCible.top + rectCible.height / 2 - decalageY;
+    const xMilieu = (xDepart + xArrivee) / 2;
+
+    traits.push(`M ${xDepart} ${yDepart} H ${xMilieu} V ${yArrivee} H ${xArrivee}`);
+  });
+
+  svg.innerHTML = traits.map(d => `<path d="${d}" class="bracket-trait"></path>`).join('');
 }
 
 function renderBracket(titre, matchs) {
@@ -154,7 +222,7 @@ function renderBracket(titre, matchs) {
     const cartes = matchsTour.map(m => {
       const winnerId = matchWinnerId(m);
       return `
-        <div class="bracket-match">
+        <div class="bracket-match" data-match-id="${m.id}">
           <div class="bracket-equipe ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe1_id))}</div>
           <div class="bracket-equipe ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(equipeLabel(m.equipe2_id))}</div>
           <div class="bracket-meta">
@@ -167,14 +235,17 @@ function renderBracket(titre, matchs) {
     return `
       <div class="bracket-round">
         <h4>${escapeHtml(nomTour)}</h4>
-        ${cartes}
+        <div class="bracket-round-matchs">${cartes}</div>
       </div>`;
   }).join('');
 
   return `
     <div class="poule-block">
       <h3 class="poule-block-title">${escapeHtml(titre)}</h3>
-      <div class="bracket-rounds">${colonnes}</div>
+      <div class="bracket-rounds">
+        <svg class="bracket-connecteurs"></svg>
+        ${colonnes}
+      </div>
     </div>`;
 }
 
