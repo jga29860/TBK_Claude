@@ -53,8 +53,8 @@
           <label>Quantité
             <input type="number" name="quantite" min="0" step="0.01" value="1" required>
           </label>
-          <label>Prix unitaire (€)
-            <input type="number" name="prix_unitaire" min="0" step="0.01" required>
+          <label>Prix unitaire (€) <span class="form-hint-inline">(négatif pour une réduction)</span>
+            <input type="number" name="prix_unitaire" step="0.01" required>
           </label>
           <button type="submit" class="btn btn-primary btn-small" id="courseSubmitBtn">Ajouter</button>
           <button type="button" class="btn btn-ghost btn-small" id="courseCancelBtn" hidden>Annuler la modification</button>

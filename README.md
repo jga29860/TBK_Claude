@@ -845,6 +845,16 @@ Le bouton utilisait un style discret ("ghost" : fond blanc, fine bordure verte) 
 - **Résumé sport/catégorie** : à droite du titre "Inscrits — [saison]", un petit texte en police réduite affiche désormais "X Bad · X Ping · X Jeune · X Adulte" (les personnes pratiquant les deux sports comptent dans Bad ET Ping), mis à jour à chaque chargement de la liste.
 - **Email de liste mieux structuré** : les liens mailto ne pouvant contenir que du texte brut (pas de HTML), la mise en forme passe par une meilleure structuration du texte — bandeau de titre, filtres et date d'extraction rappelés, regroupement par catégorie (Adultes/Jeunes) avec sous-total par groupe, icône de statut (✅/🟠/⏳) par personne, email sur sa propre ligne. Testé et vérifié avec un jeu de données d'exemple.
 
+## Courses (réductions) + Planning (terrain/annulation, saisie des scores)
+
+**1. Courses du tournoi — réductions** : le prix unitaire accepte désormais une valeur négative (contrainte `min="0"` retirée), avec indication au libellé et affichage en rouge du sous-total négatif. Total général géré nativement (simple addition), aucun changement de logique nécessaire.
+
+**2. Planning — changer de terrain / annuler un lancement** : un match "En cours" affiche une liste déroulante dans la colonne Terrain (réaffectation à un autre terrain libre en un clic, sans annuler puis relancer), et un nouveau bouton "Annuler le lancement" qui remet le match "Non lancé" en libérant son terrain, sans toucher aux scores déjà saisis.
+
+**3. Planning — saisie des scores optimisée** : diagnostic posé — l'ordre de tabulation gauche-à-droite était déjà correct (aucun `tabindex` perturbateur), le vrai problème était qu'une case sauvegardée déclenchait aussitôt un rechargement complet du tableau, pouvant "voler" le focus en cas de saisie rapide (Tab plus vite que l'aller-retour réseau). Corrigé par un regroupement des rechargements (différé de 700 ms) : plusieurs cases saisies à la suite ne provoquent qu'un seul rechargement, une fois la saisie posée.
+
+⚠️ **Point à tester particulièrement soigneusement** : la saisie rapide de plusieurs scores à la suite (Tabulation entre les cases), qui est le point le plus délicat de ce tour.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

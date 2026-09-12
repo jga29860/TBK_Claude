@@ -566,6 +566,7 @@ table.schedule .role-label-input{
 
 .count-badge{ font-family: var(--font-mono); font-size:0.85rem; color: var(--ink-soft); font-weight:400; }
 .inscriptions-stats{ font-size:0.75rem; color: var(--ink-soft); font-weight:400; font-family: var(--font-body); }
+.form-hint-inline{ font-size:0.72rem; font-weight:400; color: var(--ink-soft); }
 
 .sr-only{
   position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
@@ -871,6 +872,11 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .match-table .score-input{ width:44px; }
 .score-set-inline{ display:inline-flex; align-items:center; white-space:nowrap; flex-wrap:nowrap; }
 .match-table .planning-nowrap{ white-space:nowrap; }
+
+.terrain-select-inline{
+  font-family: var(--font-body); font-size:0.85rem; padding:3px 5px; border-radius:5px;
+  border:1px solid #a9d18e; max-width:110px;
+}
 
 /* Largeurs de colonnes fixes (indispensable pour que la troncature
    "…" fonctionne réellement : sans cela, une colonne s'élargit à

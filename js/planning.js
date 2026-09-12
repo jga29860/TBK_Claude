@@ -980,11 +980,16 @@ function renderLigneMatch(m, infoLabel, poule) {
   const { lancable, winnerId, duree, heureLancement, motifIndisponible, statut, rowClass } = calculerEtatMatch(m);
   const nomEquipe1 = equipeLabel(m.equipe1_id);
   const nomEquipe2 = equipeLabel(m.equipe2_id);
+  const enCours = statut === 'En cours';
 
   const setCells = [1, 2, 3].map(n => `
     <td data-label="Set ${n}" class="planning-nowrap">
       <span class="score-set-inline"><input type="number" min="0" class="score-input" data-set="${n}" data-side="e1" value="${m[`set${n}_e1`] ?? ''}"><span class="score-set-tiret">-</span><input type="number" min="0" class="score-input" data-set="${n}" data-side="e2" value="${m[`set${n}_e2`] ?? ''}"></span>
     </td>`).join('');
+
+  const terrainCell = enCours
+    ? `<td data-label="Terrain" class="planning-nowrap">${renderSelectTerrain(m)}</td>`
+    : `<td data-label="Terrain" class="planning-nowrap">${m.terrain ?? '—'}</td>`;
 
   return `
     <tr data-match-id="${m.id}" class="${rowClass}" ${motifIndisponible ? `title="${escapeHtml(motifIndisponible)}"` : ''}>
@@ -996,7 +1001,7 @@ function renderLigneMatch(m, infoLabel, poule) {
       ${poule !== undefined ? `<td data-label="Poule" class="planning-nowrap">Poule ${poule ?? '—'}</td>` : ''}
       <td data-label="Équipe 1" class="planning-nowrap ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe1)}</td>
       <td data-label="Équipe 2" class="planning-nowrap ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe2)}</td>
-      <td data-label="Terrain" class="planning-nowrap">${m.terrain ?? '—'}</td>
+      ${terrainCell}
       <td data-label="Statut" class="planning-nowrap">${escapeHtml(statut)}</td>
       ${setCells}
       <td data-label="Heure lancement">${heureLancement}</td>
@@ -1005,8 +1010,19 @@ function renderLigneMatch(m, infoLabel, poule) {
         ${!m.heure_lancement
           ? `<button type="button" class="btn btn-primary btn-small lancer-btn" ${lancable ? '' : 'disabled'} title="${escapeHtml(motifIndisponible)}">Lancer</button>`
           : ''}
+        ${enCours ? `<button type="button" class="btn btn-ghost btn-small annuler-lancement-btn" title="Remet ce match en \u00abNon lanc\u00e9\u00bb, sans effacer les scores d\u00e9j\u00e0 saisis">Annuler le lancement</button>` : ''}
       </td>
     </tr>`;
+}
+
+/** Liste déroulante de terrain, réservée à un match "En cours" — permet
+ *  de le réaffecter à un autre terrain resté libre, sans devoir annuler
+ *  puis relancer le match. */
+function renderSelectTerrain(m) {
+  const terrainsDisponibles = Array.from(new Set([m.terrain, ...getTerrainsLibres()].filter(t => t !== null && t !== undefined))).sort((a, b) => a - b);
+  return `<select class="terrain-select-inline" data-match-id="${m.id}">
+    ${terrainsDisponibles.map(t => `<option value="${t}" ${t === m.terrain ? 'selected' : ''}>Terrain ${t}</option>`).join('')}
+  </select>`;
 }
 
 /** Largeurs de colonnes par défaut (px) — utilisées tant que la personne
@@ -1262,6 +1278,29 @@ function bindMatchRowEvents() {
     });
   });
 
+  document.querySelectorAll('.terrain-select-inline').forEach(select => {
+    select.addEventListener('change', async (e) => {
+      const matchId = select.getAttribute('data-match-id');
+      const nouveauTerrain = parseInt(select.value, 10);
+      const { error } = await sbClient.from('matchs').update({ terrain: nouveauTerrain }).eq('id', matchId);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadAll(tournoi.id, true);
+    });
+  });
+
+  document.querySelectorAll('.annuler-lancement-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const matchId = e.target.closest('tr').getAttribute('data-match-id');
+      if (!confirm('Annuler le lancement de ce match ? Il repassera "Non lancé" (les scores déjà saisis restent conservés).')) return;
+      const { error } = await sbClient.from('matchs').update({
+        terrain: null,
+        heure_lancement: null,
+      }).eq('id', matchId);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      await loadAll(tournoi.id, true);
+    });
+  });
+
   document.querySelectorAll('.score-input').forEach(input => {
     input.addEventListener('focus', (e) => e.target.select());
     input.addEventListener('change', async (e) => {
@@ -1312,31 +1351,46 @@ async function saveMatchField(matchId, field, value) {
     }
   }
 
-  // Le rechargement reconstruit toutes les lignes (recalcul du classement,
-  // des vainqueurs, etc.) : on capture donc où se trouve le focus juste avant
-  // (là où l'utilisateur a pu tabuler entre-temps) pour le restaurer ensuite,
-  // sinon la saisie au clavier (Tab, case suivante) serait interrompue.
-  const active = document.activeElement;
-  let focusInfo = null;
-  if (active && active.classList && active.classList.contains('score-input')) {
-    const activeRow = active.closest('tr');
-    focusInfo = {
-      matchId: activeRow ? activeRow.getAttribute('data-match-id') : null,
-      set: active.getAttribute('data-set'),
-      side: active.getAttribute('data-side'),
-    };
-  }
+  demanderRechargementDifferePlanning();
+}
 
-  await loadAll(tournoi.id, true);
+let planningReloadTimer = null;
 
-  if (focusInfo && focusInfo.matchId) {
-    const row = document.querySelector(`tr[data-match-id="${focusInfo.matchId}"]`);
-    const input = row && row.querySelector(`.score-input[data-set="${focusInfo.set}"][data-side="${focusInfo.side}"]`);
-    if (input) {
-      input.focus();
-      input.select();
+/** Regroupe les rechargements déclenchés par la saisie des scores : sans
+ *  ce différé, chaque case enregistrée (à chaque Tabulation) reconstruit
+ *  aussitôt tout le tableau, ce qui peut "voler" le focus si la personne
+ *  tabule plus vite que le temps d'un aller-retour réseau. En attendant
+ *  une courte pause dans la saisie, plusieurs cases saisies à la suite
+ *  ne provoquent qu'un seul rechargement, une fois la saisie posée. */
+function demanderRechargementDifferePlanning() {
+  clearTimeout(planningReloadTimer);
+  planningReloadTimer = setTimeout(async () => {
+    // Le rechargement reconstruit toutes les lignes (recalcul du
+    // classement, des vainqueurs, etc.) : on capture donc où se trouve
+    // le focus juste avant pour le restaurer ensuite, sinon la saisie
+    // au clavier (Tab, case suivante) serait interrompue.
+    const active = document.activeElement;
+    let focusInfo = null;
+    if (active && active.classList && active.classList.contains('score-input')) {
+      const activeRow = active.closest('tr');
+      focusInfo = {
+        matchId: activeRow ? activeRow.getAttribute('data-match-id') : null,
+        set: active.getAttribute('data-set'),
+        side: active.getAttribute('data-side'),
+      };
     }
-  }
+
+    await loadAll(tournoi.id, true);
+
+    if (focusInfo && focusInfo.matchId) {
+      const row = document.querySelector(`tr[data-match-id="${focusInfo.matchId}"]`);
+      const input = row && row.querySelector(`.score-input[data-set="${focusInfo.set}"][data-side="${focusInfo.side}"]`);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }, 700);
 }
 
 // ============================================================

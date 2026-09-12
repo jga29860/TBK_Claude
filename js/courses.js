@@ -71,12 +71,13 @@ function renderCourses() {
   tbody.innerHTML = coursesCache.map(c => {
     const sousTotal = Number(c.quantite) * Number(c.prix_unitaire);
     total += sousTotal;
+    const styleNegatif = sousTotal < 0 ? ' style="color:#b3261e; font-weight:700;"' : '';
     return `
       <tr data-id="${c.id}">
         <td>${escapeHtml(c.libelle)}</td>
         <td>${Number(c.quantite)}</td>
         <td>${Number(c.prix_unitaire).toFixed(2)} €</td>
-        <td>${sousTotal.toFixed(2)} €</td>
+        <td${styleNegatif}>${sousTotal.toFixed(2)} €</td>
         <td>
           <button type="button" class="btn btn-ghost btn-small course-modifier-btn" data-id="${c.id}">Modifier</button>
           <button type="button" class="btn btn-danger btn-small course-supprimer-btn" data-id="${c.id}">Supprimer</button>
