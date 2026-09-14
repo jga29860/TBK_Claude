@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription au tournoi — TBK</title>
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<meta name="description" content="Inscrivez-vous ou votre équipe au tournoi du club TBK (badminton et tennis de table).">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
+  </div>
+</header>
+
+<main class="wrap page-section">
+  <img src="images/logo-tbk.png" alt="Mascotte du club TBK" style="display:block; max-width:180px; margin:0 auto 20px;">
+  <p class="section-eyebrow" style="text-align:center;">Ouvert à tous, sans compte nécessaire</p>
+  <h1 id="pageTitle" style="text-align:center;">Inscription au tournoi</h1>
+  <p class="section-lead" id="pageLead">Remplissez ce formulaire pour inscrire votre équipe (ou vous-même, en simple) au tournoi.</p>
+
+  <div id="pasDeTournoiMessage" class="status-panel" hidden>
+    <h2>Aucun tournoi ouvert aux inscriptions pour le moment</h2>
+    <p>Revenez un peu plus tard, ou contactez le club pour plus d'informations.</p>
+  </div>
+
+  <div id="successPanel" class="status-panel" hidden>
+    <h2>Demande envoyée</h2>
+    <p>Merci ! Votre demande d'inscription au tournoi a bien été transmise à l'organisation, qui va l'examiner sous peu.</p>
+  </div>
+
+  <form id="tournoiInscriptionForm" hidden>
+    <div class="field-grid">
+      <label>Compétition
+        <select name="tournoi_competition_id" id="competitionSelect" required></select>
+      </label>
+    </div>
+
+    <h3 class="admin-subheading" id="joueur1Titre">Joueur</h3>
+    <div class="field-grid">
+      <label>Nom
+        <input type="text" name="joueur1_nom_famille" required>
+      </label>
+      <label>Prénom
+        <input type="text" name="joueur1_prenom" required>
+      </label>
+      <label>Club
+        <input type="text" name="joueur1_club" placeholder="Ex. TBK, ou un autre club">
+      </label>
+      <label>Niveau
+        <select name="joueur1_niveau" required>
+          <option value="Débutant">Débutant</option>
+          <option value="Intermédiaire">Intermédiaire</option>
+          <option value="Confirmé">Confirmé</option>
+        </select>
+      </label>
+      <label>Licencié(e) en club (Fédé)
+        <select name="joueur1_fede" required>
+          <option value="false">Non</option>
+          <option value="true">Oui</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="joueur2Bloc" hidden>
+      <h3 class="admin-subheading">Joueur 2 (compétition en double)</h3>
+      <div class="field-grid">
+        <label>Nom
+          <input type="text" name="joueur2_nom_famille">
+        </label>
+        <label>Prénom
+          <input type="text" name="joueur2_prenom">
+        </label>
+        <label>Club
+          <input type="text" name="joueur2_club" placeholder="Ex. TBK, ou un autre club">
+        </label>
+        <label>Niveau
+          <select name="joueur2_niveau">
+            <option value="Débutant">Débutant</option>
+            <option value="Intermédiaire">Intermédiaire</option>
+            <option value="Confirmé">Confirmé</option>
+          </select>
+        </label>
+        <label>Licencié(e) en club (Fédé)
+          <select name="joueur2_fede">
+            <option value="false">Non</option>
+            <option value="true">Oui</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" id="submitBtn">Envoyer ma demande d'inscription</button>
+    </div>
+    <p class="form-hint" id="formHint"></p>
+  </form>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/tournoi-inscription-publique.js"></script>
+<script src="js/visite-log.js"></script>
+<script>
+  // Email de contact dans l'en-tête, paramétrable depuis admin.html
+  (async () => {
+    const headerMail = document.getElementById('headerContactMail');
+    if (!headerMail) return;
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await sb.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
+    if (error || !data || !data.valeur) return;
+    headerMail.href = `mailto:${data.valeur}?subject=${encodeURIComponent('Contact depuis le site TBK')}`;
+    headerMail.hidden = false;
+  })();
+</script>
+</body>
+</html>

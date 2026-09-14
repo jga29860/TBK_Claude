@@ -41,42 +41,87 @@ if ('IntersectionObserver' in window) {
   revealEls.forEach(el => el.classList.add('is-visible'));
 }
 
-// ===== Compte à rebours du tournoi =====
-// Modifiez cette date si celle du tournoi change.
-const TOURNAMENT_DATE = new Date('2026-09-11T09:00:00+02:00').getTime();
+// ===== Tournoi à venir : date, compte à rebours, lien et QR code
+// dynamiques, à partir du tournoi actuellement en cours en base. =====
+async function initTournoiAccueil() {
+  const elDate = document.getElementById('tournoiDate');
+  const elNom = document.getElementById('tournoiNom');
+  const elCountdown = document.getElementById('countdown');
+  const elPasDeTournoi = document.getElementById('pasDeTournoiActifMessage');
+  const elLien = document.getElementById('lienInscriptionTournoi');
+  const elQr = document.getElementById('qrCodeTournoi');
+  const elQrLead = document.getElementById('qrTournoiLead');
+  if (!elDate || typeof sbClient === 'undefined') return;
 
-function updateCountdown() {
-  const now = Date.now();
-  const diff = TOURNAMENT_DATE - now;
+  const { data: tournoi, error } = await sbClient
+    .from('tournois')
+    .select('nom, date_tournoi')
+    .eq('statut', 'en_cours')
+    .maybeSingle();
 
-  const els = {
-    days: document.getElementById('cd-days'),
-    hours: document.getElementById('cd-hours'),
-    mins: document.getElementById('cd-mins'),
-    secs: document.getElementById('cd-secs'),
-  };
-  if (!els.days) return;
-
-  if (diff <= 0) {
-    els.days.textContent = '0';
-    els.hours.textContent = '0';
-    els.mins.textContent = '0';
-    els.secs.textContent = '0';
+  if (error || !tournoi) {
+    elDate.hidden = true;
+    elCountdown.hidden = true;
+    if (elLien) elLien.hidden = true;
+    if (elQr) elQr.hidden = true;
+    if (elQrLead) elQrLead.hidden = true;
+    if (elPasDeTournoi) elPasDeTournoi.hidden = false;
     return;
   }
 
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-  const mins = Math.floor((diff / (1000 * 60)) % 60);
-  const secs = Math.floor((diff / 1000) % 60);
+  if (elNom) elNom.textContent = tournoi.nom;
 
-  els.days.textContent = days;
-  els.hours.textContent = String(hours).padStart(2, '0');
-  els.mins.textContent = String(mins).padStart(2, '0');
-  els.secs.textContent = String(secs).padStart(2, '0');
+  if (elLien) {
+    const basePath = window.location.pathname.replace(/index\.html$/, '');
+    const targetUrl = window.location.origin + basePath + 'tournoi-inscription-publique.html';
+    elLien.href = 'tournoi-inscription-publique.html';
+    if (elQr) elQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(targetUrl)}`;
+  }
+
+  if (tournoi.date_tournoi) {
+    const dateTournoi = new Date(`${tournoi.date_tournoi}T09:00:00`);
+    elDate.textContent = dateTournoi.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    elCountdown.hidden = false;
+    demarrerCountdown(dateTournoi.getTime());
+  } else {
+    elDate.textContent = 'Date à confirmer';
+    elCountdown.hidden = true;
+  }
 }
-updateCountdown();
-setInterval(updateCountdown, 1000);
+
+function demarrerCountdown(dateCibleMs) {
+  function updateCountdown() {
+    const diff = dateCibleMs - Date.now();
+    const els = {
+      days: document.getElementById('cd-days'),
+      hours: document.getElementById('cd-hours'),
+      mins: document.getElementById('cd-mins'),
+      secs: document.getElementById('cd-secs'),
+    };
+    if (!els.days) return;
+
+    if (diff <= 0) {
+      els.days.textContent = '0';
+      els.hours.textContent = '0';
+      els.mins.textContent = '0';
+      els.secs.textContent = '0';
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((diff / (1000 * 60)) % 60);
+    const secs = Math.floor((diff / 1000) % 60);
+
+    els.days.textContent = days;
+    els.hours.textContent = String(hours).padStart(2, '0');
+    els.mins.textContent = String(mins).padStart(2, '0');
+    els.secs.textContent = String(secs).padStart(2, '0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+}
+initTournoiAccueil();
 
 // ===== Année dans le footer =====
 const yearEl = document.getElementById('year');
@@ -108,22 +153,12 @@ if (qrImg) {
 
 // ===== Email de contact (paramétrable depuis admin.html) =====
 (async () => {
-  const mailtoLink = document.getElementById('mailtoTournoi');
   const headerMail = document.getElementById('headerContactMail');
-  if ((!mailtoLink && !headerMail) || typeof sbClient === 'undefined') return;
+  if (!headerMail || typeof sbClient === 'undefined') return;
 
   const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').single();
   if (error || !data || !data.valeur) return;
-  const email = data.valeur;
 
-  if (mailtoLink) {
-    const currentHref = mailtoLink.getAttribute('href') || '';
-    const subjectMatch = currentHref.match(/\?(.*)$/);
-    mailtoLink.href = `mailto:${email}${subjectMatch ? '?' + subjectMatch[1] : ''}`;
-  }
-
-  if (headerMail) {
-    headerMail.href = `mailto:${email}?subject=${encodeURIComponent('Contact depuis le site TBK')}`;
-    headerMail.hidden = false;
-  }
+  headerMail.href = `mailto:${data.valeur}?subject=${encodeURIComponent('Contact depuis le site TBK')}`;
+  headerMail.hidden = false;
 })();

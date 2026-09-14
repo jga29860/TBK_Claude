@@ -899,6 +899,20 @@ Exécutez `supabase/migration_boutique_flocage.sql`.
 
 **2. Audit de la documentation** : vérification systématique des 21 pages + d'une vingtaine de fonctionnalités récentes (temps réel, statut "Éléments demandés", suivi de modification, clôture de tournoi, HEIC, filtres colonnes...) — tout était déjà à jour, seul le flocage manquait (normal, ajouté dans ce même tour). Documentation HTML et Word tous les deux complétés.
 
+## Inscription publique au tournoi — nouvelle fonctionnalité majeure
+
+Exécutez `supabase/migration_tournoi_inscription_publique.sql`.
+
+**1. Date du tournoi** : nouveau champ à côté du nombre de terrains (création/modification), colonne dédiée dans la liste des tournois.
+
+**2. Page d'accueil dynamique** : la section "02 — Rendez-vous" (nom, date, compte à rebours, bouton d'inscription, QR code) se met à jour automatiquement à partir du tournoi en cours — plus aucune date codée en dur dans le code. Message de repli si aucun tournoi n'est actif. Le bouton "S'inscrire au tournoi" (auparavant un simple mailto) pointe désormais vers la nouvelle page ci-dessous.
+
+**3. Nouvelle page publique** `tournoi-inscription-publique.html` : accessible à tous sans compte, une équipe se déclare elle-même — choix de la compétition (le formulaire s'adapte automatiquement simple/double), puis pour chaque joueur : nom, prénom, club, niveau (Débutant/Intermédiaire/Confirmé), affiliation fédérale (Oui/Non). Chaque demande démarre au statut "En attente".
+
+**4. Workflow de validation** (`tournoi-inscriptions.html`) : nouvelles sections "🟠 Demandes en attente" et "⛔ Demandes refusées" avec boutons Valider/Refuser/Remettre en attente. Les équipes saisies directement par le bureau restent automatiquement validées comme avant. Le calcul de "compétition complète" ne compte désormais que les équipes validées (les demandes en attente ne bloquent plus artificiellement les inscriptions).
+
+⚠️ **Parcours à tester en priorité** : inscription publique → validation admin → apparition dans le tableau des équipes normal (avec assignation de poule possible ensuite).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

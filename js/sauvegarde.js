@@ -11,7 +11,7 @@ const TABLES = [
   { key: 'types_competition', label: 'Types de compétition', description: 'Catalogue des types (Simple Homme, Double Dame…).' },
   { key: 'tournois', label: 'Tournois', description: 'Tournois créés (en cours ou clôturés).' },
   { key: 'tournoi_competitions', label: 'Compétitions de tournoi', description: 'Compétitions incluses dans chaque tournoi.' },
-  { key: 'equipes', label: 'Équipes', description: 'Équipes inscrites aux compétitions des tournois.' },
+  { key: 'equipes', label: 'Équipes', description: 'Équipes inscrites aux compétitions des tournois (statut de la demande, niveau et affiliation fédérale par joueur si soumise via le formulaire public).' },
   { key: 'matchs', label: 'Matchs', description: 'Tous les matchs (poule, principale, consolante).' },
   { key: 'benevoles_postes', label: 'Postes de bénévoles', description: 'Postes de bénévoles définis pour un tournoi.' },
   { key: 'benevoles_inscriptions', label: 'Inscriptions bénévoles', description: 'Inscriptions des bénévoles sur les postes.' },

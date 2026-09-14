@@ -80,19 +80,24 @@
   <section class="section tournoi" id="tournoi">
     <div class="wrap">
       <p class="section-eyebrow section-eyebrow--light">02 — Rendez-vous</p>
-      <h2 class="light">Tournoi TBK</h2>
-      <p class="tournoi-date">11 septembre 2026</p>
+      <h2 class="light" id="tournoiNom">Tournoi TBK</h2>
+      <p class="tournoi-date" id="tournoiDate">Date à venir</p>
       <p class="section-lead light-lead">Simples et doubles, tous niveaux, esprit compétition et convivialité. Inscriptions ouvertes — venez seul·e ou avec votre partenaire.</p>
 
-      <div class="countdown" id="countdown" aria-live="polite">
+      <div class="countdown" id="countdown" aria-live="polite" hidden>
         <div class="countdown-unit"><span class="countdown-num" id="cd-days">--</span><span class="countdown-label">jours</span></div>
         <div class="countdown-unit"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-label">heures</span></div>
         <div class="countdown-unit"><span class="countdown-num" id="cd-mins">--</span><span class="countdown-label">min</span></div>
         <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-label">sec</span></div>
       </div>
 
-      <a href="mailto:contact@tbk-club.fr?subject=Inscription%20tournoi" class="btn btn-primary btn-on-dark" id="mailtoTournoi">S'inscrire au tournoi</a>
+      <div id="pasDeTournoiActifMessage" class="section-lead light-lead" hidden>Aucun tournoi n'est ouvert aux inscriptions pour le moment — revenez bientôt !</div>
+
+      <a href="tournoi-inscription-publique.html" class="btn btn-primary btn-on-dark" id="lienInscriptionTournoi">S'inscrire au tournoi</a>
       <a href="tournoi-benevoles.html" class="btn btn-outline-on-dark">Devenir bénévole</a>
+
+      <p class="section-lead light-lead" id="qrTournoiLead" style="margin-top:24px;">Scannez ce QR code avec votre téléphone pour vous inscrire directement.</p>
+      <img id="qrCodeTournoi" alt="QR code vers la page d'inscription au tournoi" width="200" height="200" style="border-radius:12px; border:1px solid var(--border); padding:12px; background:#fff; margin-top:10px;">
     </div>
   </section>
 

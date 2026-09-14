@@ -149,22 +149,22 @@ function collectCompetitionsSelection() {
 
 async function loadTournois() {
   const tbody = document.getElementById('tournoisTableBody');
-  tbody.innerHTML = '<tr><td colspan="7">Chargement…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8">Chargement…</td></tr>';
 
   const { data, error } = await sbClient
     .from('tournois')
-    .select('id, nom, cotisation, nb_terrains, statut, created_at, tournoi_competitions(id, nb_poules, taille_poule, types_competition(nom))')
+    .select('id, nom, cotisation, nb_terrains, date_tournoi, statut, created_at, tournoi_competitions(id, nb_poules, taille_poule, types_competition(nom))')
     .order('created_at', { ascending: false });
 
   if (error) {
-    tbody.innerHTML = `<tr><td colspan="7">Erreur : ${escapeHtml(error.message)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">Erreur : ${escapeHtml(error.message)}</td></tr>`;
     return;
   }
 
   tournoisCache = data || [];
 
   if (tournoisCache.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7">Aucun tournoi pour le moment.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">Aucun tournoi pour le moment.</td></tr>';
     return;
   }
 
@@ -185,6 +185,7 @@ async function loadTournois() {
         <td data-label="Statut">${statutHtml}</td>
         <td data-label="Cotisation">${Number(t.cotisation).toFixed(2)} €</td>
         <td data-label="Terrains">${t.nb_terrains}</td>
+        <td data-label="Date">${t.date_tournoi ? new Date(t.date_tournoi).toLocaleDateString('fr-FR') : '—'}</td>
         <td data-label="Compétitions">${competitionsLabel}</td>
         <td data-label="Créé le">${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
         <td data-label="Actions">
@@ -249,6 +250,7 @@ function editTournoi(id) {
   form.nom.value = t.nom;
   form.cotisation.value = t.cotisation;
   form.nb_terrains.value = t.nb_terrains;
+  form.date_tournoi.value = t.date_tournoi || '';
 
   // La config des compétitions cochées / poules est chargée séparément (jointure imbriquée non fiable ici).
   loadCompetitionsForEdit(id);
@@ -328,6 +330,7 @@ function bindForms() {
         nom: fd.get('nom').trim(),
         cotisation: Number(fd.get('cotisation')) || 0,
         nb_terrains: Number(fd.get('nb_terrains')) || 1,
+        date_tournoi: fd.get('date_tournoi') || null,
       };
 
       let tournoiId = editingTournoiId;

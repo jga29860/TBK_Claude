@@ -111,7 +111,8 @@ async function loadEquipes() {
 
 function renderCompletStatus() {
   const capacite = selectedCompetition.nb_poules * selectedCompetition.taille_poule;
-  const complet = equipesCache.length >= capacite;
+  const validees = equipesCache.filter(e => e.statut !== 'en_attente' && e.statut !== 'refusee').length;
+  const complet = validees >= capacite;
   const form = document.getElementById('equipeForm');
   const banner = document.getElementById('completBanner');
 
@@ -120,35 +121,98 @@ function renderCompletStatus() {
 }
 
 function renderKpis() {
-  document.getElementById('kpiInscrits').textContent = equipesCache.length;
+  const validees = equipesCache.filter(e => e.statut !== 'en_attente' && e.statut !== 'refusee').length;
+  document.getElementById('kpiInscrits').textContent = validees;
   document.getElementById('kpiPlaces').textContent = selectedCompetition.nb_poules * selectedCompetition.taille_poule;
 }
 function renderEquipesTable() {
   const container = document.getElementById('poulesContainer');
   const isDouble = selectedCompetition.format === 'double';
 
-  if (equipesCache.length === 0) {
+  const enAttente = equipesCache.filter(e => e.statut === 'en_attente');
+  const refusees = equipesCache.filter(e => e.statut === 'refusee');
+  const validees = equipesCache.filter(e => e.statut !== 'en_attente' && e.statut !== 'refusee');
+
+  let html = '';
+
+  if (enAttente.length > 0) {
+    html += renderDemandesBlock('🟠 Demandes en attente', enAttente, isDouble, 'attente');
+  }
+  if (refusees.length > 0) {
+    html += renderDemandesBlock('⛔ Demandes refusées', refusees, isDouble, 'refusee');
+  }
+
+  if (validees.length === 0 && enAttente.length === 0 && refusees.length === 0) {
     container.innerHTML = '<p class="section-lead">Aucune équipe inscrite.</p>';
     return;
   }
 
   const poules = Array.from({ length: selectedCompetition.nb_poules }, (_, i) => i + 1);
-  let html = '';
 
   poules.forEach(p => {
-    const equipesPoule = equipesCache
+    const equipesPoule = validees
       .filter(e => e.poule === p)
       .sort((a, b) => (b.tete_de_poule ? 1 : 0) - (a.tete_de_poule ? 1 : 0));
     html += renderPouleBlock(p, equipesPoule, isDouble);
   });
 
-  const nonAssignees = equipesCache.filter(e => !e.poule);
+  const nonAssignees = validees.filter(e => !e.poule);
   if (nonAssignees.length > 0) {
     html += renderPouleBlock(null, nonAssignees, isDouble);
   }
 
   container.innerHTML = html;
   bindEquipesRowEvents();
+}
+
+/** Section "Demandes en attente" ou "Demandes refusées" — issues du
+ *  formulaire public d'inscription au tournoi, avec les actions de
+ *  validation correspondantes. Les équipes saisies directement par le
+ *  bureau (formulaire ci-dessus) sont automatiquement validées et
+ *  n'apparaissent jamais ici. */
+function renderDemandesBlock(titre, equipes, isDouble, type) {
+  const fedeTexte = (val) => val === true ? 'Oui' : val === false ? 'Non' : '—';
+
+  return `
+    <div class="poule-block demandes-block">
+      <h3 class="poule-block-title">${titre} <span class="poule-count">(${equipes.length})</span></h3>
+      <div class="table-wrap">
+        <table class="schedule equipes-table">
+          <thead>
+            <tr>
+              <th>Joueurs</th>
+              <th>Niveau / Fédé / Club — Joueur 1</th>
+              ${isDouble ? '<th>Niveau / Fédé / Club — Joueur 2</th>' : ''}
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${equipes.map(e => {
+              const nomEquipe = isDouble
+                ? `${escapeHtml(e.joueur1_nom)} / ${escapeHtml(e.joueur2_nom || '?')}`
+                : escapeHtml(e.joueur1_nom);
+              return `
+                <tr data-equipe-id="${e.id}">
+                  <td class="cell-nom">
+                    <span class="cell-nom-chevron">▸</span>
+                    <span class="cell-nom-texte">${nomEquipe}</span>
+                  </td>
+                  <td data-label="Joueur 1">${escapeHtml(e.joueur1_niveau || '—')} · Fédé : ${fedeTexte(e.joueur1_fede)} · ${escapeHtml(e.joueur1_club || '—')}</td>
+                  ${isDouble ? `<td data-label="Joueur 2">${escapeHtml(e.joueur2_niveau || '—')} · Fédé : ${fedeTexte(e.joueur2_fede)} · ${escapeHtml(e.joueur2_club || '—')}</td>` : ''}
+                  <td data-label="Actions">
+                    ${type === 'attente' ? `
+                      <button type="button" class="btn btn-primary btn-small valider-demande-btn">Valider</button>
+                      <button type="button" class="btn btn-danger btn-small refuser-demande-btn">Refuser</button>
+                    ` : `
+                      <button type="button" class="btn btn-ghost btn-small remettre-attente-btn">Remettre en attente</button>
+                    `}
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
 }
 
 function renderPouleBlock(poule, equipes, isDouble) {
@@ -212,6 +276,28 @@ function bindEquipesRowEvents() {
   document.querySelectorAll('.cell-nom').forEach(cell => {
     cell.addEventListener('click', () => {
       cell.closest('tr').classList.toggle('row-expanded');
+    });
+  });
+
+  document.querySelectorAll('.valider-demande-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-equipe-id');
+      await updateEquipe(id, { statut: 'validee' });
+    });
+  });
+
+  document.querySelectorAll('.refuser-demande-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-equipe-id');
+      if (!confirm('Refuser cette demande d\'inscription au tournoi ?')) return;
+      await updateEquipe(id, { statut: 'refusee' });
+    });
+  });
+
+  document.querySelectorAll('.remettre-attente-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.target.closest('tr').getAttribute('data-equipe-id');
+      await updateEquipe(id, { statut: 'en_attente' });
     });
   });
 

@@ -77,6 +77,9 @@
           <label>Nombre de terrains disponibles
             <input type="number" name="nb_terrains" value="4" min="1" required>
           </label>
+          <label>Date du tournoi
+            <input type="date" name="date_tournoi">
+          </label>
         </div>
 
         <h3 class="admin-subheading">Compétitions incluses</h3>
@@ -99,9 +102,9 @@
       <div class="table-wrap">
         <table class="schedule" id="tournoisTable">
           <thead>
-            <tr><th>Nom</th><th>Statut</th><th>Cotisation</th><th>Terrains</th><th>Compétitions</th><th>Créé le</th><th></th></tr>
+            <tr><th>Nom</th><th>Statut</th><th>Cotisation</th><th>Terrains</th><th>Date</th><th>Compétitions</th><th>Créé le</th><th></th></tr>
           </thead>
-          <tbody id="tournoisTableBody"><tr><td colspan="7">Chargement…</td></tr></tbody>
+          <tbody id="tournoisTableBody"><tr><td colspan="8">Chargement…</td></tr></tbody>
         </table>
       </div>
     </section>

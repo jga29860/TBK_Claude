@@ -73,6 +73,7 @@
       <p>Le site est un site statique (HTML / CSS / JavaScript), hébergé gratuitement sur GitHub Pages. Il n'y a pas de serveur applicatif : toute la logique métier (comptes, données, sécurité) est gérée par <strong>Supabase</strong>, une plateforme qui fournit une base de données PostgreSQL, un système d'authentification, et un système de règles de sécurité au niveau des lignes (Row Level Security).</p>
       <p>Le navigateur communique directement avec Supabase via une clé publique ("anon key"), sans intermédiaire serveur. La sécurité ne repose donc pas sur le fait de cacher des pages, mais sur ces règles définies en base : une page peut être techniquement ouverte par n'importe qui, mais les données qu'elle affiche restent filtrées selon les droits de la personne connectée.</p>
       <p><strong>Contacter le club par email</strong> : une icône ✉️ dans le bandeau du haut, présente sur toutes les pages du site, ouvre le client email du visiteur avec l'adresse "Email de contact du club" (réglable dans Administration → Paramètres du site) déjà renseignée en destinataire. N'envoie rien automatiquement — la personne doit valider l'envoi depuis son propre client email.</p>
+      <p><strong>Section "Tournoi" de la page d'accueil</strong> : entièrement dynamique, à partir du tournoi actuellement en cours. Nom et date du tournoi, compte à rebours, bouton "S'inscrire au tournoi" et QR code pointent tous automatiquement vers tournoi-inscription-publique.html (voir 6.3bis). Si aucun tournoi n'est en cours, un message "Aucun tournoi n'est ouvert aux inscriptions pour le moment" s'affiche à la place.</p>
 
       <h3 class="admin-subheading">1.3 Services externes utilisés</h3>
       <ul>
@@ -298,18 +299,22 @@
 
       <h3 class="admin-subheading">6.2 Page Tournois (tournois.html)</h3>
       <p><strong>Types de compétition</strong> : catalogue réutilisable (Simple Homme, Double Dame…), géré par "Tournois - Administration". Chaque type a un format (simple ou double) déterminant le nombre de joueurs demandé à l'inscription.</p>
-      <p><strong>Création d'un tournoi</strong> : nom, cotisation, nombre de terrains, et une ou plusieurs compétitions avec leur nombre de poules et de participants par poule. La suppression est réservée à "Tournois - Administration".</p>
+      <p><strong>Création d'un tournoi</strong> : nom, cotisation, nombre de terrains, date du tournoi (facultative, à côté du nombre de terrains — affichée sur la page d'accueil et utilisée pour le compte à rebours), et une ou plusieurs compétitions avec leur nombre de poules et de participants par poule. La suppression est réservée à "Tournois - Administration".</p>
 
       <h3 class="admin-subheading">6.3 Inscriptions au tournoi (tournoi-inscriptions.html)</h3>
       <p>Accessible via le droit "Tournois - Administration"/"Tournois - Gestion", ou via le droit dédié "Tournois - Inscriptions" (permet de déléguer uniquement la gestion des équipes et des poules, sans donner accès aux autres pages tournoi comme la planification ou l'émargement).</p>
       <p>Pour chaque équipe : Nom et Club par joueur (un en simple, deux en double).</p>
       <ul>
-        <li><strong>Affectation aux poules</strong> — encadrement visuel par poule, compteur d'équipes.</li>
+        <li><strong>Affectation aux poules</strong> — encadrement visuel par poule, compteur d'équipes (ne comptabilise que les équipes validées, voir 6.3bis).</li>
         <li><strong>Tête de poule</strong> — une seule par poule, garantie en base ; toujours affichée en premier dans la liste de sa poule.</li>
         <li><strong>Échange entre poules</strong> — direct si la poule cible a de la place, sinon échange obligatoire avec une équipe de cette poule.</li>
-        <li><strong>Compétition complète</strong> — les nouvelles inscriptions sont bloquées automatiquement dès que la capacité est atteinte.</li>
+        <li><strong>Compétition complète</strong> — les nouvelles inscriptions sont bloquées automatiquement dès que la capacité (en équipes validées) est atteinte.</li>
         <li>Bouton "Répartir automatiquement en poules" pour une distribution équilibrée en un clic.</li>
       </ul>
+
+      <h3 class="admin-subheading">6.3bis Inscription publique au tournoi et validation (tournoi-inscription-publique.html)</h3>
+      <p><strong>Accessible sans connexion</strong> — page ouverte à tous (joueurs extérieurs au club inclus), accessible via un lien ou un QR code affiché sur la page d'accueil du site (voir 1.2). Chaque équipe se déclare elle-même : choix de la compétition (le formulaire s'adapte automatiquement en simple/double selon son format), puis pour chaque joueur — nom, prénom, club, niveau (Débutant / Intermédiaire / Confirmé), et affiliation fédérale (Oui/Non). Une demande soumise via ce formulaire démarre toujours au statut "En attente" — jamais directement validée.</p>
+      <p><strong>Validation par l'organisation</strong> (droits "Tournois - Administration" ou "Tournois - Gestion") : sur tournoi-inscriptions.html, une section "🟠 Demandes en attente" regroupe les demandes à traiter, avec un bouton "Valider" (la demande rejoint alors le tableau normal des équipes, avec ses données de niveau/Fédé visibles au survol) et un bouton "Refuser" (la demande bascule dans une section "⛔ Demandes refusées", d'où elle peut être remise en attente en cas d'erreur). Les équipes saisies directement par le bureau via le formulaire habituel de cette page restent automatiquement validées, comme auparavant.</p>
 
       <h3 class="admin-subheading">6.4 Émargement (emargement.html)</h3>
       <p>Bandeau du haut fixe : cotisation, recherche instantanée, compteur de présents / inscrits, montant réglé — recalculés en direct.</p>
@@ -517,9 +522,9 @@
           <thead><tr><th>Table</th><th>Rôle</th></tr></thead>
           <tbody>
             <tr><td>types_competition</td><td>Catalogue des types de compétition, avec leur format (simple/double).</td></tr>
-            <tr><td>tournois</td><td>Nom, cotisation, terrains, statut (en_cours / cloture), réglages de planning.</td></tr>
+            <tr><td>tournois</td><td>Nom, cotisation, terrains, date du tournoi, statut (en_cours / cloture), réglages de planning.</td></tr>
             <tr><td>tournoi_competitions</td><td>Compétitions incluses dans un tournoi, avec leur configuration de poules.</td></tr>
-            <tr><td>equipes</td><td>Équipes inscrites : joueurs, club, poule, tête de poule, présence/paiement par joueur.</td></tr>
+            <tr><td>equipes</td><td>Équipes inscrites : joueurs, club, poule, tête de poule, présence/paiement par joueur, statut de la demande (en_attente / validee / refusee), niveau et affiliation fédérale par joueur.</td></tr>
             <tr><td>matchs</td><td>Tous les matchs (poule, principale, consolante) : scores, terrain, horodatage, chaînage vers le tour suivant, numéro de rotation persisté (stable une fois attribué).</td></tr>
             <tr><td>benevoles_postes</td><td>Postes de bénévoles définis pour un tournoi (nom, horaire, description, places).</td></tr>
             <tr><td>benevoles_inscriptions</td><td>Inscriptions des bénévoles sur les postes (avec ou sans compte utilisateur).</td></tr>
