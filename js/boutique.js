@@ -367,7 +367,17 @@ function renderSynthese() {
   const groupes = {};
   commandesCache.filter(c => c.statut !== 'annulee').forEach(c => {
     const key = c.article_nom + '|' + c.taille;
-    if (!groupes[key]) groupes[key] = { article: c.article_nom, taille: c.taille, quantite: 0, payees: 0, floques: 0 };
+    if (!groupes[key]) {
+      const articleRef = articlesCache.find(a => a.nom === c.article_nom);
+      groupes[key] = {
+        article: c.article_nom,
+        description: articleRef ? (articleRef.description || '') : '',
+        taille: c.taille,
+        quantite: 0,
+        payees: 0,
+        floques: 0,
+      };
+    }
     groupes[key].quantite++;
     if (c.payee) groupes[key].payees++;
     if (c.flocage) groupes[key].floques++;
@@ -376,13 +386,14 @@ function renderSynthese() {
   const lignes = Object.values(groupes).sort((a, b) => a.article.localeCompare(b.article) || a.taille.localeCompare(b.taille));
 
   if (lignes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5">Aucune demande pour le moment.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6">Aucune demande pour le moment.</td></tr>';
     return;
   }
 
   tbody.innerHTML = lignes.map(l => `
     <tr>
       <td>${escapeHtml(l.article)}</td>
+      <td>${l.description ? escapeHtml(l.description) : '—'}</td>
       <td>${escapeHtml(l.taille)}</td>
       <td>${l.quantite}</td>
       <td>${l.floques > 0 ? l.floques : '—'}</td>

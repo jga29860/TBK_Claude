@@ -913,6 +913,16 @@ Exécutez `supabase/migration_tournoi_inscription_publique.sql`.
 
 ⚠️ **Parcours à tester en priorité** : inscription publique → validation admin → apparition dans le tableau des équipes normal (avec assignation de poule possible ensuite).
 
+## Coordonnées demandeur + confirmation email + description boutique
+
+Exécutez `supabase/migration_equipes_contact_demandeur.sql`.
+
+**1. Email et téléphone du demandeur** : nouveaux champs obligatoires sur le formulaire public d'inscription au tournoi, stockés sur la table `equipes` (`demandeur_email`, `demandeur_telephone`). Visibles dans une colonne "Contact" des sections "Demandes en attente"/"Refusées" côté admin.
+
+**2. Email de confirmation à la validation** : cliquer "Valider" propose désormais l'envoi d'une confirmation ("Envoyer un email de confirmation à [adresse] ?"), ouvrant un lien mailto pré-rempli (rien n'est envoyé automatiquement, la personne connectée valide depuis son propre client email). Bouton "Renvoyer confirmation" disponible en permanence ensuite, sur l'équipe validée dans le tableau normal.
+
+**3. Description dans la synthèse boutique** : nouvelle colonne "Description" à côté du nom de l'article dans le tableau de synthèse des demandes — pratique pour distinguer deux articles au nom proche.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

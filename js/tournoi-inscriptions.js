@@ -181,6 +181,7 @@ function renderDemandesBlock(titre, equipes, isDouble, type) {
           <thead>
             <tr>
               <th>Joueurs</th>
+              <th>Contact</th>
               <th>Niveau / Fédé / Club — Joueur 1</th>
               ${isDouble ? '<th>Niveau / Fédé / Club — Joueur 2</th>' : ''}
               <th></th>
@@ -197,6 +198,7 @@ function renderDemandesBlock(titre, equipes, isDouble, type) {
                     <span class="cell-nom-chevron">▸</span>
                     <span class="cell-nom-texte">${nomEquipe}</span>
                   </td>
+                  <td data-label="Contact">${escapeHtml(e.demandeur_email || '—')}${e.demandeur_telephone ? `<br>${escapeHtml(e.demandeur_telephone)}` : ''}</td>
                   <td data-label="Joueur 1">${escapeHtml(e.joueur1_niveau || '—')} · Fédé : ${fedeTexte(e.joueur1_fede)} · ${escapeHtml(e.joueur1_club || '—')}</td>
                   ${isDouble ? `<td data-label="Joueur 2">${escapeHtml(e.joueur2_niveau || '—')} · Fédé : ${fedeTexte(e.joueur2_fede)} · ${escapeHtml(e.joueur2_club || '—')}</td>` : ''}
                   <td data-label="Actions">
@@ -213,6 +215,22 @@ function renderDemandesBlock(titre, equipes, isDouble, type) {
         </table>
       </div>
     </div>`;
+}
+
+/** Construit et ouvre un mailto de confirmation, vers l'adresse
+ *  renseignée par la personne qui a fait la demande d'inscription au
+ *  tournoi (formulaire public). Rien n'est envoyé automatiquement —
+ *  la personne connectée valide l'envoi depuis son propre client email. */
+function envoyerConfirmationEquipe(equipe) {
+  if (!equipe.demandeur_email) return;
+  const isDouble = !!equipe.joueur2_nom;
+  const nomEquipe = isDouble ? `${equipe.joueur1_nom} / ${equipe.joueur2_nom}` : equipe.joueur1_nom;
+  const nomTournoi = selectedCompetition ? selectedCompetition.nom : '';
+
+  const sujet = `TBK — Inscription au tournoi validée`;
+  const corps = `Bonjour,\n\nVotre inscription au tournoi TBK (${nomTournoi}) pour "${nomEquipe}" est validée.\n\nÀ bientôt sur les terrains !\n\nSportivement,\nL'organisation du tournoi TBK`;
+
+  window.location.href = `mailto:${encodeURIComponent(equipe.demandeur_email)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
 }
 
 function renderPouleBlock(poule, equipes, isDouble) {
@@ -267,6 +285,7 @@ function renderEquipeRow(e, isDouble) {
       </td>
       <td data-label="Actions">
         <button type="button" class="btn btn-ghost btn-small edit-equipe-btn">Modifier</button>
+        ${e.demandeur_email ? '<button type="button" class="btn btn-ghost btn-small renvoyer-confirmation-btn">Renvoyer confirmation</button>' : ''}
         <button type="button" class="btn btn-danger btn-small delete-equipe-btn">Supprimer</button>
       </td>
     </tr>`;
@@ -282,7 +301,11 @@ function bindEquipesRowEvents() {
   document.querySelectorAll('.valider-demande-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
+      const equipe = equipesCache.find(eq => eq.id === id);
       await updateEquipe(id, { statut: 'validee' });
+      if (equipe && equipe.demandeur_email && confirm(`Envoyer un email de confirmation à ${equipe.demandeur_email} ?`)) {
+        envoyerConfirmationEquipe(equipe);
+      }
     });
   });
 
@@ -298,6 +321,14 @@ function bindEquipesRowEvents() {
     btn.addEventListener('click', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
       await updateEquipe(id, { statut: 'en_attente' });
+    });
+  });
+
+  document.querySelectorAll('.renvoyer-confirmation-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = e.target.closest('tr').getAttribute('data-equipe-id');
+      const equipe = equipesCache.find(eq => eq.id === id);
+      if (equipe) envoyerConfirmationEquipe(equipe);
     });
   });
 

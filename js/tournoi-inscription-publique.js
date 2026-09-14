@@ -88,6 +88,8 @@ function bindForm() {
     const payload = {
       tournoi_competition_id: fd.get('tournoi_competition_id'),
       statut: 'en_attente',
+      demandeur_email: (fd.get('demandeur_email') || '').trim(),
+      demandeur_telephone: (fd.get('demandeur_telephone') || '').trim(),
       joueur1_nom: nomComplet(fd.get('joueur1_prenom'), fd.get('joueur1_nom_famille')),
       joueur1_club: (fd.get('joueur1_club') || '').trim() || null,
       joueur1_niveau: fd.get('joueur1_niveau'),
@@ -98,6 +100,10 @@ function bindForm() {
       joueur2_fede: isDouble ? (fd.get('joueur2_fede') === 'true') : null,
     };
 
+    if (!payload.demandeur_email || !payload.demandeur_telephone) {
+      hint.textContent = 'Merci de renseigner votre email et votre numéro de téléphone.';
+      return;
+    }
     if (!payload.joueur1_nom || !payload.joueur1_niveau) {
       hint.textContent = 'Merci de renseigner au minimum le nom, le prénom et le niveau du joueur 1.';
       return;
