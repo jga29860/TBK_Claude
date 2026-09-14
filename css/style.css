@@ -936,9 +936,11 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .boutique-card-body h3{ margin:0; font-size:1.05rem; }
 .boutique-card-desc{ font-size:0.85rem; color: var(--ink-soft); margin:0; }
 .boutique-card-prix{ font-size:1.15rem; font-weight:800; color: var(--green); margin:2px 0; }
+.boutique-flocage-info{ font-size:0.78rem; color: var(--ink-soft); font-style:italic; }
 .boutique-card-dates{ font-size:0.75rem; color: var(--ink-soft); margin:0; }
 .boutique-card-actions{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
-.boutique-commande-zone{ display:flex; gap:8px; margin-top:8px; }
+.boutique-commande-zone{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.boutique-commande-zone select, .boutique-commande-zone input[type="text"]{ min-width:0; flex:1 1 auto; }
 .boutique-commande-zone select{
   flex:1; font-family: var(--font-body); padding:8px 10px; border-radius:8px; border:1px solid #a9d18e;
 }

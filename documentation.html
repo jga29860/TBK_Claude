@@ -444,6 +444,7 @@
       <p>Sur mobile, le champ photo propose le choix natif entre prendre l'article en photo directement ou choisir une image déjà enregistrée (même mécanisme que pour le certificat médical d'inscription).</p>
       <p><strong>Zoom sur la photo</strong> : un clic sur la photo d'un article (catalogue ou panneau de gestion) l'ouvre en plein écran, fond sombre — un clic dessus ou sur le bouton "✕" referme la vue agrandie.</p>
       <p><strong>Plusieurs articles à la fois</strong> : rien n'empêche un membre de commander plusieurs articles différents, ou plusieurs fois le même — chaque clic sur "Commander" crée une commande indépendante, sans limite.</p>
+      <p><strong>Option flocage</strong> : activable par article (case à cocher "Proposer un flocage" + prix, 3 € par défaut) dans le formulaire d'ajout/modification. Une fois activée, le catalogue propose un choix Oui/Non au moment de la commande ; si Oui, un champ texte demande le nom à floquer (obligatoire pour valider la commande). Le prix affiché et enregistré tient compte du supplément flocage ; la synthèse bureau indique combien d'articles, par taille, nécessitent un flocage.</p>
 
       <h3 class="admin-subheading">11.3 Commande d'un membre</h3>
       <p>Un membre choisit un article et une taille, puis clique sur "Commander" — la demande est enregistrée immédiatement (nom de l'article, prix et taille figés au moment de la commande, pour rester cohérents même si l'article est modifié ensuite). Chaque membre retrouve l'historique de ses propres commandes dans "Mes commandes", avec possibilité d'annuler tant que la demande est encore "En attente".</p>
@@ -497,8 +498,8 @@
             <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres (avec auteur, date, pièce jointe facultative).</td></tr>
             <tr><td>annonces_commentaires</td><td>Fil de discussion indenté sous chaque annonce (réponses imbriquées).</td></tr>
             <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.</td></tr>
-            <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité).</td></tr>
-            <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande), statut et paiement.</td></tr>
+            <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité, option flocage + son prix).</td></tr>
+            <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>

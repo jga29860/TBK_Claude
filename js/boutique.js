@@ -123,6 +123,13 @@ function rendreArticleCard(a, modeGestion) {
             <select class="boutique-taille-select">
               ${tailles.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
             </select>
+            ${a.propose_flocage ? `
+              <select class="boutique-flocage-select">
+                <option value="non">Sans flocage</option>
+                <option value="oui">Avec flocage (+${Number(a.prix_flocage).toFixed(2)} €)</option>
+              </select>
+              <input type="text" class="boutique-flocage-nom" placeholder="Nom à floquer" hidden>
+            ` : ''}
             <button type="button" class="btn btn-primary btn-small commander-btn" data-id="${a.id}">Commander</button>
           </div>
           <p class="form-hint commande-hint"></p>
@@ -143,6 +150,14 @@ function bindArticleCardEvents() {
   });
   document.querySelectorAll('.boutique-card-img:not(.boutique-card-img--vide)').forEach(img => {
     img.addEventListener('click', () => ouvrirVisionneuseArticle(img.src, img.alt));
+  });
+  document.querySelectorAll('.boutique-flocage-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const zone = select.closest('.boutique-commande-zone');
+      const inputNom = zone.querySelector('.boutique-flocage-nom');
+      inputNom.hidden = select.value !== 'oui';
+      if (inputNom.hidden) inputNom.value = '';
+    });
   });
 }
 
@@ -167,6 +182,17 @@ async function passerCommande(btn) {
   const taille = select.value;
   const hint = card.querySelector('.commande-hint');
 
+  const flocageSelect = card.querySelector('.boutique-flocage-select');
+  const flocage = !!flocageSelect && flocageSelect.value === 'oui';
+  const flocageNomInput = card.querySelector('.boutique-flocage-nom');
+  const flocageNom = flocage ? flocageNomInput.value.trim() : '';
+
+  if (flocage && !flocageNom) {
+    hint.textContent = 'Merci de renseigner le nom à floquer.';
+    flocageNomInput.focus();
+    return;
+  }
+
   btn.disabled = true;
   hint.textContent = 'Enregistrement…';
 
@@ -177,6 +203,9 @@ async function passerCommande(btn) {
     taille,
     user_id: currentUserId,
     nom_demandeur: currentUserNom,
+    flocage,
+    flocage_nom: flocage ? flocageNom : null,
+    flocage_prix: flocage ? Number(article.prix_flocage) || 0 : 0,
   });
 
   btn.disabled = false;
@@ -196,6 +225,8 @@ function editArticle(id) {
   form.date_debut.value = article.date_debut || '';
   form.date_fin.value = article.date_fin || '';
   form.description.value = article.description || '';
+  form.propose_flocage.checked = !!article.propose_flocage;
+  form.prix_flocage.value = article.prix_flocage != null ? article.prix_flocage : 3.00;
   document.getElementById('articleSubmitBtn').textContent = 'Mettre à jour';
   document.getElementById('articleCancelBtn').hidden = false;
   form.scrollIntoView({ behavior: 'smooth' });
@@ -205,6 +236,7 @@ function resetArticleForm() {
   const form = document.getElementById('articleForm');
   form.reset();
   form.tailles.value = 'Unique';
+  form.prix_flocage.value = 3.00;
   editingArticleId = null;
   document.getElementById('articleSubmitBtn').textContent = "Ajouter l'article";
   document.getElementById('articleCancelBtn').hidden = true;
@@ -246,6 +278,8 @@ function bindArticleForm() {
       tailles: tailles.length ? tailles : ['Unique'],
       date_debut: fd.get('date_debut') || null,
       date_fin: fd.get('date_fin') || null,
+      propose_flocage: fd.get('propose_flocage') === 'on',
+      prix_flocage: parseFloat(fd.get('prix_flocage')) || 0,
     };
     if (photoUrl !== undefined) payload.photo_url = photoUrl;
 
@@ -305,9 +339,9 @@ function renderMesCommandes() {
         <tbody>
           ${mesCommandes.map(c => `
             <tr>
-              <td>${escapeHtml(c.article_nom)}</td>
+              <td>${escapeHtml(c.article_nom)}${c.flocage ? `<br><span class="boutique-flocage-info">Flocage : "${escapeHtml(c.flocage_nom || '')}"</span>` : ''}</td>
               <td>${escapeHtml(c.taille)}</td>
-              <td>${Number(c.article_prix).toFixed(2)} €</td>
+              <td>${(Number(c.article_prix) + Number(c.flocage_prix || 0)).toFixed(2)} €</td>
               <td>${statutLabel(c.statut)}${c.payee ? ' · ✅ Payée' : ''}</td>
               <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
               <td>${c.statut === 'en_attente' ? `<button type="button" class="btn btn-danger btn-small annuler-commande-btn" data-id="${c.id}">Annuler</button>` : ''}</td>
@@ -333,15 +367,16 @@ function renderSynthese() {
   const groupes = {};
   commandesCache.filter(c => c.statut !== 'annulee').forEach(c => {
     const key = c.article_nom + '|' + c.taille;
-    if (!groupes[key]) groupes[key] = { article: c.article_nom, taille: c.taille, quantite: 0, payees: 0 };
+    if (!groupes[key]) groupes[key] = { article: c.article_nom, taille: c.taille, quantite: 0, payees: 0, floques: 0 };
     groupes[key].quantite++;
     if (c.payee) groupes[key].payees++;
+    if (c.flocage) groupes[key].floques++;
   });
 
   const lignes = Object.values(groupes).sort((a, b) => a.article.localeCompare(b.article) || a.taille.localeCompare(b.taille));
 
   if (lignes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4">Aucune demande pour le moment.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5">Aucune demande pour le moment.</td></tr>';
     return;
   }
 
@@ -350,6 +385,7 @@ function renderSynthese() {
       <td>${escapeHtml(l.article)}</td>
       <td>${escapeHtml(l.taille)}</td>
       <td>${l.quantite}</td>
+      <td>${l.floques > 0 ? l.floques : '—'}</td>
       <td>${l.payees} / ${l.quantite}</td>
     </tr>`).join('');
 }
@@ -369,9 +405,9 @@ function renderCommandesGestion() {
   tbody.innerHTML = liste.map(c => `
     <tr>
       <td>${escapeHtml(c.nom_demandeur)}</td>
-      <td>${escapeHtml(c.article_nom)}</td>
+      <td>${escapeHtml(c.article_nom)}${c.flocage ? `<br><span class="boutique-flocage-info">Flocage : "${escapeHtml(c.flocage_nom || '')}"</span>` : ''}</td>
       <td>${escapeHtml(c.taille)}</td>
-      <td>${Number(c.article_prix).toFixed(2)} €</td>
+      <td>${(Number(c.article_prix) + Number(c.flocage_prix || 0)).toFixed(2)} €</td>
       <td>
         <select class="commande-statut-select" data-id="${c.id}">
           ${['en_attente', 'confirmee', 'recuperee', 'annulee'].map(s => `<option value="${s}" ${c.statut === s ? 'selected' : ''}>${statutLabel(s)}</option>`).join('')}

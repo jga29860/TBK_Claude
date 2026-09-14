@@ -891,6 +891,14 @@ L'espacement vertical des tours resserrés (demi-finale, finale) a aussi été a
 - ✅ **Vérifié et déjà correct** : créer un nouveau tournoi n'efface jamais les données des précédents (insertion pure). "Réactiver" fonctionne déjà correctement pour repasser un tournoi clôturé en mode modifiable.
 - ⚠️ **Portée assumée** : la consultation en lecture seule ne couvre que les résultats (Poules + Phase finale). Les autres données d'un tournoi clôturé (équipes, émargement, courses, bénévoles) restent non modifiables (donc sans risque), mais restent aussi non consultables depuis le site une fois clôturé — extension possible sur demande.
 
+## Flocage boutique + audit documentation
+
+Exécutez `supabase/migration_boutique_flocage.sql`.
+
+**1. Option flocage** (activable par article, +3€ par défaut) : case à cocher au formulaire admin, choix Oui/Non au catalogue avec champ "Nom à floquer" obligatoire si Oui. Affiché dans "Mes commandes", la vue de gestion bureau, et une nouvelle colonne "Dont floqués" dans la synthèse. Activée automatiquement sur "Maillot Club Sublimé" si cet article existe déjà dans votre catalogue — sinon activable manuellement sur n'importe quel article.
+
+**2. Audit de la documentation** : vérification systématique des 21 pages + d'une vingtaine de fonctionnalités récentes (temps réel, statut "Éléments demandés", suivi de modification, clôture de tournoi, HEIC, filtres colonnes...) — tout était déjà à jour, seul le flocage manquait (normal, ajouté dans ce même tour). Documentation HTML et Word tous les deux complétés.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
