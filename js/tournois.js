@@ -188,9 +188,11 @@ async function loadTournois() {
         <td data-label="Compétitions">${competitionsLabel}</td>
         <td data-label="Créé le">${new Date(t.created_at).toLocaleDateString('fr-FR')}</td>
         <td data-label="Actions">
-          <button type="button" class="btn btn-ghost btn-small edit-tournoi-btn">Modifier</button>
+          ${enCours ? '<button type="button" class="btn btn-ghost btn-small edit-tournoi-btn">Modifier</button>' : ''}
           ${enCours ? '<button type="button" class="btn btn-ghost btn-small close-tournoi-btn">Clore</button>' : ''}
           ${!enCours && !aUnAutreEnCours ? '<button type="button" class="btn btn-ghost btn-small reactivate-tournoi-btn">Réactiver</button>' : ''}
+          ${!enCours ? `<a href="poules.html?tournoi=${t.id}" class="btn btn-ghost btn-small">Consulter les poules</a>` : ''}
+          ${!enCours ? `<a href="phase-finale.html?tournoi=${t.id}" class="btn btn-ghost btn-small">Consulter la finale</a>` : ''}
           ${isTournoiAdmin ? '<button type="button" class="btn btn-danger btn-small delete-tournoi-btn">Supprimer</button>' : ''}
         </td>
       </tr>`;

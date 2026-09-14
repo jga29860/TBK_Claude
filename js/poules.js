@@ -21,14 +21,14 @@ async function initPage() {
   document.getElementById('competitionFilterSelect').addEventListener('change', onCompetitionFilterChange);
   document.getElementById('pouleFilterSelect').addEventListener('change', onPouleFilterChange);
 
-  const tournoi = await getTournoiEnCours();
+  const tournoi = await getTournoiCible();
   if (!tournoi) {
     document.getElementById('pasDeTournoiMessage').hidden = false;
     return;
   }
 
   document.getElementById('filtersSection').hidden = false;
-  document.getElementById('pageTitle').textContent = `Phase Poule & classement — ${tournoi.nom}`;
+  document.getElementById('pageTitle').textContent = `Phase Poule & classement — ${tournoi.nom}${tournoi.statut === 'cloture' ? ' (tournoi clôturé)' : ''}`;
   await loadCompetitionsEtMatchs(tournoi.id);
 }
 

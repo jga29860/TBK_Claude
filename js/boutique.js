@@ -31,6 +31,11 @@ async function initPage() {
   currentUserNom = access.display_name || afficherIdentifiant(access.email);
   isGestionnaire = access.pages.includes('boutique_gestion') || access.pages.includes('administration');
 
+  document.getElementById('visionneuseArticleFermerBtn').addEventListener('click', fermerVisionneuseArticle);
+  document.getElementById('visionneuseArticle').addEventListener('click', (e) => {
+    if (e.target.id === 'visionneuseArticle' || e.target.id === 'visionneuseArticleImg') fermerVisionneuseArticle();
+  });
+
   if (isGestionnaire) {
     document.getElementById('gestionSection').hidden = false;
     document.getElementById('syntheseSection').hidden = false;
@@ -136,6 +141,20 @@ function bindArticleCardEvents() {
   document.querySelectorAll('.article-supprimer-btn').forEach(btn => {
     btn.addEventListener('click', () => supprimerArticle(btn.dataset.id));
   });
+  document.querySelectorAll('.boutique-card-img:not(.boutique-card-img--vide)').forEach(img => {
+    img.addEventListener('click', () => ouvrirVisionneuseArticle(img.src, img.alt));
+  });
+}
+
+function ouvrirVisionneuseArticle(src, alt) {
+  document.getElementById('visionneuseArticleImg').src = src;
+  document.getElementById('visionneuseArticleImg').alt = alt;
+  document.getElementById('visionneuseArticle').hidden = false;
+}
+
+function fermerVisionneuseArticle() {
+  document.getElementById('visionneuseArticle').hidden = true;
+  document.getElementById('visionneuseArticleImg').src = '';
 }
 
 async function passerCommande(btn) {

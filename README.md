@@ -879,6 +879,18 @@ L'espacement vertical des tours resserrés (demi-finale, finale) a aussi été a
 
 ⚠️ **Limite à connaître** : cette correction ne s'applique qu'aux nouveaux envois. Une photo déjà envoyée au format HEIC avant cette mise à jour reste cassée pour les autres et devra être renvoyée pour être corrigée.
 
+## Audit boutique + clôture de tournoi — bug corrigé, consultation ajoutée
+
+**1. Zoom boutique** : clic sur une photo d'article → plein écran, fermeture au clic ou sur "✕".
+
+**2. Achat de plusieurs articles** : vérifié, déjà pleinement fonctionnel — aucune contrainte ne limite à un seul article ou une seule commande. Rien à corriger.
+
+**3. Clôture de tournoi — audit complet :**
+- 🔴 **Bug confirmé et corrigé** : le bouton "Modifier" (nom, cotisation, terrains, liste des compétitions) restait accessible sur un tournoi **clôturé**, en violation de la règle "toujours uniquement visualisable". Ne s'affiche désormais que pour le tournoi en cours.
+- 🔴 **Gap confirmé et corrigé** : un tournoi clôturé devenait **totalement invisible** (aucune page ne chargeait autre chose que le tournoi actif). Nouvelle fonction `getTournoiCible()` (paramètre `?tournoi=<id>`) appliquée à poules.html et phase-finale.html — déjà 100% lecture seule par conception — avec de nouveaux liens "Consulter les poules" / "Consulter la finale" sur chaque tournoi clôturé (tournois.html). Titre de page précisé "(tournoi clôturé)". Aucune migration SQL nécessaire : la lecture publique de ces données était déjà ouverte en base, indépendamment du statut.
+- ✅ **Vérifié et déjà correct** : créer un nouveau tournoi n'efface jamais les données des précédents (insertion pure). "Réactiver" fonctionne déjà correctement pour repasser un tournoi clôturé en mode modifiable.
+- ⚠️ **Portée assumée** : la consultation en lecture seule ne couvre que les résultats (Poules + Phase finale). Les autres données d'un tournoi clôturé (équipes, émargement, courses, bénévoles) restent non modifiables (donc sans risque), mais restent aussi non consultables depuis le site une fois clôturé — extension possible sur demande.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

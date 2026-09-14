@@ -15,13 +15,13 @@ async function initPage() {
   const deniedPanel = document.getElementById('deniedPanel');
   deniedPanel.hidden = true;
 
-  const tournoi = await getTournoiEnCours();
+  const tournoi = await getTournoiCible();
   if (!tournoi) {
     document.getElementById('pasDeTournoiMessage').hidden = false;
     return;
   }
 
-  document.getElementById('pageTitle').textContent = `Phase finale — ${tournoi.nom}`;
+  document.getElementById('pageTitle').textContent = `Phase finale — ${tournoi.nom}${tournoi.statut === 'cloture' ? ' (tournoi clôturé)' : ''}`;
 
   await chargerDonnees(tournoi.id);
   pollTimer = setInterval(() => chargerDonnees(tournoi.id), 20000);

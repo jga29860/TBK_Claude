@@ -290,9 +290,10 @@
       <h3 class="admin-subheading">6.1 Un seul tournoi actif à la fois</h3>
       <p>Le site ne gère qu'un tournoi "en cours" à la fois — garanti au niveau de la base de données. Toutes les pages de gestion du jour J chargent automatiquement ce tournoi actif, sans sélecteur à utiliser.</p>
       <ul>
-        <li><strong>Création</strong> — un nouveau tournoi devient automatiquement le tournoi actif ; bloquée si un tournoi est déjà actif.</li>
-        <li><strong>Clôture</strong> — un tournoi actif peut être clôturé une fois terminé.</li>
-        <li><strong>Réactivation</strong> — possible si aucun autre tournoi n'est actif.</li>
+        <li><strong>Création</strong> — un nouveau tournoi devient automatiquement le tournoi actif ; bloquée si un tournoi est déjà actif. Ne touche jamais aux données des tournois précédents (aucune suppression croisée) : chaque tournoi garde ses propres équipes, matchs, scores.</li>
+        <li><strong>Clôture</strong> — un tournoi actif peut être clôturé une fois terminé. Ses données restent en base, mais deviennent non modifiables : le bouton "Modifier" (nom, cotisation, terrains, liste des compétitions) disparaît tant que le tournoi reste clôturé.</li>
+        <li><strong>Réactivation</strong> — possible si aucun autre tournoi n'est actif ; redonne accès à la modification.</li>
+        <li><strong>Consultation d'un tournoi clôturé</strong> — des liens "Consulter les poules" et "Consulter la finale" apparaissent sur chaque tournoi clôturé, ouvrant poules.html/phase-finale.html sur ce tournoi précis (au lieu du tournoi actif par défaut) — ces deux pages étant déjà uniquement consultables, aucune donnée n'y est modifiable. Le titre de la page précise "(tournoi clôturé)" pour éviter toute confusion avec le tournoi en cours. Les autres données (équipes, émargement, courses, bénévoles) d'un tournoi clôturé restent en base mais ne sont pas consultables depuis le site une fois clôturé.</li>
       </ul>
 
       <h3 class="admin-subheading">6.2 Page Tournois (tournois.html)</h3>
@@ -441,6 +442,8 @@
       <h3 class="admin-subheading">11.2 Un article</h3>
       <p>Caractérisé par un nom, une description, un prix, une photo, une ou plusieurs tailles disponibles (séparées par des virgules à la saisie, ex. "S, M, L, XL" — ou une taille unique par défaut pour un article non textile), et des dates de début/fin facultatives. Un article n'apparaît dans le catalogue public que s'il est dans sa période de disponibilité ; le bureau, lui, voit tous les articles (y compris passés ou à venir) dans son panneau de gestion, avec une mention "inactif" le cas échéant.</p>
       <p>Sur mobile, le champ photo propose le choix natif entre prendre l'article en photo directement ou choisir une image déjà enregistrée (même mécanisme que pour le certificat médical d'inscription).</p>
+      <p><strong>Zoom sur la photo</strong> : un clic sur la photo d'un article (catalogue ou panneau de gestion) l'ouvre en plein écran, fond sombre — un clic dessus ou sur le bouton "✕" referme la vue agrandie.</p>
+      <p><strong>Plusieurs articles à la fois</strong> : rien n'empêche un membre de commander plusieurs articles différents, ou plusieurs fois le même — chaque clic sur "Commander" crée une commande indépendante, sans limite.</p>
 
       <h3 class="admin-subheading">11.3 Commande d'un membre</h3>
       <p>Un membre choisit un article et une taille, puis clique sur "Commander" — la demande est enregistrée immédiatement (nom de l'article, prix et taille figés au moment de la commande, pour rester cohérents même si l'article est modifié ensuite). Chaque membre retrouve l'historique de ses propres commandes dans "Mes commandes", avec possibilité d'annuler tant que la demande est encore "En attente".</p>

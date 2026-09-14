@@ -353,6 +353,25 @@ async function getTournoiEnCours() {
   return data;
 }
 
+/**
+ * Comme getTournoiEnCours(), mais permet de cibler un tournoi précis
+ * (y compris clôturé) via le paramètre d'URL ?tournoi=<id> — utilisé
+ * par les pages de consultation (Phase Poule, Phase finale) pour rester
+ * consultables même après la clôture d'un tournoi. Sans ce paramètre,
+ * se comporte exactement comme getTournoiEnCours() (le tournoi actif).
+ */
+async function getTournoiCible() {
+  const idParam = new URLSearchParams(window.location.search).get('tournoi');
+  if (!idParam) return getTournoiEnCours();
+
+  const { data, error } = await sbClient.from('tournois').select('*').eq('id', idParam).maybeSingle();
+  if (error) {
+    console.error('Erreur de récupération du tournoi ciblé :', error.message);
+    return null;
+  }
+  return data;
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
