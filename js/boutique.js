@@ -409,14 +409,17 @@ function renderCommandesGestion() {
   }
 
   if (liste.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8">Aucune demande.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9">Aucune demande.</td></tr>';
     return;
   }
 
-  tbody.innerHTML = liste.map(c => `
+  tbody.innerHTML = liste.map(c => {
+    const articleRef = articlesCache.find(a => a.nom === c.article_nom);
+    return `
     <tr>
       <td>${escapeHtml(c.nom_demandeur)}</td>
       <td>${escapeHtml(c.article_nom)}${c.flocage ? `<br><span class="boutique-flocage-info">Flocage : "${escapeHtml(c.flocage_nom || '')}"</span>` : ''}</td>
+      <td>${articleRef && articleRef.description ? escapeHtml(articleRef.description) : '—'}</td>
       <td>${escapeHtml(c.taille)}</td>
       <td>${(Number(c.article_prix) + Number(c.flocage_prix || 0)).toFixed(2)} €</td>
       <td>
@@ -427,7 +430,8 @@ function renderCommandesGestion() {
       <td><input type="checkbox" class="commande-payee-check" data-id="${c.id}" ${c.payee ? 'checked' : ''}></td>
       <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
       <td><button type="button" class="btn btn-danger btn-small commande-supprimer-btn" data-id="${c.id}">Supprimer</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   tbody.querySelectorAll('.commande-statut-select').forEach(sel => {
     sel.addEventListener('change', async () => {

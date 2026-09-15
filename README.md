@@ -923,6 +923,12 @@ Exécutez `supabase/migration_equipes_contact_demandeur.sql`.
 
 **3. Description dans la synthèse boutique** : nouvelle colonne "Description" à côté du nom de l'article dans le tableau de synthèse des demandes — pratique pour distinguer deux articles au nom proche.
 
+## Bouton hero dynamique + lien Facebook + description détail boutique
+
+- **Bouton "Voir le tournoi du…"** (bandeau tout en haut de la page d'accueil) : affiche désormais automatiquement la date du tournoi en cours, réutilisant la même logique déjà en place pour la section "Tournoi" plus bas sur la page. Masqué si aucun tournoi n'est actif.
+- **Lien Facebook** : nouveau bouton "Notre groupe Facebook" (https://www.facebook.com/groups/3826450300980984), à côté du bouton tournoi, ouvre le groupe dans un nouvel onglet.
+- **Description dans le détail des demandes boutique** : la vue "Détail des demandes" (liste individuelle par commande, distincte de la synthèse déjà mise à jour au tour précédent) affiche désormais elle aussi la description de l'article, dans sa propre colonne.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

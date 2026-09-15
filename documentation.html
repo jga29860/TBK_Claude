@@ -73,7 +73,8 @@
       <p>Le site est un site statique (HTML / CSS / JavaScript), hébergé gratuitement sur GitHub Pages. Il n'y a pas de serveur applicatif : toute la logique métier (comptes, données, sécurité) est gérée par <strong>Supabase</strong>, une plateforme qui fournit une base de données PostgreSQL, un système d'authentification, et un système de règles de sécurité au niveau des lignes (Row Level Security).</p>
       <p>Le navigateur communique directement avec Supabase via une clé publique ("anon key"), sans intermédiaire serveur. La sécurité ne repose donc pas sur le fait de cacher des pages, mais sur ces règles définies en base : une page peut être techniquement ouverte par n'importe qui, mais les données qu'elle affiche restent filtrées selon les droits de la personne connectée.</p>
       <p><strong>Contacter le club par email</strong> : une icône ✉️ dans le bandeau du haut, présente sur toutes les pages du site, ouvre le client email du visiteur avec l'adresse "Email de contact du club" (réglable dans Administration → Paramètres du site) déjà renseignée en destinataire. N'envoie rien automatiquement — la personne doit valider l'envoi depuis son propre client email.</p>
-      <p><strong>Section "Tournoi" de la page d'accueil</strong> : entièrement dynamique, à partir du tournoi actuellement en cours. Nom et date du tournoi, compte à rebours, bouton "S'inscrire au tournoi" et QR code pointent tous automatiquement vers tournoi-inscription-publique.html (voir 6.3bis). Si aucun tournoi n'est en cours, un message "Aucun tournoi n'est ouvert aux inscriptions pour le moment" s'affiche à la place.</p>
+      <p><strong>Section "Tournoi" de la page d'accueil</strong> : entièrement dynamique, à partir du tournoi actuellement en cours. Nom et date du tournoi, compte à rebours, bouton "S'inscrire au tournoi" et QR code pointent tous automatiquement vers tournoi-inscription-publique.html (voir 6.3bis). Si aucun tournoi n'est en cours, un message "Aucun tournoi n'est ouvert aux inscriptions pour le moment" s'affiche à la place. Le bouton "Voir le tournoi du…" tout en haut de la page (bandeau d'accueil) affiche lui aussi automatiquement la date du tournoi en cours.</p>
+      <p><strong>Lien Facebook</strong> : un bouton "Notre groupe Facebook" (https://www.facebook.com/groups/3826450300980984), à côté du bouton "Voir le tournoi du…" tout en haut de la page d'accueil, ouvre le groupe du club dans un nouvel onglet.</p>
 
       <h3 class="admin-subheading">1.3 Services externes utilisés</h3>
       <ul>
@@ -458,7 +459,7 @@
       <h3 class="admin-subheading">11.4 Synthèse pour le bureau</h3>
       <ul>
         <li><strong>Quantités par article et taille</strong> : tableau agrégé, pratique pour savoir combien commander de chaque taille en gros (ex. "5 × Taille M").</li>
-        <li><strong>Détail des demandes</strong> : liste complète avec recherche par demandeur, changement de statut (En attente / Confirmée / Récupérée / Annulée) et case à cocher "Payée" — mise à jour immédiate en base à chaque changement.</li>
+        <li><strong>Détail des demandes</strong> : liste complète avec recherche par demandeur, description de l'article rappelée à côté de son nom, changement de statut (En attente / Confirmée / Récupérée / Annulée) et case à cocher "Payée" — mise à jour immédiate en base à chaque changement.</li>
       </ul>
     </section>
 

@@ -51,6 +51,7 @@ async function initTournoiAccueil() {
   const elLien = document.getElementById('lienInscriptionTournoi');
   const elQr = document.getElementById('qrCodeTournoi');
   const elQrLead = document.getElementById('qrTournoiLead');
+  const elHeroLien = document.getElementById('heroLienTournoi');
   if (!elDate || typeof sbClient === 'undefined') return;
 
   const { data: tournoi, error } = await sbClient
@@ -66,6 +67,7 @@ async function initTournoiAccueil() {
     if (elQr) elQr.hidden = true;
     if (elQrLead) elQrLead.hidden = true;
     if (elPasDeTournoi) elPasDeTournoi.hidden = false;
+    if (elHeroLien) elHeroLien.hidden = true;
     return;
   }
 
@@ -83,9 +85,14 @@ async function initTournoiAccueil() {
     elDate.textContent = dateTournoi.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     elCountdown.hidden = false;
     demarrerCountdown(dateTournoi.getTime());
+    if (elHeroLien) {
+      const dateCourte = dateTournoi.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+      elHeroLien.textContent = `Voir le tournoi du ${dateCourte}`;
+    }
   } else {
     elDate.textContent = 'Date à confirmer';
     elCountdown.hidden = true;
+    if (elHeroLien) elHeroLien.textContent = 'Voir le tournoi';
   }
 }
 
