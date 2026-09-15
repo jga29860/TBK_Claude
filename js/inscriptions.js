@@ -687,6 +687,18 @@ async function envoyerEmailRelance(id, modeleForce) {
       if (editingId === id) renderEditActionsPanel(getLiveEditRecord() || record);
     }
   }
+
+  // Le mail de bienvenue envoyé est tracé, pour distinguer visuellement
+  // ("Validée_") une inscription pleinement finalisée — validée, mail
+  // de bienvenue envoyé, et compte relié — d'une simple validation.
+  if (cle === 'inscription_validee') {
+    const { error } = await sbClient.from('inscriptions').update({ email_bienvenue_envoye: true }).eq('id', id);
+    if (!error) {
+      record.email_bienvenue_envoye = true;
+      renderInscriptionsTableBody(getAvailableColumns().filter(c => colonnesCache.includes(c.key)));
+      if (editingId === id) renderEditActionsPanel(getLiveEditRecord() || record);
+    }
+  }
 }
 
 function renderRattachementWidget(record) {
@@ -861,7 +873,13 @@ function renderStatutCell(record) {
   if (record.statut === 'validee') {
     const qui = record.valide_par_nom ? escapeHtml(record.valide_par_nom) : 'un membre du bureau';
     const quand = record.valide_le ? new Date(record.valide_le).toLocaleDateString('fr-FR') : '';
-    return `<span class="statut-badge statut-en-cours" title="Validée par ${qui}${quand ? ' le ' + quand : ''}">Validée</span>`;
+    // Une inscription pleinement finalisée — validée, mail de bienvenue
+    // envoyé, ET compte relié — s'affiche "Validée_" plutôt que
+    // "Validée", pour la distinguer d'un simple coup de tampon.
+    const finalisee = record.email_bienvenue_envoye && record.user_id;
+    const libelle = finalisee ? 'Validée_' : 'Validée';
+    const titreFinalise = finalisee ? ' — mail de bienvenue envoyé et compte relié' : '';
+    return `<span class="statut-badge statut-en-cours" title="Validée par ${qui}${quand ? ' le ' + quand : ''}${titreFinalise}">${libelle}</span>`;
   }
   if (record.statut === 'elements_demandes') {
     return `<span class="statut-badge" style="background:#fde9c8; color:#7a4a00;" title="Un email de relance a été envoyé pour demander les éléments manquants">Éléments demandés</span>`;
@@ -1002,7 +1020,7 @@ function renderEditActionsPanel(record) {
     btnDevalider.addEventListener('click', async () => {
       if (!confirm('Annuler la validation de cette inscription ? Elle repassera "En attente".')) return;
       const { error } = await sbClient.from('inscriptions').update({
-        statut: 'en_attente', valide_par: null, valide_par_nom: null, valide_le: null,
+        statut: 'en_attente', valide_par: null, valide_par_nom: null, valide_le: null, email_bienvenue_envoye: false,
       }).eq('id', record.id);
       if (error) { alert('Erreur : ' + error.message); return; }
       await loadInscriptions();
