@@ -929,6 +929,32 @@ Exécutez `supabase/migration_equipes_contact_demandeur.sql`.
 - **Lien Facebook** : nouveau bouton "Notre groupe Facebook" (https://www.facebook.com/groups/3826450300980984), à côté du bouton tournoi, ouvre le groupe dans un nouvel onglet.
 - **Description dans le détail des demandes boutique** : la vue "Détail des demandes" (liste individuelle par commande, distincte de la synthèse déjà mise à jour au tour précédent) affiche désormais elle aussi la description de l'article, dans sa propre colonne.
 
+## Marqueur "Validée_" — inscription pleinement finalisée
+
+Exécutez `supabase/migration_email_bienvenue_envoye.sql`.
+
+Nouveau marqueur visuel dans le badge de statut : une inscription affiche désormais "Validée_" (avec un tiret bas) au lieu de "Validée" dès que **les 3 conditions sont réunies** : statut validé, mail "Inscription validée (bienvenue)" envoyé, et inscription reliée à un compte. Permet de repérer en un coup d'œil les dossiers réellement clos, par opposition à une simple validation pas encore suivie d'effet. Testé sur les 4 combinaisons possibles — comportement conforme dans tous les cas. "Annuler la validation" réinitialise ce marqueur pour éviter un affichage trompeur en cas de re-validation ultérieure.
+
+## Tri alphabétique admin + blocage doublons + enrichissement Mes informations
+
+Exécutez `supabase/migration_verification_doublon_inscription.sql` puis `supabase/migration_champs_mes_informations.sql`.
+
+**1. Liste des utilisateurs triée par ordre alphabétique** (identifiant), au lieu de la date de création.
+
+**2. Doublon nom + prénom bloqué** : impossible de créer une nouvelle inscription déjà existante pour la même saison — vérifié via une fonction SQL dédiée (sûre à appeler depuis le formulaire public, sans exposer aucune donnée), appliquée aux deux points d'entrée (formulaire public et saisie bureau). Ne s'applique qu'à la création, jamais à la modification d'une inscription existante.
+
+**3. "Mes informations" enrichie** : téléphone, adresse, email et date de naissance s'affichent désormais dans l'espace membre — ces champs existaient déjà dans le formulaire d'inscription (schéma de base), la migration garantit simplement leur présence si votre installation est antérieure à leur ajout.
+
+## Section "Le club" (accueil) — entièrement paramétrable
+
+Exécutez `supabase/migration_club_parametrable.sql`.
+
+**Nouvelle section admin "Page d'accueil — Section Le club"** : le petit texte au-dessus du titre, le titre lui-même, et les cartes (tag + texte) de la première section de la page d'accueil sont désormais entièrement modifiables depuis Administration — plus rien de codé en dur dans le HTML. Ajout, modification, suppression et réordonnancement (flèches monter/descendre) d'un nombre illimité de cartes.
+
+**Point technique traité au passage** : l'animation d'apparition au défilement (déjà utilisée ailleurs sur la page) a été rendue réutilisable pour s'appliquer correctement aux cartes chargées dynamiquement depuis la base — sans ce correctif, elles seraient restées invisibles (n'ayant jamais été détectées par l'animation, configurée uniquement au chargement initial de la page).
+
+Le contenu actuel du site (3 cartes : Badminton, Tennis de table, Vie associative) est automatiquement repris comme point de départ par la migration, rien n'est perdu au passage.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

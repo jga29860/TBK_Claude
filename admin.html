@@ -63,6 +63,38 @@
       </form>
     </section>
 
+    <!-- ===== Page d'accueil — Section "Le club" ===== -->
+    <section class="admin-section">
+      <h2>Page d'accueil — Section "Le club"</h2>
+      <p class="section-lead">Titre et cartes de la première section de la page d'accueil (index.html), entièrement modifiables ici.</p>
+      <form id="clubTitreForm" class="inline-form">
+        <label>Petit texte au-dessus du titre
+          <input type="text" name="club_soustitre" id="clubSoustitreInput" placeholder="Ex. 01 — Le club">
+        </label>
+        <label style="flex:1; min-width:260px;">Titre de la section
+          <input type="text" name="club_titre" id="clubTitreInput" placeholder="Ex. Deux sports, un seul terrain d'entente">
+        </label>
+        <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+        <p class="form-hint" id="clubTitreHint"></p>
+      </form>
+
+      <h3 class="admin-subheading">Ajouter une carte</h3>
+      <form id="clubCarteForm" class="inline-form">
+        <label>Tag (titre court de la carte)
+          <input type="text" name="tag" placeholder="Ex. Badminton" required>
+        </label>
+        <label style="flex:1; min-width:300px;">Texte
+          <textarea name="texte" rows="2" required placeholder="Texte de présentation de la carte"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary btn-small" id="clubCarteSubmitBtn">Ajouter</button>
+        <button type="button" class="btn btn-ghost btn-small" id="clubCarteCancelBtn" hidden>Annuler la modification</button>
+        <p class="form-hint" id="clubCarteHint"></p>
+      </form>
+
+      <h3 class="admin-subheading">Cartes actuelles <span id="clubCartesCount" class="count-badge"></span></h3>
+      <div id="clubCartesListe"></div>
+    </section>
+
     <!-- ===== Keepalive Supabase (anti-pause) ===== -->
     <section class="admin-section">
       <h2>Anti-pause Supabase</h2>

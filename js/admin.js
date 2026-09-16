@@ -61,6 +61,8 @@ async function initAdminPage() {
   bindChangePasswordForm();
   bindParametresForm();
   await loadParametres();
+  bindClubSection();
+  await loadClubSection();
   bindKeepaliveForm();
   await loadKeepalive();
   await loadRoles();
@@ -94,6 +96,157 @@ function bindParametresForm() {
     if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
     hint.textContent = 'Email de contact mis à jour.';
   });
+}
+
+// ===== Page d'accueil — Section "Le club" =====
+
+let clubCartesCache = [];
+let editingClubCarteId = null;
+
+async function loadClubSection() {
+  const { data: parametres } = await sbClient
+    .from('parametres_site')
+    .select('cle, valeur')
+    .in('cle', ['club_titre', 'club_soustitre']);
+
+  const valeurParametre = (cle) => {
+    const trouve = (parametres || []).find(p => p.cle === cle);
+    return trouve ? (trouve.valeur || '') : '';
+  };
+  document.getElementById('clubTitreInput').value = valeurParametre('club_titre');
+  document.getElementById('clubSoustitreInput').value = valeurParametre('club_soustitre');
+
+  const { data: cartes, error } = await sbClient.from('club_cartes').select('*').order('ordre', { ascending: true });
+  if (error) { console.error(error.message); return; }
+  clubCartesCache = cartes || [];
+  renderClubCartes();
+}
+
+function renderClubCartes() {
+  const container = document.getElementById('clubCartesListe');
+  const count = document.getElementById('clubCartesCount');
+  count.textContent = clubCartesCache.length ? `(${clubCartesCache.length})` : '';
+
+  if (clubCartesCache.length === 0) {
+    container.innerHTML = '<p class="form-hint">Aucune carte pour le moment.</p>';
+    return;
+  }
+
+  container.innerHTML = clubCartesCache.map((c, i) => `
+    <div class="club-carte-admin-item">
+      <div class="club-carte-admin-corps">
+        <strong>${escapeHtml(c.tag)}</strong>
+        <p>${escapeHtml(c.texte)}</p>
+      </div>
+      <div class="club-carte-admin-actions">
+        <button type="button" class="btn btn-ghost btn-small club-carte-monter-btn" data-id="${c.id}" ${i === 0 ? 'disabled' : ''} title="Monter">▲</button>
+        <button type="button" class="btn btn-ghost btn-small club-carte-descendre-btn" data-id="${c.id}" ${i === clubCartesCache.length - 1 ? 'disabled' : ''} title="Descendre">▼</button>
+        <button type="button" class="btn btn-ghost btn-small club-carte-modifier-btn" data-id="${c.id}">Modifier</button>
+        <button type="button" class="btn btn-danger btn-small club-carte-supprimer-btn" data-id="${c.id}">Supprimer</button>
+      </div>
+    </div>`).join('');
+
+  container.querySelectorAll('.club-carte-monter-btn').forEach(btn => {
+    btn.addEventListener('click', () => deplacerClubCarte(btn.getAttribute('data-id'), -1));
+  });
+  container.querySelectorAll('.club-carte-descendre-btn').forEach(btn => {
+    btn.addEventListener('click', () => deplacerClubCarte(btn.getAttribute('data-id'), 1));
+  });
+  container.querySelectorAll('.club-carte-modifier-btn').forEach(btn => {
+    btn.addEventListener('click', () => editerClubCarte(btn.getAttribute('data-id')));
+  });
+  container.querySelectorAll('.club-carte-supprimer-btn').forEach(btn => {
+    btn.addEventListener('click', () => supprimerClubCarte(btn.getAttribute('data-id')));
+  });
+}
+
+async function deplacerClubCarte(id, sens) {
+  const index = clubCartesCache.findIndex(c => c.id === id);
+  const indexCible = index + sens;
+  if (index === -1 || indexCible < 0 || indexCible >= clubCartesCache.length) return;
+
+  const carteA = clubCartesCache[index];
+  const carteB = clubCartesCache[indexCible];
+  const { error } = await sbClient.from('club_cartes').update({ ordre: carteB.ordre }).eq('id', carteA.id);
+  if (error) { alert('Erreur : ' + error.message); return; }
+  await sbClient.from('club_cartes').update({ ordre: carteA.ordre }).eq('id', carteB.id);
+  await loadClubSection();
+}
+
+function editerClubCarte(id) {
+  const carte = clubCartesCache.find(c => c.id === id);
+  if (!carte) return;
+  editingClubCarteId = id;
+  const form = document.getElementById('clubCarteForm');
+  form.tag.value = carte.tag;
+  form.texte.value = carte.texte;
+  document.getElementById('clubCarteSubmitBtn').textContent = 'Mettre à jour';
+  document.getElementById('clubCarteCancelBtn').hidden = false;
+  form.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetClubCarteForm() {
+  const form = document.getElementById('clubCarteForm');
+  form.reset();
+  editingClubCarteId = null;
+  document.getElementById('clubCarteSubmitBtn').textContent = 'Ajouter';
+  document.getElementById('clubCarteCancelBtn').hidden = true;
+}
+
+async function supprimerClubCarte(id) {
+  if (!confirm('Supprimer définitivement cette carte de la page d\'accueil ?')) return;
+  const { error } = await sbClient.from('club_cartes').delete().eq('id', id);
+  if (error) { alert('Erreur : ' + error.message); return; }
+  await loadClubSection();
+}
+
+function bindClubSection() {
+  const formTitre = document.getElementById('clubTitreForm');
+  if (!formTitre.dataset.bound) {
+    formTitre.dataset.bound = 'true';
+    formTitre.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const hint = document.getElementById('clubTitreHint');
+      const titre = document.getElementById('clubTitreInput').value.trim();
+      const soustitre = document.getElementById('clubSoustitreInput').value.trim();
+
+      hint.textContent = 'Enregistrement…';
+      const maintenant = new Date().toISOString();
+      const { error: err1 } = await sbClient.from('parametres_site').update({ valeur: titre, updated_at: maintenant }).eq('cle', 'club_titre');
+      const { error: err2 } = await sbClient.from('parametres_site').update({ valeur: soustitre, updated_at: maintenant }).eq('cle', 'club_soustitre');
+      if (err1 || err2) { hint.textContent = 'Erreur : ' + ((err1 || err2).message); return; }
+      hint.textContent = 'Titre mis à jour.';
+    });
+  }
+
+  const formCarte = document.getElementById('clubCarteForm');
+  if (!formCarte.dataset.bound) {
+    formCarte.dataset.bound = 'true';
+    document.getElementById('clubCarteCancelBtn').addEventListener('click', resetClubCarteForm);
+
+    formCarte.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const hint = document.getElementById('clubCarteHint');
+      const fd = new FormData(formCarte);
+      const payload = { tag: fd.get('tag').trim(), texte: fd.get('texte').trim() };
+
+      hint.textContent = 'Enregistrement…';
+
+      let error;
+      if (editingClubCarteId) {
+        ({ error } = await sbClient.from('club_cartes').update(payload).eq('id', editingClubCarteId));
+      } else {
+        const ordreMax = clubCartesCache.reduce((max, c) => Math.max(max, c.ordre), 0);
+        payload.ordre = ordreMax + 10;
+        ({ error } = await sbClient.from('club_cartes').insert(payload));
+      }
+
+      if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+      hint.textContent = editingClubCarteId ? 'Carte mise à jour.' : 'Carte ajoutée.';
+      resetClubCarteForm();
+      await loadClubSection();
+    });
+  }
 }
 
 // ===== Anti-pause Supabase (keepalive) =====

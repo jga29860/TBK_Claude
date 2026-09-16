@@ -656,6 +656,14 @@ select.filtre-colonne-input{ background: var(--white); cursor:pointer; }
   .envoi-liste-groupe-zone .btn{ width:100%; text-align:center; }
 }
 
+.club-carte-admin-item{
+  display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
+  border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-top:10px; background: var(--white);
+}
+.club-carte-admin-corps{ flex:1; min-width:0; }
+.club-carte-admin-corps p{ margin:4px 0 0; font-size:0.85rem; color: var(--ink-soft); }
+.club-carte-admin-actions{ display:flex; flex-wrap:wrap; gap:6px; flex-shrink:0; }
+
 .email-template-bloc{
   border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-top:14px;
   display:flex; flex-direction:column; gap:10px;

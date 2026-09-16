@@ -26,20 +26,63 @@ window.addEventListener('scroll', updateScrollProgress, { passive: true });
 updateScrollProgress();
 
 // ===== Reveal on scroll =====
-const revealEls = document.querySelectorAll('.reveal');
-if ('IntersectionObserver' in window) {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15 });
-  revealEls.forEach(el => io.observe(el));
-} else {
-  revealEls.forEach(el => el.classList.add('is-visible'));
+// Fonction réutilisable (pas seulement exécutée une fois au chargement)
+// pour que les éléments ajoutés dynamiquement ensuite (ex. cartes de la
+// section "Le club", chargées depuis la base) bénéficient eux aussi de
+// l'animation au défilement, au lieu de rester invisibles.
+function activerRevealSur(elements) {
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    elements.forEach(el => io.observe(el));
+  } else {
+    elements.forEach(el => el.classList.add('is-visible'));
+  }
 }
+activerRevealSur(document.querySelectorAll('.reveal'));
+
+// ===== Section "Le club" : titre et cartes entièrement paramétrables
+// depuis Administration → Page d'accueil. =====
+async function initClubAccueil() {
+  const elTitre = document.getElementById('clubTitre');
+  const elSoustitre = document.getElementById('clubSoustitre');
+  const elGrid = document.getElementById('clubGrid');
+  if (!elGrid || typeof sbClient === 'undefined') return;
+
+  const { data: parametres } = await sbClient
+    .from('parametres_site')
+    .select('cle, valeur')
+    .in('cle', ['club_titre', 'club_soustitre']);
+
+  const valeurParametre = (cle) => {
+    const trouve = (parametres || []).find(p => p.cle === cle);
+    return trouve ? trouve.valeur : null;
+  };
+  if (elTitre && valeurParametre('club_titre')) elTitre.textContent = valeurParametre('club_titre');
+  if (elSoustitre && valeurParametre('club_soustitre')) elSoustitre.textContent = valeurParametre('club_soustitre');
+
+  const { data: cartes, error } = await sbClient
+    .from('club_cartes')
+    .select('*')
+    .order('ordre', { ascending: true });
+
+  if (error || !cartes || cartes.length === 0) return;
+
+  elGrid.innerHTML = cartes.map(c => `
+    <div class="club-card reveal">
+      <span class="club-card__tag">${escapeHtml(c.tag)}</span>
+      <p>${escapeHtml(c.texte)}</p>
+    </div>`).join('');
+
+  activerRevealSur(elGrid.querySelectorAll('.reveal'));
+}
+initClubAccueil();
 
 // ===== Tournoi à venir : date, compte à rebours, lien et QR code
 // dynamiques, à partir du tournoi actuellement en cours en base. =====

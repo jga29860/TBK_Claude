@@ -140,7 +140,7 @@
       </ul>
 
       <h3 class="admin-subheading">2.4 Gestion des utilisateurs</h3>
-      <p>Depuis Administration → Utilisateurs, un administrateur peut changer le profil de n'importe quel compte, envoyer un email de réinitialisation de mot de passe (comptes email uniquement), ou supprimer le profil d'un utilisateur (celui-ci perd alors tout accès au site, mais son compte de connexion technique reste géré depuis Supabase). Un système d'invitations permet de pré-attribuer un profil à un email avant même la création du compte.</p>
+      <p>Depuis Administration → Utilisateurs, un administrateur peut changer le profil de n'importe quel compte, envoyer un email de réinitialisation de mot de passe (comptes email uniquement), ou supprimer le profil d'un utilisateur (celui-ci perd alors tout accès au site, mais son compte de connexion technique reste géré depuis Supabase). Un système d'invitations permet de pré-attribuer un profil à un email avant même la création du compte. La liste est triée par ordre alphabétique d'identifiant.</p>
 
       <h3 class="admin-subheading">2.5 Supprimer un compte complètement ou réinitialiser un mot de passe (via Supabase)</h3>
       <p><strong>Pourquoi cette étape manuelle est nécessaire</strong> : pour des raisons de sécurité, le site (qui tourne entièrement dans le navigateur) n'a jamais accès à la clé secrète qui permettrait de supprimer un compte de connexion ou de fixer directement le mot de passe d'un autre utilisateur. Le bouton "Supprimer" d'admin.html ne retire donc que le <em>profil</em> (les droits d'accès) — pas le compte de connexion lui-même. Concrètement, si vous supprimez un profil puis essayez de recréer un compte avec le même email ou nom d'utilisateur, vous obtiendrez l'erreur <em>"User already registered"</em> tant que l'ancien compte de connexion existe encore.</p>
@@ -164,6 +164,7 @@
 
       <h3 class="admin-subheading">3.1 Page d'accueil (index.html)</h3>
       <p>Accessible à tous sans connexion : présentation du club, compte à rebours vers le tournoi à venir, affiche du forum des associations, QR code et lien vers le formulaire public de demande d'inscription.</p>
+      <p><strong>Section "Le club" entièrement paramétrable</strong> (voir 7.2) : le petit texte au-dessus du titre, le titre lui-même, et les cartes (Badminton, Tennis de table, Vie associative...) sont tous modifiables depuis Administration — pas de nombre de cartes figé, l'administrateur peut en ajouter, modifier, supprimer ou réordonner autant que voulu.</p>
 
       <h3 class="admin-subheading">3.2 Demande d'inscription publique (inscription-publique.html)</h3>
       <p>Formulaire accessible sans connexion. Les champs administratifs (WhatsApp, statut de paiement, santé, date de certificat) ne sont volontairement pas proposés : ils sont réservés au bureau, complétés au moment de la validation. Chaque demande arrive avec le statut "En attente".</p>
@@ -182,7 +183,7 @@
         <li><strong>Plier/déplier les commentaires</strong> : bouton "💬 X commentaires ▼/▲" par annonce, affichage compact par défaut.</li>
         <li>Tri du plus récent au plus ancien, en haut du fil.</li>
       </ul>
-      <p>Toute personne connectée, quel que soit son profil (même un simple visiteur), voit aussi une section "Mon compte" pour changer son mot de passe, et — si une inscription saison lui est reliée — une section "Mes informations" (voir 5.10) affichant sa catégorie, sa cotisation et la validité de son certificat médical.</p>
+      <p>Toute personne connectée, quel que soit son profil (même un simple visiteur), voit aussi une section "Mon compte" pour changer son mot de passe, et — si une inscription saison lui est reliée — une section "Mes informations" (voir 5.10) affichant sa saison, son statut, sa catégorie, sa pratique, sa cotisation, la validité de son certificat médical, ainsi que son numéro de téléphone, son adresse, son email et sa date de naissance (tels que renseignés sur son inscription).</p>
     </section>
 
     <!-- ===== 5. INSCRIPTIONS SAISON ===== -->
@@ -192,6 +193,7 @@
       <h3 class="admin-subheading">5.1 Principe général</h3>
       <p>Deux façons d'alimenter la liste : saisie directe par un membre du bureau connecté (automatiquement marquée "Validée"), ou demande soumise via le formulaire public (statut "En attente" jusqu'à validation).</p>
       <p>À droite du titre "Inscrits — [saison]", un petit résumé en police réduite rappelle en direct la répartition par sport et par catégorie : nombre de Bad, de Ping (les personnes pratiquant les deux sont comptées dans les deux), de Jeunes et d'Adultes.</p>
+      <p><strong>Doublon nom + prénom bloqué</strong> : impossible de créer une nouvelle inscription (nom et prénom) déjà existante pour la même saison — vérifié avant l'enregistrement, aussi bien depuis le formulaire public que depuis la saisie directe par le bureau. Ne s'applique pas à la modification d'une inscription déjà existante.</p>
 
       <h3 class="admin-subheading">5.2 Champs de l'inscription</h3>
       <p><strong>Champs fixes</strong> : Nom, Prénom, Catégorie (Jeune / Adulte), Bad/Ping, UFOLEP/FSGT, Membre Bureau, Cotisation.</p>
@@ -264,6 +266,7 @@
         <li>5 modèles disponibles : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Cotisation + document santé manquants (relance combinée quand les deux manquent à la fois), Inscription validée (bienvenue).</li>
         <li><strong>Important sur le mot de passe</strong> : le modèle "Inscription validée" ne peut pas "rappeler" un mot de passe — c'est techniquement impossible pour n'importe quel système, les mots de passe n'étant jamais stockés en clair. Il invite donc la personne à créer son compte (si elle n'en a pas) ou à utiliser "Mot de passe oublié" (si elle l'a perdu).</li>
         <li><strong>Quel document de santé demander ?</strong> déterminé automatiquement : catégorie Jeune → toujours un certificat médical neuf (exigé chaque année, jamais de QS Sport pour un mineur) ; catégorie Adulte → certificat neuf si aucun certificat n'a jamais été renseigné, ou si le certificat existant a plus de 37 mois (expiré) ; dans les autres cas (certificat existant encore dans sa fenêtre de validité), un simple QS Sport suffit pour la saison. Le modèle combiné utilise la variable <code>{document_sante}</code> pour préciser automatiquement lequel des deux est concerné.</li>
+        <li><strong>Inscription pleinement finalisée ("Validée_")</strong> : dès que le mail "Inscription validée (bienvenue)" a été envoyé ET que l'inscription est reliée à un compte (voir 5.11), le badge de statut affiche "Validée_" (avec un tiret bas) plutôt que "Validée" — une façon de repérer en un coup d'œil les dossiers réellement clos, par opposition à une validation "à sec" pas encore suivie d'effet. Annuler la validation réinitialise ce marqueur.</li>
       </ul>
 
       <h3 class="admin-subheading">5.14 Modèles d'emails (configuration, profil admin)</h3>
@@ -382,6 +385,7 @@
       <ul>
         <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
         <li><strong>Paramètres du site</strong> — email de contact du club, utilisé automatiquement sur les pages publiques.</li>
+        <li><strong>Page d'accueil — Section "Le club"</strong> — voir 7.2 ci-dessous.</li>
         <li><strong>Anti-pause Supabase</strong> — voir 7.1 ci-dessous.</li>
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
         <li><strong>Utilisateurs</strong> — changement de profil, réinitialisation de mot de passe, suppression.</li>
@@ -395,6 +399,13 @@
         <li>Le GitHub Actions s'exécute chaque jour et vérifie s'il est temps de pinguer selon cette fréquence ; le réglage est donc pris en compte au plus tard le lendemain d'un changement.</li>
         <li>La date du dernier ping reçu s'affiche sous le formulaire.</li>
         <li>Mise en place technique la première fois : voir 13.7.</li>
+      </ul>
+
+      <h3 class="admin-subheading">7.2 Page d'accueil — Section "Le club"</h3>
+      <p>Rend entièrement paramétrable la première section de la page d'accueil (voir 3.1), sans plus rien de codé en dur :</p>
+      <ul>
+        <li><strong>Petit texte au-dessus du titre</strong> et <strong>titre de la section</strong> — deux champs de texte libre, enregistrés en un clic.</li>
+        <li><strong>Cartes</strong> (tag + texte) — ajout, modification, suppression, et réordonnancement (flèches monter/descendre) sans limite de nombre. Le contenu actuel (Badminton, Tennis de table, Vie associative) est repris tel quel comme point de départ au moment de l'activation de cette fonctionnalité, pour ne rien perdre.</li>
       </ul>
     </section>
 
@@ -509,7 +520,8 @@
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
-            <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact.</td></tr>
+            <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact, titre de la section "Le club".</td></tr>
+            <tr><td>club_cartes</td><td>Cartes de la section "Le club" de la page d'accueil (tag, texte, ordre d'affichage) — lecture publique, écriture admin.</td></tr>
             <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée + colonnes <code>modifie_par</code>/<code>modifie_par_nom</code>/<code>modifie_le</code> remplies automatiquement par un déclencheur à chaque modification).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
             <tr><td>bareme_cotisations</td><td>Montants utilisés pour le calcul de la cotisation saison.</td></tr>
