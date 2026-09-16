@@ -260,7 +260,7 @@ async function loadUsers() {
   const { data, error } = await sbClient
     .from('profiles')
     .select('id, email, display_name, role, created_at')
-    .order('created_at', { ascending: false });
+    .order('email', { ascending: true });
 
   if (error) {
     tbody.innerHTML = `<tr><td colspan="6">Erreur : ${escapeHtml(error.message)}</td></tr>`;

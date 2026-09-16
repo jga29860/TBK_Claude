@@ -340,6 +340,19 @@ function bindMainForm() {
 
     hint.textContent = 'Enregistrement…';
 
+    if (!editingId) {
+      const { data: dejaInscrit, error: erreurVerif } = await sbClient.rpc('inscription_existe_deja', {
+        p_nom: payload.nom,
+        p_prenom: payload.prenom,
+        p_saison: SAISON,
+      });
+      if (erreurVerif) { hint.textContent = 'Erreur : ' + erreurVerif.message; return; }
+      if (dejaInscrit) {
+        hint.textContent = `Une inscription existe déjà au nom de ${payload.prenom} ${payload.nom} pour cette saison.`;
+        return;
+      }
+    }
+
     let error;
     if (editingId) {
       ({ error } = await sbClient.from('inscriptions').update(payload).eq('id', editingId));

@@ -127,6 +127,25 @@ function bindForm() {
     };
 
     submitBtn.disabled = true;
+    hint.textContent = 'Vérification…';
+
+    const { data: dejaInscrit, error: erreurVerif } = await sbClient.rpc('inscription_existe_deja', {
+      p_nom: payload.nom,
+      p_prenom: payload.prenom,
+      p_saison: SAISON,
+    });
+
+    if (erreurVerif) {
+      hint.textContent = 'Erreur : ' + erreurVerif.message;
+      submitBtn.disabled = false;
+      return;
+    }
+    if (dejaInscrit) {
+      hint.textContent = `Une inscription existe déjà au nom de ${payload.prenom} ${payload.nom} pour cette saison. Si vous pensez qu'il s'agit d'une erreur, contactez le club.`;
+      submitBtn.disabled = false;
+      return;
+    }
+
     hint.textContent = 'Envoi en cours…';
 
     const { error } = await sbClient.from('inscriptions').insert(payload);

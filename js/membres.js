@@ -141,6 +141,10 @@ function rendreMesInformations(insc) {
       <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? '✅ Payée' : '⏳ Non payée'}</span></div>
       ${certifLigne}
+      <div class="info-ligne"><span class="info-label">N° téléphone</span><span class="info-valeur">${escapeHtml(champs.telephone || '—')}</span></div>
+      <div class="info-ligne"><span class="info-label">Adresse</span><span class="info-valeur">${escapeHtml(champs.adresse || '—')}</span></div>
+      <div class="info-ligne"><span class="info-label">Email</span><span class="info-valeur">${escapeHtml(champs.email || '—')}</span></div>
+      <div class="info-ligne"><span class="info-label">Date de naissance</span><span class="info-valeur">${champs.date_naissance ? new Date(champs.date_naissance).toLocaleDateString('fr-FR') : '—'}</span></div>
     </div>`;
 }
 
