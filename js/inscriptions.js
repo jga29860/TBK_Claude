@@ -477,13 +477,13 @@ function renderInscriptionsTableBody(columns) {
   const tbody = document.getElementById('inscriptionsTableBody');
 
   if (inscriptionsCache.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Aucune inscription pour le moment.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription pour le moment.</td></tr>`;
     return;
   }
 
   const liste = inscriptionsCache.filter(i => inscriptionCorrespondFiltres(i, columns));
   if (liste.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${columns.length + 3}">Aucune inscription ne correspond aux filtres.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription ne correspond aux filtres.</td></tr>`;
     return;
   }
 
@@ -496,6 +496,7 @@ function renderInscriptionsTableBody(columns) {
       </td>
       ${columns.map(col => `<td data-label="${escapeHtml(col.label)}">${formatColumnValue(i, col.key)}</td>`).join('')}
       <td data-label="Statut">${renderStatutCell(i)}</td>
+      <td data-label="Compte" class="cell-lien-compte">${i.user_id ? '' : '<span class="icone-non-relie" title="Non relié à un compte">🔗</span>'}</td>
       <td data-label="Actions">
         <div class="actions-stack">
           <button type="button" class="btn btn-ghost btn-small edit-inscription-btn">Modifier</button>
@@ -558,11 +559,12 @@ function renderFiltreColonneCell(colKey) {
 
 function renderInscriptionsTableHead(columns) {
   const thead = document.querySelector('#inscriptionsTable thead');
-  const headerRow = `<tr><th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th></th></tr>`;
+  const headerRow = `<tr><th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th title="Reliée à un compte ?">Compte</th><th></th></tr>`;
   const filterRow = `<tr class="filtres-colonnes-row">
     <th><input type="text" class="filtre-colonne-input" data-col="__nom" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes.__nom || '')}"></th>
     ${columns.map(c => renderFiltreColonneCell(c.key)).join('')}
     ${renderFiltreColonneCell('__statut')}
+    <th></th>
     <th></th>
   </tr>`;
   thead.innerHTML = headerRow + filterRow;

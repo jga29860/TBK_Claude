@@ -565,6 +565,11 @@ table.schedule .role-label-input{
 .btn-danger:hover{ background:#900000 !important; }
 
 .count-badge{ font-family: var(--font-mono); font-size:0.85rem; color: var(--ink-soft); font-weight:400; }
+
+.cell-lien-compte{ text-align:center; }
+.icone-non-relie{
+  font-size:0.95rem; opacity:0.45; filter: grayscale(1); cursor:help; display:inline-block;
+}
 .inscriptions-stats{ font-size:0.75rem; color: var(--ink-soft); font-weight:400; font-family: var(--font-body); }
 .form-hint-inline{ font-size:0.72rem; font-weight:400; color: var(--ink-soft); }
 

@@ -955,6 +955,10 @@ Exécutez `supabase/migration_club_parametrable.sql`.
 
 Le contenu actuel du site (3 cartes : Badminton, Tennis de table, Vie associative) est automatiquement repris comme point de départ par la migration, rien n'est perdu au passage.
 
+## Icône de liaison — inscription non reliée à un compte
+
+Une icône 🔗 grisée apparaît désormais en bout de ligne du tableau des inscrits (nouvelle colonne "Compte"), uniquement pour les personnes qui ne sont pas encore reliées à un compte site — rien ne s'affiche pour une inscription déjà reliée. Repérage rapide au survol ("Non relié à un compte"), sans avoir à ouvrir chaque fiche.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
