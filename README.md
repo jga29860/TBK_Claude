@@ -959,6 +959,10 @@ Le contenu actuel du site (3 cartes : Badminton, Tennis de table, Vie associativ
 
 Une icône 🔗 grisée apparaît désormais en bout de ligne du tableau des inscrits (nouvelle colonne "Compte"), uniquement pour les personnes qui ne sont pas encore reliées à un compte site — rien ne s'affiche pour une inscription déjà reliée. Repérage rapide au survol ("Non relié à un compte"), sans avoir à ouvrir chaque fiche.
 
+## Boutique — choix de la quantité à commander
+
+Nouveau champ "Quantité" (1 par défaut, jusqu'à 20) à côté du choix de la taille : un seul clic sur "Commander" enregistre autant de commandes individuelles identiques que la quantité choisie, sans avoir à répéter la manipulation. Point à connaître : si un flocage est demandé avec une quantité supérieure à 1, le même nom s'applique à tous les exemplaires — pour des noms différents, il faut commander séparément chaque exemplaire avec une quantité de 1.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

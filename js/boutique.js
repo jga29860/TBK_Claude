@@ -123,6 +123,7 @@ function rendreArticleCard(a, modeGestion) {
             <select class="boutique-taille-select">
               ${tailles.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')}
             </select>
+            <input type="number" class="boutique-quantite-input" value="1" min="1" max="20" title="Quantité">
             ${a.propose_flocage ? `
               <select class="boutique-flocage-select">
                 <option value="non">Sans flocage</option>
@@ -182,6 +183,9 @@ async function passerCommande(btn) {
   const taille = select.value;
   const hint = card.querySelector('.commande-hint');
 
+  const quantiteInput = card.querySelector('.boutique-quantite-input');
+  const quantite = Math.max(1, parseInt(quantiteInput.value, 10) || 1);
+
   const flocageSelect = card.querySelector('.boutique-flocage-select');
   const flocage = !!flocageSelect && flocageSelect.value === 'oui';
   const flocageNomInput = card.querySelector('.boutique-flocage-nom');
@@ -196,7 +200,7 @@ async function passerCommande(btn) {
   btn.disabled = true;
   hint.textContent = 'Enregistrement…';
 
-  const { error } = await sbClient.from('boutique_commandes').insert({
+  const ligneCommande = {
     article_id: article.id,
     article_nom: article.nom,
     article_prix: article.prix,
@@ -206,11 +210,15 @@ async function passerCommande(btn) {
     flocage,
     flocage_nom: flocage ? flocageNom : null,
     flocage_prix: flocage ? Number(article.prix_flocage) || 0 : 0,
-  });
+  };
+  const lignes = Array.from({ length: quantite }, () => ({ ...ligneCommande }));
+
+  const { error } = await sbClient.from('boutique_commandes').insert(lignes);
 
   btn.disabled = false;
   if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
-  hint.textContent = '✅ Commande enregistrée !';
+  hint.textContent = quantite > 1 ? `✅ ${quantite} commandes enregistrées !` : '✅ Commande enregistrée !';
+  quantiteInput.value = 1;
   await chargerCommandes();
 }
 
