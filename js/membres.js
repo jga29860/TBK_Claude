@@ -4,7 +4,10 @@
 // pièces jointes) + gestion du compte.
 // ============================================================
 
+const SAISON = '2026-2027';
+
 let isGestionnaireAnnonces = false;
+let isAdminUser = false;
 let currentUserId = null;
 let currentUserNom = null;
 let annoncesCache = [];
@@ -50,6 +53,7 @@ async function initMembresPage() {
   await chargerMesInformations();
 
   isGestionnaireAnnonces = access.pages.includes('annonces');
+  isAdminUser = access.pages.includes('administration');
 
   if (!access.pages.includes('espace_membres') && !isGestionnaireAnnonces) {
     pendingPanel.hidden = false;
@@ -216,6 +220,58 @@ async function rendreFeed() {
 
   container.innerHTML = annoncesCache.map(a => rendreAnnonceCard(a)).join('');
   bindFeedEvents();
+
+  // Défilement manuel vers une annonce ciblée par lien (#annonce-xxx) :
+  // l'ancre native du navigateur peut rater le contenu, chargé ici de
+  // façon asynchrone, souvent après la tentative de défilement au
+  // premier affichage de la page.
+  if (window.location.hash.startsWith('#annonce-')) {
+    const cible = document.getElementById(window.location.hash.slice(1));
+    if (cible) cible.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+/** Envoie une annonce par email à tous les membres validés de la
+ *  saison en cours (adresse renseignée sur leur inscription), en
+ *  copie cachée (BCC) pour ne pas exposer les adresses entre elles.
+ *  Réservé au profil administrateur. Comme tout mailto, rien n'est
+ *  envoyé automatiquement — la personne connectée valide l'envoi
+ *  depuis son propre client email. */
+async function envoyerAnnoncePartEmail(annonceId) {
+  const annonce = annoncesCache.find(a => a.id === annonceId);
+  if (!annonce) return;
+
+  const { data: inscriptions, error } = await sbClient
+    .from('inscriptions')
+    .select('champs')
+    .eq('saison', SAISON)
+    .eq('statut', 'validee');
+
+  if (error) { alert('Erreur lors de la récupération des adresses email : ' + error.message); return; }
+
+  const emails = [...new Set(
+    (inscriptions || [])
+      .map(i => (i.champs || {}).email)
+      .filter(Boolean)
+      .map(e => e.trim())
+  )];
+
+  if (emails.length === 0) {
+    alert("Aucune adresse email trouvée parmi les membres validés de la saison en cours.");
+    return;
+  }
+
+  const lienAnnonce = `${window.location.origin}${window.location.pathname}#annonce-${annonce.id}`;
+  const sujet = `TBK — ${annonce.titre}`;
+  const corps = `${annonce.contenu}\n\nVoir cette annonce sur le site : ${lienAnnonce}`;
+
+  if (emails.length > 30) {
+    const continuer = confirm(`⚠️ ${emails.length} destinataires : certains clients email peuvent tronquer ou refuser un envoi aussi large. Continuer quand même ?`);
+    if (!continuer) return;
+  }
+
+  const lien = `mailto:?bcc=${encodeURIComponent(emails.join(','))}&subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  window.location.href = lien;
 }
 
 function rendreAnnonceCard(a) {
@@ -223,7 +279,7 @@ function rendreAnnonceCard(a) {
   const deplie = annoncesDepliees.has(a.id);
 
   return `
-    <article class="annonce-card" data-annonce-id="${a.id}">
+    <article class="annonce-card" id="annonce-${a.id}" data-annonce-id="${a.id}">
       <div class="annonce-entete">
         <div class="annonce-auteur-avatar">${initiales(a.auteur_nom)}</div>
         <div class="annonce-auteur-infos">
@@ -234,6 +290,7 @@ function rendreAnnonceCard(a) {
           <div class="annonce-actions-admin">
             <button type="button" class="icon-btn annonce-modifier-btn" data-id="${a.id}" title="Modifier">✏️</button>
             <button type="button" class="icon-btn annonce-supprimer-btn" data-type="annonce" data-id="${a.id}" title="Supprimer">🗑️</button>
+            ${isAdminUser ? `<button type="button" class="icon-btn annonce-envoyer-mail-btn" data-id="${a.id}" title="Envoyer par email à tous les membres">✉️</button>` : ''}
           </div>` : ''}
       </div>
       <h3 class="annonce-titre">${escapeHtml(a.titre)}</h3>
@@ -340,6 +397,10 @@ function bindFeedEvents() {
 
   container.querySelectorAll('.annonce-modifier-btn').forEach(btn => {
     btn.addEventListener('click', () => editAnnonce(btn.dataset.id));
+  });
+
+  container.querySelectorAll('.annonce-envoyer-mail-btn').forEach(btn => {
+    btn.addEventListener('click', () => envoyerAnnoncePartEmail(btn.dataset.id));
   });
 
   container.querySelectorAll('.commentaire-repondre-btn').forEach(btn => {

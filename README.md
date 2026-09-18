@@ -963,6 +963,10 @@ Une icône 🔗 grisée apparaît désormais en bout de ligne du tableau des ins
 
 Nouveau champ "Quantité" (1 par défaut, jusqu'à 20) à côté du choix de la taille : un seul clic sur "Commander" enregistre autant de commandes individuelles identiques que la quantité choisie, sans avoir à répéter la manipulation. Point à connaître : si un flocage est demandé avec une quantité supérieure à 1, le même nom s'applique à tous les exemplaires — pour des noms différents, il faut commander séparément chaque exemplaire avec une quantité de 1.
 
+## Envoi d'une annonce par email à tous les membres
+
+Nouvelle icône ✉️ sur chaque annonce (visible uniquement pour le profil administrateur), à côté de Modifier/Supprimer. Ouvre un mailto pré-rempli — destinataires en BCC (adresses des membres validés de la saison en cours, récupérées depuis leur inscription), sujet "TBK — [titre]", corps reprenant le texte intégral de l'annonce suivi d'un lien direct vers celle-ci sur le site. Confirmation demandée si plus de 30 destinataires. Testé et vérifié : génération du lien mailto conforme (destinataires, sujet, corps, lien).
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
