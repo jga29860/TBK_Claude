@@ -365,9 +365,17 @@ function rendreBarreReactions(cibleType, cibleId) {
   return `
     <div class="reactions-bar">
       ${REACTIONS.map(r => {
-        const count = reactionsCible.filter(x => x.type === r.type).length;
+        const reactionsType = reactionsCible.filter(x => x.type === r.type);
+        const count = reactionsType.length;
         const active = maReaction && maReaction.type === r.type;
-        return `<button type="button" class="reaction-btn ${active ? 'reaction-btn--active reaction-btn--' + r.type : ''}" data-cible-type="${cibleType}" data-cible-id="${cibleId}" data-type="${r.type}" title="${r.label}">${r.emoji} <span>${count}</span></button>`;
+        const noms = reactionsType.map(x => x.user_nom || 'Quelqu\'un').join(', ');
+        return `
+          <span class="reaction-groupe ${active ? 'reaction-groupe--active reaction-groupe--' + r.type : ''}">
+            <button type="button" class="reaction-emoji-btn" data-cible-type="${cibleType}" data-cible-id="${cibleId}" data-type="${r.type}" title="${r.label}">${r.emoji}</button>
+            ${count > 0
+              ? `<button type="button" class="reaction-count-btn" data-noms="${escapeHtml(noms)}" title="Voir qui a réagi : ${escapeHtml(noms)}">${count}</button>`
+              : `<span class="reaction-count-btn reaction-count-btn--vide">0</span>`}
+          </span>`;
       }).join('')}
     </div>`;
 }
@@ -387,8 +395,12 @@ function bindFeedEvents() {
     });
   });
 
-  container.querySelectorAll('.reaction-btn').forEach(btn => {
+  container.querySelectorAll('.reaction-emoji-btn').forEach(btn => {
     btn.addEventListener('click', () => reagir(btn.dataset.cibleType, btn.dataset.cibleId, btn.dataset.type));
+  });
+
+  container.querySelectorAll('.reaction-count-btn').forEach(btn => {
+    btn.addEventListener('click', () => alert(btn.dataset.noms));
   });
 
   container.querySelectorAll('.annonce-supprimer-btn').forEach(btn => {
@@ -477,7 +489,7 @@ async function reagir(cibleType, cibleId, type) {
   } else if (existante) {
     await sbClient.from('annonces_reactions').update({ type }).eq('id', existante.id);
   } else {
-    await sbClient.from('annonces_reactions').insert({ cible_type: cibleType, cible_id: cibleId, type, user_id: currentUserId });
+    await sbClient.from('annonces_reactions').insert({ cible_type: cibleType, cible_id: cibleId, type, user_id: currentUserId, user_nom: currentUserNom });
   }
 
   await chargerAnnonces();

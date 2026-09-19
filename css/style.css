@@ -405,6 +405,32 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   transition: transform .1s ease, background .15s ease;
 }
 .reaction-btn:hover{ transform: translateY(-1px); }
+.reaction-groupe{
+  display:inline-flex; align-items:stretch; background: var(--pale);
+  border:1px solid var(--border); border-radius:20px; overflow:hidden;
+  transition: transform .1s ease, background .15s ease;
+}
+.reaction-groupe:hover{ transform: translateY(-1px); }
+.reaction-emoji-btn{
+  display:inline-flex; align-items:center; background:none; border:none; cursor:pointer;
+  font-size:1rem; padding:5px 6px 5px 11px; color: inherit; line-height:1;
+}
+.reaction-count-btn{
+  display:inline-flex; align-items:center; background:none; border:none; cursor:pointer;
+  font-size:0.8rem; font-weight:700; padding:5px 11px 5px 3px; color: var(--ink-soft); line-height:1;
+}
+.reaction-count-btn--vide{ cursor:default; }
+.reaction-count-btn:not(.reaction-count-btn--vide):hover{ text-decoration:underline; }
+.reaction-groupe--active.reaction-groupe--like{ background:#d9f2d9; border-color:#8fd18f; }
+.reaction-groupe--active.reaction-groupe--like .reaction-count-btn{ color:#1e6b1e; }
+.reaction-groupe--active.reaction-groupe--dislike{ background:#fde0e0; border-color:#f0a3a3; }
+.reaction-groupe--active.reaction-groupe--dislike .reaction-count-btn{ color:#a11f1f; }
+.reaction-groupe--active.reaction-groupe--love{ background:#fde0ec; border-color:#f3a8ca; }
+.reaction-groupe--active.reaction-groupe--love .reaction-count-btn{ color:#b3195e; }
+
+/* Utilisées par tournoi-benevoles.js, qui a sa propre implémentation
+   indépendante de la barre de réactions (bouton combiné emoji+compteur,
+   sans la ventilation par nom de membres.js). */
 .reaction-btn--active.reaction-btn--like{ background:#d9f2d9; border-color:#8fd18f; color:#1e6b1e; }
 .reaction-btn--active.reaction-btn--dislike{ background:#fde0e0; border-color:#f0a3a3; color:#a11f1f; }
 .reaction-btn--active.reaction-btn--love{ background:#fde0ec; border-color:#f3a8ca; color:#b3195e; }
