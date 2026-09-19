@@ -967,6 +967,18 @@ Nouveau champ "Quantité" (1 par défaut, jusqu'à 20) à côté du choix de la 
 
 Nouvelle icône ✉️ sur chaque annonce (visible uniquement pour le profil administrateur), à côté de Modifier/Supprimer. Ouvre un mailto pré-rempli — destinataires en BCC (adresses des membres validés de la saison en cours, récupérées depuis leur inscription), sujet "TBK — [titre]", corps reprenant le texte intégral de l'annonce suivi d'un lien direct vers celle-ci sur le site. Confirmation demandée si plus de 30 destinataires. Testé et vérifié : génération du lien mailto conforme (destinataires, sujet, corps, lien).
 
+## Réactions — afficher qui a réagi, par nom
+
+Exécutez `supabase/migration_reactions_nom.sql`.
+
+Sur les annonces et leurs commentaires, cliquer sur le nombre à côté d'un emoji de réaction (👍/👎/❤️) affiche désormais la liste des personnes ayant réagi, par leur nom — en plus de l'infobulle au survol pour PC. Fonctionne aussi bien sur mobile (clic) que sur PC (survol ou clic).
+
+**Régression évitée en cours de route** : `tournoi-benevoles.js` utilise une implémentation indépendante mais partage la même table `annonces_reactions` et certaines classes CSS (`.reaction-btn`, `.reaction-btn--active`) — repéré et corrigé avant livraison en isolant les nouvelles classes (`.reaction-emoji-btn`, `.reaction-groupe`) pour ne rien casser sur cette page tierce. Testé et vérifié : les deux implémentations restent fonctionnelles.
+
+## Réactions — infobulle uniformisée sur les noms
+
+Correctif de suivi : l'infobulle du bouton emoji (👍/👎/❤️) affichait encore juste le libellé générique ("Like") au survol, au lieu des noms — seul le bouton du nombre les affichait. Uniformisé : survoler n'importe quelle partie de la réaction (emoji ou nombre) affiche désormais les noms des personnes ayant réagi, dès qu'il y en a au moins une. Testé et vérifié avec des données d'exemple.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

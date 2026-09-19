@@ -369,11 +369,12 @@ function rendreBarreReactions(cibleType, cibleId) {
         const count = reactionsType.length;
         const active = maReaction && maReaction.type === r.type;
         const noms = reactionsType.map(x => x.user_nom || 'Quelqu\'un').join(', ');
+        const infobulle = count > 0 ? `${r.label} : ${noms}` : r.label;
         return `
           <span class="reaction-groupe ${active ? 'reaction-groupe--active reaction-groupe--' + r.type : ''}">
-            <button type="button" class="reaction-emoji-btn" data-cible-type="${cibleType}" data-cible-id="${cibleId}" data-type="${r.type}" title="${r.label}">${r.emoji}</button>
+            <button type="button" class="reaction-emoji-btn" data-cible-type="${cibleType}" data-cible-id="${cibleId}" data-type="${r.type}" title="${escapeHtml(infobulle)}">${r.emoji}</button>
             ${count > 0
-              ? `<button type="button" class="reaction-count-btn" data-noms="${escapeHtml(noms)}" title="Voir qui a réagi : ${escapeHtml(noms)}">${count}</button>`
+              ? `<button type="button" class="reaction-count-btn" data-noms="${escapeHtml(noms)}" title="${escapeHtml(infobulle)}">${count}</button>`
               : `<span class="reaction-count-btn reaction-count-btn--vide">0</span>`}
           </span>`;
       }).join('')}

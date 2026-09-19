@@ -178,7 +178,7 @@
         <li><strong>Auteur et date</strong> sur chaque annonce et chaque commentaire, avec avatar (initiales).</li>
         <li><strong>Commentaires en fil de discussion indenté</strong> : tout membre peut commenter une annonce et répondre à un commentaire existant (réponses imbriquées).</li>
         <li><strong>Suppression individuelle</strong> : chaque personne peut retirer ses propres annonces/commentaires ; le bureau/admin peut tout retirer, pour la modération.</li>
-        <li><strong>Réactions</strong> 👍 like, 👎 dislike, ❤️ coup de cœur, sur une annonce ou un commentaire — une seule réaction active par personne et par élément, avec compteur.</li>
+        <li><strong>Réactions</strong> 👍 like, 👎 dislike, ❤️ coup de cœur, sur une annonce ou un commentaire — une seule réaction active par personne et par élément, avec compteur. L'infobulle au survol (et un clic sur le nombre, pratique sur mobile) affiche qui a réagi, par leur nom, dès qu'au moins une personne a réagi.</li>
         <li><strong>Pièces jointes</strong> (image ou fichier) sur une annonce comme sur un commentaire, stockées dans un espace privé réservé aux membres.</li>
         <li><strong>Plier/déplier les commentaires</strong> : bouton "💬 X commentaires ▼/▲" par annonce, affichage compact par défaut.</li>
         <li>Tri du plus récent au plus ancien, en haut du fil.</li>
@@ -518,7 +518,7 @@
           <tbody>
             <tr><td>annonces_membres</td><td>Annonces affichées dans l'espace membres (avec auteur, date, pièce jointe facultative).</td></tr>
             <tr><td>annonces_commentaires</td><td>Fil de discussion indenté sous chaque annonce (réponses imbriquées).</td></tr>
-            <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.</td></tr>
+            <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi, avec le nom de la personne (annonces_membres uniquement).</td></tr>
             <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité, option flocage + son prix).</td></tr>
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
