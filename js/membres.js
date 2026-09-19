@@ -274,6 +274,26 @@ async function envoyerAnnoncePartEmail(annonceId) {
   window.location.href = lien;
 }
 
+/** Convertit les adresses http(s) présentes dans un texte déjà échappé
+ *  (escapeHtml) en vrais liens cliquables, ouverts dans un nouvel
+ *  onglet. Détache une ponctuation de fin de phrase éventuellement
+ *  collée à l'URL (point, virgule, parenthèse…), et corrige le "&"
+ *  d'une éventuelle URL avec paramètres (échappé en "&amp;" par
+ *  escapeHtml) pour que le lien reste fonctionnel. */
+function linkifierTexte(texteEchappe) {
+  return texteEchappe.replace(/(https?:\/\/[^\s<]+)/g, (match) => {
+    let url = match;
+    let suffixe = '';
+    const ponctuationFinale = url.match(/[.,;:!?)\]]+$/);
+    if (ponctuationFinale) {
+      suffixe = ponctuationFinale[0];
+      url = url.slice(0, -suffixe.length);
+    }
+    const href = url.replace(/&amp;/g, '&');
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>${suffixe}`;
+  });
+}
+
 function rendreAnnonceCard(a) {
   const nbCommentaires = commentairesCache.filter(c => c.annonce_id === a.id).length;
   const deplie = annoncesDepliees.has(a.id);
@@ -294,7 +314,7 @@ function rendreAnnonceCard(a) {
           </div>` : ''}
       </div>
       <h3 class="annonce-titre">${escapeHtml(a.titre)}</h3>
-      <p class="annonce-contenu">${escapeHtml(a.contenu).replace(/\n/g, '<br>')}</p>
+      <p class="annonce-contenu">${linkifierTexte(escapeHtml(a.contenu)).replace(/\n/g, '<br>')}</p>
       ${rendrePieceJointe(a.fichier_url)}
       ${rendreBarreReactions('annonce', a.id)}
       <button type="button" class="annonce-toggle-commentaires" data-annonce-id="${a.id}">
@@ -322,7 +342,7 @@ function rendreCommentaires(annonceId, parentId, profondeur) {
           <span class="commentaire-date">${formatDate(c.created_at)}</span>
           ${peutSupprimer ? `<button type="button" class="icon-btn annonce-supprimer-btn" data-type="commentaire" data-id="${c.id}" title="Supprimer">🗑️</button>` : ''}
         </div>
-        <p class="commentaire-contenu">${escapeHtml(c.contenu).replace(/\n/g, '<br>')}</p>
+        <p class="commentaire-contenu">${linkifierTexte(escapeHtml(c.contenu)).replace(/\n/g, '<br>')}</p>
         ${rendrePieceJointe(c.fichier_url)}
         ${rendreBarreReactions('commentaire', c.id)}
         <button type="button" class="commentaire-repondre-btn" data-annonce-id="${annonceId}" data-parent-id="${c.id}">Répondre</button>

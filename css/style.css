@@ -383,6 +383,8 @@ table.schedule tbody tr:hover{ background: var(--pale); }
 
 .annonce-titre{ margin:0 0 8px; font-size:1.15rem; }
 .annonce-contenu{ margin:0 0 12px; line-height:1.6; color: var(--ink); }
+.annonce-contenu a, .commentaire-contenu a{ color: var(--green); text-decoration:underline; word-break:break-word; }
+.annonce-contenu a:hover, .commentaire-contenu a:hover{ color: var(--dark); }
 
 .annonce-piece-jointe-img-lien{ display:block; margin-bottom:12px; }
 .annonce-piece-jointe-img{
