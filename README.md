@@ -979,6 +979,22 @@ Sur les annonces et leurs commentaires, cliquer sur le nombre à côté d'un emo
 
 Correctif de suivi : l'infobulle du bouton emoji (👍/👎/❤️) affichait encore juste le libellé générique ("Like") au survol, au lieu des noms — seul le bouton du nombre les affichait. Uniformisé : survoler n'importe quelle partie de la réaction (emoji ou nombre) affiche désormais les noms des personnes ayant réagi, dès qu'il y en a au moins une. Testé et vérifié avec des données d'exemple.
 
+## Liens cliquables dans les annonces et commentaires
+
+Toute adresse http(s) tapée dans le texte d'une annonce ou d'un commentaire est désormais automatiquement transformée en vrai lien cliquable (ouvert dans un nouvel onglet), sans aucune manipulation particulière à la saisie. Ponctuation de fin de phrase collée à l'URL (point, virgule, parenthèse) correctement détachée du lien. Testé et vérifié sur plusieurs cas, dont un test de sécurité XSS explicite (le texte reste échappé avant conversion — aucune injection possible via une URL malveillante).
+
+Point corrigé au passage : le style global du site neutralise la couleur des liens (`color: inherit`) — ajout d'un style dédié pour que ces liens restent visuellement distincts (couleur verte, soulignés) dans le contenu des annonces/commentaires.
+
+## Certificat médical (40 mois) + QS Sport en complément — refonte majeure
+
+Exécutez `supabase/migration_qs_sport_date.sql`.
+
+**Nouvelle règle** : certificat médical valable 40 mois pour un adulte (au lieu de 37), inchangé à 12 mois pour un jeune. Pour un adulte, tant que le certificat reste valable mais date de plus d'un an, un QS Sport à jour (renouvelé chaque année, moins de 12 mois) est désormais enregistré **avec sa propre date** en complément — remplace l'ancien choix manuel unique "Santé" (Certificat/QS Sport/En Attente), désormais dérivé automatiquement des deux vraies dates.
+
+**Logique centralisée** dans `js/auth.js` (`dossierSanteComplet`, `certificatEstRecent`, `qsSportEstValide`), réutilisée partout : conditions de validation, email de relance recommandé, filtre groupé, affichage du panneau d'actions et de "Mes informations". Testée sur 8 scénarios représentatifs (jeune/adulte, certificat récent/ancien/expiré, QS Sport présent/absent/expiré) — tous conformes.
+
+⚠️ **Point à traiter par vos soins** : l'ancien champ "Santé" reste en base par prudence (aucune donnée supprimée) mais n'est plus utilisé par aucune logique — vous pouvez le retirer depuis Administration → Champs personnalisés si vous ne souhaitez plus le renseigner.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

@@ -137,6 +137,17 @@ function rendreMesInformations(insc) {
     certifLigne = `<div class="info-ligne"><span class="info-label">Certificat médical</span><span class="info-valeur">${etat} — jusqu'au ${finValidite.toLocaleDateString('fr-FR')}</span></div>`;
   }
 
+  let qsSportLigne = '';
+  if (insc.categorie !== 'Jeune' && certificatEstValide(champs.date_certif, insc.categorie) && !certificatEstRecent(champs.date_certif)) {
+    if (champs.date_qs_sport) {
+      const valide = qsSportEstValide(champs.date_qs_sport);
+      const dateTexte = new Date(champs.date_qs_sport).toLocaleDateString('fr-FR');
+      qsSportLigne = `<div class="info-ligne"><span class="info-label">QS Sport</span><span class="info-valeur">${valide ? '✅ À jour' : '⚠️ À renouveler'} — du ${dateTexte}</span></div>`;
+    } else {
+      qsSportLigne = `<div class="info-ligne"><span class="info-label">QS Sport</span><span class="info-valeur">⚠️ Requis en complément du certificat, non renseigné</span></div>`;
+    }
+  }
+
   return `
     <div class="mes-infos-grid">
       <div class="info-ligne"><span class="info-label">Saison</span><span class="info-valeur">${escapeHtml(insc.saison)}</span></div>
@@ -145,6 +156,7 @@ function rendreMesInformations(insc) {
       <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? '✅ Payée' : '⏳ Non payée'}</span></div>
       ${certifLigne}
+      ${qsSportLigne}
       <div class="info-ligne"><span class="info-label">N° téléphone</span><span class="info-valeur">${escapeHtml(champs.telephone || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Adresse</span><span class="info-valeur">${escapeHtml(champs.adresse || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Email</span><span class="info-valeur">${escapeHtml(champs.email || '—')}</span></div>

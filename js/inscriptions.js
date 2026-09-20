@@ -582,26 +582,28 @@ function conditionsValidationOk(record) {
   const champs = record.champs || {};
   const motifs = [];
   if (!estValeurAffirmative(champs.cotisation_payee)) motifs.push('cotisation non payée');
-  if (!champs.sante || champs.sante === 'En Attente') motifs.push('santé en attente');
+
   if (!champs.date_certif) {
     motifs.push('date de certificat non renseignée');
   } else if (!certificatEstValide(champs.date_certif, record.categorie)) {
-    const duree = record.categorie === 'Jeune' ? '1 an' : '3 ans et 1 mois';
+    const duree = record.categorie === 'Jeune' ? '1 an' : '40 mois';
     motifs.push(`certificat médical expiré (valable ${duree} pour la catégorie ${record.categorie || '?'})`);
+  } else if (record.categorie !== 'Jeune' && !certificatEstRecent(champs.date_certif) && !qsSportEstValide(champs.date_qs_sport)) {
+    motifs.push('certificat médical valable mais ancien (plus d\'un an) : QS Sport à jour requis en complément');
   }
+
   return { ok: motifs.length === 0, motifs };
 }
 
 /**
  * Détermine quel document de santé demander pour cette inscription,
  * selon les règles du club :
- * - Catégorie Jeune : un certificat médical NEUF est exigé chaque
- *   année (jamais de simple QS Sport pour les mineurs).
- * - Catégorie Adulte : certificat neuf exigé si aucun certificat n'a
+ * - Catégorie Jeune : un certificat médical est exigé chaque année
+ *   (12 mois de validité, jamais de QS Sport pour les mineurs).
+ * - Catégorie Adulte : certificat exigé si aucun certificat n'a
  *   jamais été renseigné (date vide), ou si le certificat existant a
- *   plus de 37 mois (expiré selon la règle en place) ; dans les
- *   autres cas (certificat existant, encore dans sa fenêtre de
- *   validité), un simple QS Sport suffit pour cette saison.
+ *   plus de 40 mois (expiré). Si le certificat est valable mais date
+ *   de plus d'un an, un QS Sport à jour est exigé en complément.
  * Retourne 'certificat' ou 'qs_sport'.
  */
 function typeDocumentSanteRequis(record) {
@@ -619,7 +621,7 @@ function templateRecommande(record) {
   if (record.statut === 'validee') return 'inscription_validee';
 
   const cotisationManquante = !estValeurAffirmative(champs.cotisation_payee);
-  const santeManquante = !champs.sante || champs.sante === 'En Attente';
+  const santeManquante = !dossierSanteComplet(champs, record.categorie);
   const besoinCertificat = typeDocumentSanteRequis(record) === 'certificat';
 
   if (cotisationManquante && santeManquante) return 'cotisation_et_sante_absentes';
@@ -627,6 +629,7 @@ function templateRecommande(record) {
   if (santeManquante) return besoinCertificat ? 'certificat_medical_attendu' : 'qs_sport_attendu';
   return 'certificat_medical_attendu';
 }
+
 
 function renderEmailRelanceWidget(record) {
   const champs = record.champs || {};
@@ -843,8 +846,8 @@ async function voirCertificat(id) {
 }
 
 /** Statut de validité du certificat, basé sur la vraie date du
- *  certificat (champs.date_certif) et la catégorie — 3 ans et 1 mois
- *  pour un adulte, 1 an pour un jeune (voir finValiditeCertificat, auth.js). */
+ *  certificat (champs.date_certif) et la catégorie — 40 mois pour un
+ *  adulte, 1 an pour un jeune (voir finValiditeCertificat, auth.js). */
 function dateCertificat(record) {
   const champs = record.champs || {};
   if (!champs.date_certif) return '';
@@ -855,6 +858,23 @@ function dateCertificat(record) {
   if (expire) return `${texte} ⚠️ expiré`;
   if (expireBientot) return `${texte} ⚠️ à renouveler bientôt`;
   return texte;
+}
+
+/** Statut du QS Sport, pertinent uniquement pour un adulte dont le
+ *  certificat est valable mais n'est plus "récent" (plus d'un an) —
+ *  voir dossierSanteComplet, auth.js. Renvoie une chaîne vide si le
+ *  QS Sport n'est pas (encore) pertinent pour cette inscription. */
+function statutQsSport(record) {
+  const champs = record.champs || {};
+  if (record.categorie === 'Jeune') return '';
+  if (!certificatEstValide(champs.date_certif, record.categorie)) return '';
+  if (certificatEstRecent(champs.date_certif)) return 'Certificat récent : QS Sport non nécessaire cette saison.';
+
+  if (!champs.date_qs_sport) return '⚠️ QS Sport requis en complément (non renseigné).';
+  const dateTexte = new Date(champs.date_qs_sport).toLocaleDateString('fr-FR');
+  return qsSportEstValide(champs.date_qs_sport)
+    ? `QS Sport du ${dateTexte} — à jour.`
+    : `QS Sport du ${dateTexte} ⚠️ à renouveler.`;
 }
 
 async function supprimerCertificat(id) {
@@ -1006,6 +1026,7 @@ function renderEditActionsPanel(record) {
       <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${record.id}">Supprimer le certificat</button>
       <span class="certificat-date">${escapeHtml(dateCertificat(record))}</span>
     ` : ''}
+    ${statutQsSport(record) ? `<span class="certificat-date">${escapeHtml(statutQsSport(record))}</span>` : ''}
     ${renderRattachementWidget(record)}
     ${renderEmailRelanceWidget(record)}
   `;
@@ -1223,7 +1244,7 @@ function bindEnvoiGroupe() {
       }
 
       if (certificatFiltre) {
-        const valide = certificatEstValide(champs.date_certif, insc.categorie);
+        const valide = dossierSanteComplet(champs, insc.categorie);
         if (certificatFiltre === 'valide' && !valide) return false;
         if (certificatFiltre === 'invalide' && valide) return false;
       }
