@@ -22,6 +22,7 @@ let inscriptionsCache = []; // inscriptions de la saison
 let colonnesCache = [];    // clés des colonnes sélectionnées pour le tableau
 let editingId = null;      // id en cours d'édition, ou null pour une nouvelle inscription
 let certificatCibleId = null; // id de l'inscription visée par la prochaine photo de certificat
+let qsSportCibleId = null; // id de l'inscription visée par la prochaine photo de QS Sport
 let profilesCache = [];    // comptes existants, pour le rattachement manuel d'une inscription
 let emailTemplatesCache = {}; // { cle: {sujet, corps} } — modèles d'emails de relance
 let emailClubCache = '';   // email de contact du club (parametres_site), mis en copie des relances
@@ -60,6 +61,7 @@ async function initInscriptionsPage() {
 
   bindMainForm();
   bindCertificatInput();
+  bindQsSportInput();
   bindRelierComptesBtn();
   if (isAdminUser) bindConfigForms();
 }
@@ -793,6 +795,45 @@ function bindCertificatInput() {
   });
 }
 
+/** Miroir de bindCertificatInput, pour la photo du QS Sport — même
+ *  mécanisme, stockage séparé (bucket "qs-sport"), même modèle de
+ *  sécurité. */
+function bindQsSportInput() {
+  const input = document.getElementById('qsSportFileInput');
+  input.addEventListener('change', async (e) => {
+    let file = e.target.files[0];
+    e.target.value = ''; // permet de reprendre la même photo si besoin
+    if (!file || !qsSportCibleId) return;
+
+    file = await convertirHeicSiBesoin(file);
+
+    const id = qsSportCibleId;
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const chemin = `${id}/${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await sbClient.storage
+      .from('qs-sport')
+      .upload(chemin, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+
+    if (uploadError) {
+      alert("Erreur lors de l'envoi de la photo : " + uploadError.message);
+      return;
+    }
+
+    const { error: updateError } = await sbClient
+      .from('inscriptions')
+      .update({ qs_sport_photo_url: chemin })
+      .eq('id', id);
+
+    if (updateError) {
+      alert("Erreur lors de l'enregistrement : " + updateError.message);
+      return;
+    }
+
+    await loadInscriptions();
+  });
+}
+
 function bindRelierComptesBtn() {
   const btn = document.getElementById('relierComptesBtn');
   if (!btn) return;
@@ -841,6 +882,30 @@ async function voirCertificat(id) {
     // Si l'onglet a malgré tout été bloqué à l'ouverture, on retente une
     // dernière fois avec l'URL déjà connue (parfois accepté si le blocage
     // portait seulement sur l'onglet vide).
+    window.open(data.signedUrl, '_blank');
+  }
+}
+
+/** Miroir de voirCertificat, pour la photo du QS Sport. */
+async function voirQsSportPhoto(id) {
+  const inscription = inscriptionsCache.find(i => i.id === id);
+  if (!inscription || !inscription.qs_sport_photo_url) return;
+
+  const nouvelOnglet = window.open('', '_blank');
+
+  const { data, error } = await sbClient.storage
+    .from('qs-sport')
+    .createSignedUrl(inscription.qs_sport_photo_url, 120);
+
+  if (error) {
+    if (nouvelOnglet) nouvelOnglet.close();
+    alert("Erreur d'accès à la photo du QS Sport : " + error.message);
+    return;
+  }
+
+  if (nouvelOnglet && !nouvelOnglet.closed) {
+    nouvelOnglet.location.href = data.signedUrl;
+  } else {
     window.open(data.signedUrl, '_blank');
   }
 }
@@ -894,6 +959,34 @@ async function supprimerCertificat(id) {
   const { error: updateError } = await sbClient
     .from('inscriptions')
     .update({ certificat_photo_url: null })
+    .eq('id', id);
+
+  if (updateError) {
+    alert('Erreur lors de la mise à jour : ' + updateError.message);
+    return;
+  }
+
+  await loadInscriptions();
+}
+
+/** Miroir de supprimerCertificat, pour la photo du QS Sport. */
+async function supprimerQsSportPhoto(id) {
+  const inscription = inscriptionsCache.find(i => i.id === id);
+  if (!inscription || !inscription.qs_sport_photo_url) return;
+  if (!confirm('Supprimer définitivement la photo de ce QS Sport ?')) return;
+
+  const { error: removeError } = await sbClient.storage
+    .from('qs-sport')
+    .remove([inscription.qs_sport_photo_url]);
+
+  if (removeError) {
+    alert('Erreur lors de la suppression : ' + removeError.message);
+    return;
+  }
+
+  const { error: updateError } = await sbClient
+    .from('inscriptions')
+    .update({ qs_sport_photo_url: null })
     .eq('id', id);
 
   if (updateError) {
@@ -1026,6 +1119,13 @@ function renderEditActionsPanel(record) {
       <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${record.id}">Supprimer le certificat</button>
       <span class="certificat-date">${escapeHtml(dateCertificat(record))}</span>
     ` : ''}
+    ${record.categorie !== 'Jeune' ? `
+      <button type="button" class="btn btn-ghost btn-small qs-sport-btn" data-id="${record.id}">${record.qs_sport_photo_url ? '📷 QS Sport ✓' : '📷 QS Sport'}</button>
+      ${record.qs_sport_photo_url ? `
+        <button type="button" class="btn btn-ghost btn-small voir-qs-sport-btn" data-id="${record.id}">Voir le QS Sport</button>
+        <button type="button" class="btn btn-danger btn-small supprimer-qs-sport-btn" data-id="${record.id}">Supprimer le QS Sport</button>
+      ` : ''}
+    ` : ''}
     ${statutQsSport(record) ? `<span class="certificat-date">${escapeHtml(statutQsSport(record))}</span>` : ''}
     ${renderRattachementWidget(record)}
     ${renderEmailRelanceWidget(record)}
@@ -1076,6 +1176,25 @@ function renderEditActionsPanel(record) {
   if (btnSupprimerCert) {
     btnSupprimerCert.addEventListener('click', async () => {
       await supprimerCertificat(record.id);
+      editInscription(record.id); // rafraîchit le panneau avec l'état à jour
+    });
+  }
+
+  const btnQsSport = content.querySelector('.qs-sport-btn');
+  if (btnQsSport) {
+    btnQsSport.addEventListener('click', () => {
+      qsSportCibleId = record.id;
+      document.getElementById('qsSportFileInput').click();
+    });
+  }
+
+  const btnVoirQsSport = content.querySelector('.voir-qs-sport-btn');
+  if (btnVoirQsSport) btnVoirQsSport.addEventListener('click', () => voirQsSportPhoto(record.id));
+
+  const btnSupprimerQsSport = content.querySelector('.supprimer-qs-sport-btn');
+  if (btnSupprimerQsSport) {
+    btnSupprimerQsSport.addEventListener('click', async () => {
+      await supprimerQsSportPhoto(record.id);
       editInscription(record.id); // rafraîchit le panneau avec l'état à jour
     });
   }

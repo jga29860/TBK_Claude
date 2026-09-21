@@ -233,6 +233,7 @@
 
       <h3 class="admin-subheading">5.9 Photo et durée de validité du certificat médical, QS Sport en complément</h3>
       <p>Sur chaque demande, un bouton "📷 Certificat" ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur) et envoie la photo dans un espace de stockage privé et sécurisé, lié automatiquement à cette inscription. Un bouton "Voir le certificat" génère un lien de consultation temporaire (2 minutes) à chaque demande — le fichier n'est jamais rendu public. Un bouton "Supprimer le certificat" permet de le retirer définitivement si besoin.</p>
+      <p><strong>Photo du QS Sport</strong> : même mécanisme, entièrement indépendant — un bouton "📷 QS Sport" (visible uniquement pour la catégorie Adulte, jamais pour un Jeune) permet de photographier le QS Sport séparément du certificat, avec son propre espace de stockage privé, son propre bouton "Voir le QS Sport" et son propre bouton "Supprimer le QS Sport". La photo est indépendante de la date : la date pilote la logique de validité (voir ci-dessous), la photo n'est qu'une pièce justificative complémentaire, comme pour le certificat.</p>
       <p><strong>Durée de validité, selon la catégorie</strong> (calculée à partir de la date réelle du certificat, saisie dans le champ dédié — pas la date d'envoi de la photo) :</p>
       <ul>
         <li><strong>Catégorie Adulte</strong> — certificat valable 40 mois.</li>
@@ -528,7 +529,7 @@
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact, titre de la section "Le club".</td></tr>
             <tr><td>club_cartes</td><td>Cartes de la section "Le club" de la page d'accueil (tag, texte, ordre d'affichage) — lecture publique, écriture admin.</td></tr>
-            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonne <code>certificat_photo_url</code> reliant la photo du certificat médical stockée à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée + colonnes <code>modifie_par</code>/<code>modifie_par_nom</code>/<code>modifie_le</code> remplies automatiquement par un déclencheur à chaque modification).</td></tr>
+            <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonnes <code>certificat_photo_url</code>/<code>qs_sport_photo_url</code> reliant les photos du certificat médical et du QS Sport stockées à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée + colonnes <code>modifie_par</code>/<code>modifie_par_nom</code>/<code>modifie_le</code> remplies automatiquement par un déclencheur à chaque modification).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>
             <tr><td>bareme_cotisations</td><td>Montants utilisés pour le calcul de la cotisation saison.</td></tr>
             <tr><td>inscriptions_affichage</td><td>Colonnes choisies pour le tableau des inscriptions saison.</td></tr>

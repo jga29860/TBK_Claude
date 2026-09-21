@@ -995,6 +995,14 @@ Exécutez `supabase/migration_qs_sport_date.sql`.
 
 ⚠️ **Point à traiter par vos soins** : l'ancien champ "Santé" reste en base par prudence (aucune donnée supprimée) mais n'est plus utilisé par aucune logique — vous pouvez le retirer depuis Administration → Champs personnalisés si vous ne souhaitez plus le renseigner.
 
+## Photo du QS Sport, en complément de la photo du certificat
+
+Exécutez `supabase/migration_qs_sport_photo.sql`.
+
+Nouveau bouton "📷 QS Sport" dans le panneau d'actions (visible uniquement pour la catégorie Adulte, jamais pour un Jeune), sur le même modèle que le certificat médical : stockage privé dédié (bucket `qs-sport`), lien de consultation temporaire, suppression possible. Complète le statut texte du QS Sport déjà en place depuis le tour précédent — la photo est une pièce justificative indépendante de la date, qui reste seule à piloter la logique de validité.
+
+**Incident traité en cours de route** : une première tentative de mise à jour du Word a introduit une structure XML invalide (texte mal imbriqué suite à une découpe imprécise d'un paragraphe existant). Repris proprement depuis le fichier source intact, avec une découpe méthodique du paragraphe en 3 parties distinctes — validation XML immédiate après chaque étape, puis validation complète et vérification visuelle (page rendue en image) avant livraison.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
