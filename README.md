@@ -1023,6 +1023,18 @@ Fichiers originaux également corrigés (`migration_lecture_publique_poules_fina
 
 **3. Filtres par colonne** : remplace l'ancienne recherche unique par demandeur — chaque colonne (Demandeur, Article, Description, Taille, Statut, Payée) a désormais son propre filtre, sur le même modèle que les filtres déjà en place sur la page Inscriptions.
 
+## Paiement en ligne HelloAsso — boutique
+
+Exécutez `supabase/migration_paiement_helloasso_boutique.sql`.
+
+Solution "simple" (pas de backend, pas de serveur) : un bouton "💳 Payer toutes mes commandes en ligne" ouvre le widget HelloAsso (formulaire "don" à montant libre) dans une fenêtre, montant total/prénom/nom pré-remplis automatiquement par `postMessage`. Dès la confirmation du paiement, toutes les commandes concernées sont marquées comme payées automatiquement — un seul paiement, quel que soit le nombre d'articles en attente.
+
+**Sécurité** : une fonction SQL dédiée (`marquer_commande_payee_en_ligne`) garantit qu'une personne ne peut marquer comme payée que *sa propre* commande — jamais celle de quelqu'un d'autre. L'origine du message de confirmation est aussi vérifiée (doit provenir du domaine HelloAsso).
+
+⚠️ **Limite à connaître** : la confirmation est déclarative (basée sur un message reçu du navigateur), pas sur un webhook serveur-à-serveur — une vérification ponctuelle depuis le back-office HelloAsso reste recommandée pour le bureau, surtout au début de la mise en service.
+
+**Mise en place restante côté HelloAsso (avant de pouvoir tester)** : créer un formulaire "don" à montant libre dans votre compte HelloAsso, puis coller l'URL de son widget dans Administration → Paramètres du site → "URL du widget de paiement HelloAsso (boutique)".
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

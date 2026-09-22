@@ -390,7 +390,7 @@
       <p>Réservée aux comptes ayant le droit "administration".</p>
       <ul>
         <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
-        <li><strong>Paramètres du site</strong> — email de contact du club, utilisé automatiquement sur les pages publiques.</li>
+        <li><strong>Paramètres du site</strong> — email de contact du club, URL du widget de paiement en ligne HelloAsso pour la boutique (voir 7.3), utilisés automatiquement sur les pages publiques.</li>
         <li><strong>Page d'accueil — Section "Le club"</strong> — voir 7.2 ci-dessous.</li>
         <li><strong>Anti-pause Supabase</strong> — voir 7.1 ci-dessous.</li>
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
@@ -413,6 +413,12 @@
         <li><strong>Petit texte au-dessus du titre</strong> et <strong>titre de la section</strong> — deux champs de texte libre, enregistrés en un clic.</li>
         <li><strong>Cartes</strong> (tag + texte) — ajout, modification, suppression, et réordonnancement (flèches monter/descendre) sans limite de nombre. Le contenu actuel (Badminton, Tennis de table, Vie associative) est repris tel quel comme point de départ au moment de l'activation de cette fonctionnalité, pour ne rien perdre.</li>
       </ul>
+
+      <h3 class="admin-subheading">7.3 Paiement en ligne de la boutique (HelloAsso)</h3>
+      <p><strong>Mise en place côté HelloAsso</strong> (une seule fois, hors du site) : créer un formulaire de type "don" à <strong>montant libre</strong> sur HelloAsso, puis copier l'URL de son widget (menu Partager → Bouton/Widget) dans le champ "URL du widget de paiement HelloAsso (boutique)" de Paramètres du site. Laisser ce champ vide désactive entièrement le paiement en ligne (le bouton correspondant reste masqué).</p>
+      <p><strong>Fonctionnement</strong> : un bouton "💳 Payer toutes mes commandes en ligne" apparaît dans "Mes commandes" (boutique.html) dès qu'une ou plusieurs commandes restent à régler — un seul paiement, quel que soit le nombre d'articles en attente, avec le montant total pré-rempli. Le prénom et le nom sont eux aussi automatiquement pré-remplis dans le formulaire HelloAsso, ouvert dans une fenêtre par-dessus la page.</p>
+      <p><strong>Confirmation automatique</strong> : dès que le paiement est terminé sur HelloAsso, les commandes concernées sont automatiquement marquées comme payées sur le site — sans que le bureau ait quoi que ce soit à faire. Cette confirmation repose sur un message envoyé par HelloAsso au navigateur de la personne (son origine est vérifiée par le site), et non sur une notification serveur-à-serveur classique (solution volontairement simple, sans serveur intermédiaire) : une vérification ponctuelle depuis le back-office HelloAsso reste recommandée pour le bureau, en complément, en particulier au début de la mise en service.</p>
+      <p><strong>Sécurité</strong> : seule la personne connectée peut marquer ses <em>propres</em> commandes comme payées (vérifié côté base de données) — jamais celles de quelqu'un d'autre, et aucun autre champ de la commande n'est modifiable par ce mécanisme.</p>
     </section>
 
     <!-- ===== 8. AGENDA ===== -->
@@ -473,6 +479,7 @@
 
       <h3 class="admin-subheading">11.3 Commande d'un membre</h3>
       <p>Un membre choisit un article et une taille, puis clique sur "Commander" — la demande est enregistrée immédiatement (nom de l'article, prix et taille figés au moment de la commande, pour rester cohérents même si l'article est modifié ensuite). Chaque membre retrouve l'historique de ses propres commandes dans "Mes commandes", avec possibilité d'annuler tant que la demande est encore "En attente".</p>
+      <p><strong>Paiement en ligne</strong> : dès qu'une ou plusieurs commandes restent à régler, un bouton "💳 Payer toutes mes commandes en ligne" apparaît, avec le montant total pré-rempli — un seul paiement, quel que soit le nombre d'articles en attente (voir 7.3).</p>
 
       <h3 class="admin-subheading">11.4 Synthèse pour le bureau</h3>
       <ul>
@@ -561,6 +568,7 @@
         <li>Des déclencheurs (triggers) en base garantissent certaines règles même en cas d'erreur côté site : une seule tête de poule par poule, un seul tournoi actif, blocage au-delà de la capacité, impossibilité de modifier son propre profil.</li>
         <li>Le formulaire public de demande d'inscription dispose d'un droit d'écriture volontairement restreint : il ne peut créer qu'une inscription "En attente", jamais la valider lui-même.</li>
         <li><strong>Règle "ouvert à tous" = ouvert à tous, sans exception</strong> : une règle destinée à un visiteur non connecté doit systématiquement s'appliquer à tout le monde (aucune restriction de rôle "to anon"), jamais seulement au rôle technique "anon" — sinon une personne connectée sans droit spécifique se retrouve, par erreur, plus bloquée qu'un simple visiteur non connecté. Erreur identifiée et corrigée une fois sur les pages Phase Poule/Phase finale/Bénévoles/messages de tournoi et les 2 formulaires publics (inscription saison, inscription tournoi) — point de vigilance à conserver pour toute future ouverture similaire.</li>
+        <li>Le paiement en ligne de la boutique (voir 7.3) utilise une fonction dédiée et strictement limitée (<code>marquer_commande_payee_en_ligne</code>) : une personne connectée ne peut marquer comme payées que <em>ses propres</em> commandes, jamais celles de quelqu'un d'autre — vérifié à chaque appel, jamais un accès en écriture large sur cette table.</li>
       </ul>
 
       <h3 class="admin-subheading">13.5 Stockage de fichiers (Supabase Storage)</h3>

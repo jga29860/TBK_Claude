@@ -74,9 +74,14 @@ async function initAdminPage() {
 // ===== Paramètres du site =====
 
 async function loadParametres() {
-  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').eq('cle', 'email_contact').single();
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement']);
   if (error) { console.error(error.message); return; }
-  document.getElementById('emailContactInput').value = data ? (data.valeur || '') : '';
+  const valeurParametre = (cle) => {
+    const trouve = (data || []).find(p => p.cle === cle);
+    return trouve ? (trouve.valeur || '') : '';
+  };
+  document.getElementById('emailContactInput').value = valeurParametre('email_contact');
+  document.getElementById('helloassoUrlInput').value = valeurParametre('helloasso_url_paiement');
 }
 
 function bindParametresForm() {
@@ -87,14 +92,14 @@ function bindParametresForm() {
     e.preventDefault();
     const hint = document.getElementById('parametresHint');
     const email = document.getElementById('emailContactInput').value.trim();
+    const urlHelloAsso = document.getElementById('helloassoUrlInput').value.trim();
 
     hint.textContent = 'Enregistrement…';
-    const { error } = await sbClient
-      .from('parametres_site')
-      .update({ valeur: email, updated_at: new Date().toISOString() })
-      .eq('cle', 'email_contact');
-    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
-    hint.textContent = 'Email de contact mis à jour.';
+    const maintenant = new Date().toISOString();
+    const { error: err1 } = await sbClient.from('parametres_site').update({ valeur: email, updated_at: maintenant }).eq('cle', 'email_contact');
+    const { error: err2 } = await sbClient.from('parametres_site').update({ valeur: urlHelloAsso, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement');
+    if (err1 || err2) { hint.textContent = 'Erreur : ' + ((err1 || err2).message); return; }
+    hint.textContent = 'Paramètres mis à jour.';
   });
 }
 

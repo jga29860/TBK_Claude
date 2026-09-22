@@ -364,7 +364,15 @@ function renderMesCommandes() {
     return;
   }
 
+  const commandesAPayer = mesCommandes.filter(c => !c.payee && c.statut !== 'annulee');
+  const totalAPayer = commandesAPayer.reduce((total, c) => total + Number(c.article_prix) + Number(c.flocage_prix || 0), 0);
+
+  const boutonPaiement = totalAPayer > 0
+    ? `<button type="button" class="btn btn-primary btn-small paiement-en-ligne-btn" id="payerCommandesBtn" style="margin-bottom:12px;">💳 Payer toutes mes commandes en ligne (${totalAPayer.toFixed(2)} €)</button>`
+    : '';
+
   container.innerHTML = `
+    ${boutonPaiement}
     <div class="table-wrap">
       <table class="schedule">
         <thead><tr><th>Article</th><th>Taille</th><th>Prix</th><th>Statut</th><th>Date</th><th></th></tr></thead>
@@ -385,6 +393,27 @@ function renderMesCommandes() {
   container.querySelectorAll('.annuler-commande-btn').forEach(btn => {
     btn.addEventListener('click', () => annulerCommande(btn.dataset.id));
   });
+
+  const btnPayer = document.getElementById('payerCommandesBtn');
+  if (btnPayer) {
+    btnPayer.addEventListener('click', () => {
+      ouvrirPaiementHelloAsso({
+        montant: totalAPayer,
+        prenom: currentUserNom ? currentUserNom.split(' ')[0] : '',
+        nom: currentUserNom ? currentUserNom.split(' ').slice(1).join(' ') : '',
+        libelle: `Commandes boutique TBK (${commandesAPayer.length} article${commandesAPayer.length > 1 ? 's' : ''})`,
+        onSuccess: async () => {
+          let toutesReussies = true;
+          for (const c of commandesAPayer) {
+            const resultat = await sbClient.rpc('marquer_commande_payee_en_ligne', { p_commande_id: c.id });
+            if (!resultat.data) toutesReussies = false;
+          }
+          alert(toutesReussies ? 'Merci ! Vos commandes ont été marquées comme payées.' : "Le paiement a bien été reçu par HelloAsso, mais la mise à jour automatique a échoué pour au moins une commande — contactez le bureau pour qu'il vérifie manuellement.");
+          await chargerCommandes();
+        },
+      });
+    });
+  }
 }
 
 async function annulerCommande(id) {

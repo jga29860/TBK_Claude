@@ -58,9 +58,13 @@
         <label>Email de contact du club
           <input type="email" name="email_contact" id="emailContactInput" required>
         </label>
+        <label style="flex:1; min-width:320px;">URL du widget de paiement HelloAsso (boutique)
+          <input type="url" name="helloasso_url_paiement" id="helloassoUrlInput" placeholder="https://www.helloasso.com/associations/.../formulaires/.../widget">
+        </label>
         <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
         <p class="form-hint" id="parametresHint"></p>
       </form>
+      <p class="form-hint">Le paiement en ligne des commandes boutique nécessite un formulaire HelloAsso "don" à montant libre, dont vous copiez ici l'URL du widget (menu Partager → Bouton/Widget dans HelloAsso). Laissez vide pour désactiver le paiement en ligne.</p>
     </section>
 
     <!-- ===== Page d'accueil — Section "Le club" ===== -->
