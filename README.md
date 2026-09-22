@@ -1003,6 +1003,26 @@ Nouveau bouton "📷 QS Sport" dans le panneau d'actions (visible uniquement pou
 
 **Incident traité en cours de route** : une première tentative de mise à jour du Word a introduit une structure XML invalide (texte mal imbriqué suite à une découpe imprécise d'un paragraphe existant). Repris proprement depuis le fichier source intact, avec une découpe méthodique du paragraphe en 3 parties distinctes — validation XML immédiate après chaque étape, puis validation complète et vérification visuelle (page rendue en image) avant livraison.
 
+## 🔴 Correctif de sécurité majeur — accès bloqué pour les membres connectés
+
+Exécutez `supabase/migration_correctif_lecture_poules_finale_membres.sql` puis `supabase/migration_correctif_acces_public_authenticated.sql`.
+
+**Bug confirmé** : signalé par l'utilisateur sur Phase Poule/Phase finale (données invisibles pour un membre connecté, mais visibles pour un visiteur non connecté — symptôme contre-intuitif qui a permis de cibler précisément la cause). Plusieurs règles de sécurité "ouvertes au public" ciblaient explicitement le rôle technique `anon` (visiteur non connecté) au lieu de s'appliquer à tout le monde. Une personne connectée sans droit tournoi/bureau spécifique retombait alors sur l'ancienne règle plus restrictive, et se retrouvait **plus bloquée qu'un simple visiteur non connecté** — l'inverse de l'intention.
+
+**Portée** : le même schéma de bug touchait, au-delà de Phase Poule/Phase finale, les pages Bénévoles, messages de tournoi (+ pièces jointes), et les 2 formulaires publics (inscription saison, inscription tournoi). Audit systématique mené sur toutes les règles scopées "to anon" du site pour ne rien manquer.
+
+**Vigilance apportée** : une régression de sécurité a été évitée en cours de route (une correction automatique aurait par erreur ouvert l'insertion des inscriptions bénévoles à n'importe qui pour n'importe qui — repérée et corrigée avant livraison, une règle dédiée correcte existant déjà pour ce cas précis).
+
+Fichiers originaux également corrigés (`migration_lecture_publique_poules_finale.sql`, `migration_benevoles_public_et_gestion.sql`, `migration_inscriptions_validation.sql`, `migration_tournoi_inscription_publique.sql`) pour qu'une future installation neuve ne reproduise pas ces mêmes bugs.
+
+## Boutique — détail des demandes enrichi, factorisé et filtrable
+
+**1. Demandeur enrichi** : affiché avec nom + prénom tels que renseignés sur son inscription saison en cours (plus fiable que le nom librement choisi sur son compte), avec repli automatique sur ce dernier si aucune inscription n'est reliée — silencieux en cas d'échec (droit "inscriptions" manquant), rien de bloqué.
+
+**2. Lignes factorisées avec quantité** : les demandes strictement identiques (même demandeur, article, taille, flocage, statut et paiement) sont regroupées en une seule ligne avec une quantité, au lieu d'être répétées — testé et vérifié avec des données d'exemple, y compris la séparation naturelle dès qu'un statut diffère. Statut, paiement et suppression s'appliquent désormais à tout le groupe en une fois.
+
+**3. Filtres par colonne** : remplace l'ancienne recherche unique par demandeur — chaque colonne (Demandeur, Article, Description, Taille, Statut, Payée) a désormais son propre filtre, sur le même modèle que les filtres déjà en place sur la page Inscriptions.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

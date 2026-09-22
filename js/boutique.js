@@ -5,13 +5,16 @@
 // saison) — pas de paiement en ligne.
 // ============================================================
 
+const SAISON = '2026-2027';
+
 let currentUserId = null;
 let currentUserNom = null;
+let nomsParUserIdCache = {}; // { user_id: "Prénom Nom" }, depuis l'inscription saison en cours
+let filtresColonnesCommandes = {};
 let isGestionnaire = false;
 let articlesCache = [];
 let commandesCache = [];
 let editingArticleId = null;
-let filtreDemandeur = '';
 const signedUrlCache = new Map();
 
 async function initPage() {
@@ -40,11 +43,32 @@ async function initPage() {
     document.getElementById('gestionSection').hidden = false;
     document.getElementById('syntheseSection').hidden = false;
     bindArticleForm();
-    bindCommandesSearch();
+    await chargerNomsMembres();
   }
 
   await chargerArticles();
   await chargerCommandes();
+}
+
+/** Charge le nom + prénom de chaque membre depuis son inscription
+ *  saison en cours (plus fiable que le nom affiché librement choisi
+ *  par la personne sur son compte), pour un affichage clair du
+ *  demandeur dans le détail des commandes. Silencieux en cas d'échec
+ *  (droit "inscriptions" manquant) : le nom du compte reste alors
+ *  utilisé, sans rien bloquer. */
+async function chargerNomsMembres() {
+  const { data, error } = await sbClient
+    .from('inscriptions')
+    .select('user_id, nom, prenom')
+    .eq('saison', SAISON)
+    .not('user_id', 'is', null);
+
+  if (error) { console.error(error.message); return; }
+
+  nomsParUserIdCache = {};
+  (data || []).forEach(i => {
+    nomsParUserIdCache[i.user_id] = `${i.prenom || ''} ${i.nom || ''}`.trim();
+  });
 }
 
 // ============================================================
@@ -409,66 +433,159 @@ function renderSynthese() {
     </tr>`).join('');
 }
 
-function renderCommandesGestion() {
-  const tbody = document.getElementById('commandesTableBody');
-  let liste = commandesCache;
-  if (filtreDemandeur) {
-    liste = liste.filter(c => c.nom_demandeur.toLowerCase().includes(filtreDemandeur));
-  }
+/** Nom du demandeur : priorité au nom + prénom de son inscription
+ *  saison en cours (plus fiable), sinon le nom affiché sur son compte. */
+function nomDemandeur(c) {
+  return (c.user_id && nomsParUserIdCache[c.user_id]) || c.nom_demandeur;
+}
 
-  if (liste.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9">Aucune demande.</td></tr>';
+const COLONNES_COMMANDES = [
+  { key: 'demandeur', label: 'Demandeur' },
+  { key: 'article', label: 'Article' },
+  { key: 'description', label: 'Description' },
+  { key: 'taille', label: 'Taille' },
+  { key: 'quantite', label: 'Quantité' },
+  { key: 'prix', label: 'Prix' },
+  { key: 'statut', label: 'Statut' },
+  { key: 'payee', label: 'Payée' },
+  { key: 'date', label: 'Date' },
+];
+
+/** Options de liste déroulante pour un filtre de colonne du détail des
+ *  demandes, ou null pour un champ texte libre. */
+function optionsFiltreCommande(colKey) {
+  if (colKey === 'statut') return ['En attente', 'Confirmée', 'Récupérée', 'Annulée'];
+  if (colKey === 'payee') return ['Oui', 'Non'];
+  return null;
+}
+
+function renderCommandesTableHead() {
+  const thead = document.querySelector('#commandesTable thead');
+  const headerRow = `<tr>${COLONNES_COMMANDES.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th></th></tr>`;
+  const filterRow = `<tr class="filtres-colonnes-row">
+    ${COLONNES_COMMANDES.map(c => {
+      const options = optionsFiltreCommande(c.key);
+      const valeur = filtresColonnesCommandes[c.key] || '';
+      if (!options) {
+        return `<th><input type="text" class="filtre-colonne-input" data-col="${c.key}" placeholder="Filtrer…" value="${escapeHtml(valeur)}"></th>`;
+      }
+      return `<th>
+        <select class="filtre-colonne-input filtre-colonne-select" data-col="${c.key}">
+          <option value="">Tous</option>
+          ${options.map(o => `<option value="${escapeHtml(o)}" ${o === valeur ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('')}
+        </select>
+      </th>`;
+    }).join('')}
+    <th></th>
+  </tr>`;
+  thead.innerHTML = headerRow + filterRow;
+
+  thead.querySelectorAll('.filtre-colonne-input').forEach(input => {
+    const evenement = input.tagName === 'SELECT' ? 'change' : 'input';
+    input.addEventListener(evenement, () => {
+      filtresColonnesCommandes[input.getAttribute('data-col')] = input.value;
+      renderCommandesGestion();
+    });
+  });
+}
+
+/** Regroupe les commandes strictement identiques (même demandeur,
+ *  même article, même taille, même flocage, même statut, même
+ *  paiement) en une seule ligne affichée avec une quantité — pour
+ *  éviter de répéter N fois la même ligne quand une personne a
+ *  commandé plusieurs exemplaires d'un coup. Dès qu'un de ces champs
+ *  change pour une commande individuelle (ex. statut modifié), elle
+ *  se détache naturellement de son groupe au prochain rechargement. */
+function grouperCommandes(liste) {
+  const groupes = {};
+  liste.forEach(c => {
+    const cle = [nomDemandeur(c), c.article_nom, c.taille, c.flocage ? c.flocage_nom : '', c.statut, c.payee].join('|');
+    if (!groupes[cle]) {
+      groupes[cle] = { ...c, ids: [], quantite: 0, created_at_min: c.created_at };
+    }
+    groupes[cle].ids.push(c.id);
+    groupes[cle].quantite++;
+    if (c.created_at < groupes[cle].created_at_min) groupes[cle].created_at_min = c.created_at;
+  });
+  return Object.values(groupes);
+}
+
+function commandeCorrespondFiltres(g) {
+  for (const [col, texte] of Object.entries(filtresColonnesCommandes)) {
+    if (!texte) continue;
+    const texteLower = texte.toLowerCase();
+    let valeur;
+    if (col === 'demandeur') valeur = nomDemandeur(g);
+    else if (col === 'article') valeur = g.article_nom;
+    else if (col === 'description') valeur = (articlesCache.find(a => a.nom === g.article_nom) || {}).description || '';
+    else if (col === 'taille') valeur = g.taille;
+    else if (col === 'statut') valeur = statutLabel(g.statut);
+    else if (col === 'payee') valeur = g.payee ? 'Oui' : 'Non';
+    else continue;
+    if (!String(valeur).toLowerCase().includes(texteLower)) return false;
+  }
+  return true;
+}
+
+function renderCommandesGestion() {
+  renderCommandesTableHead();
+  const tbody = document.getElementById('commandesTableBody');
+
+  const groupes = grouperCommandes(commandesCache).filter(commandeCorrespondFiltres);
+
+  if (groupes.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${COLONNES_COMMANDES.length + 1}">Aucune demande.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = liste.map(c => {
-    const articleRef = articlesCache.find(a => a.nom === c.article_nom);
+  tbody.innerHTML = groupes.map(g => {
+    const articleRef = articlesCache.find(a => a.nom === g.article_nom);
+    const idsAttr = g.ids.join(',');
     return `
     <tr>
-      <td>${escapeHtml(c.nom_demandeur)}</td>
-      <td>${escapeHtml(c.article_nom)}${c.flocage ? `<br><span class="boutique-flocage-info">Flocage : "${escapeHtml(c.flocage_nom || '')}"</span>` : ''}</td>
+      <td>${escapeHtml(nomDemandeur(g))}</td>
+      <td>${escapeHtml(g.article_nom)}${g.flocage ? `<br><span class="boutique-flocage-info">Flocage : "${escapeHtml(g.flocage_nom || '')}"</span>` : ''}</td>
       <td>${articleRef && articleRef.description ? escapeHtml(articleRef.description) : '—'}</td>
-      <td>${escapeHtml(c.taille)}</td>
-      <td>${(Number(c.article_prix) + Number(c.flocage_prix || 0)).toFixed(2)} €</td>
+      <td>${escapeHtml(g.taille)}</td>
+      <td>${g.quantite}</td>
+      <td>${((Number(g.article_prix) + Number(g.flocage_prix || 0)) * g.quantite).toFixed(2)} €</td>
       <td>
-        <select class="commande-statut-select" data-id="${c.id}">
-          ${['en_attente', 'confirmee', 'recuperee', 'annulee'].map(s => `<option value="${s}" ${c.statut === s ? 'selected' : ''}>${statutLabel(s)}</option>`).join('')}
+        <select class="commande-statut-select" data-ids="${idsAttr}">
+          ${['en_attente', 'confirmee', 'recuperee', 'annulee'].map(s => `<option value="${s}" ${g.statut === s ? 'selected' : ''}>${statutLabel(s)}</option>`).join('')}
         </select>
       </td>
-      <td><input type="checkbox" class="commande-payee-check" data-id="${c.id}" ${c.payee ? 'checked' : ''}></td>
-      <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
-      <td><button type="button" class="btn btn-danger btn-small commande-supprimer-btn" data-id="${c.id}">Supprimer</button></td>
+      <td><input type="checkbox" class="commande-payee-check" data-ids="${idsAttr}" ${g.payee ? 'checked' : ''}></td>
+      <td>${new Date(g.created_at_min).toLocaleDateString('fr-FR')}</td>
+      <td><button type="button" class="btn btn-danger btn-small commande-supprimer-btn" data-ids="${idsAttr}" data-quantite="${g.quantite}">Supprimer</button></td>
     </tr>`;
   }).join('');
 
   tbody.querySelectorAll('.commande-statut-select').forEach(sel => {
     sel.addEventListener('change', async () => {
-      const { error } = await sbClient.from('boutique_commandes').update({ statut: sel.value }).eq('id', sel.getAttribute('data-id'));
+      const ids = sel.getAttribute('data-ids').split(',');
+      const { error } = await sbClient.from('boutique_commandes').update({ statut: sel.value }).in('id', ids);
       if (error) { alert('Erreur : ' + error.message); return; }
       await chargerCommandes();
     });
   });
   tbody.querySelectorAll('.commande-payee-check').forEach(cb => {
     cb.addEventListener('change', async () => {
-      const { error } = await sbClient.from('boutique_commandes').update({ payee: cb.checked }).eq('id', cb.getAttribute('data-id'));
+      const ids = cb.getAttribute('data-ids').split(',');
+      const { error } = await sbClient.from('boutique_commandes').update({ payee: cb.checked }).in('id', ids);
       if (error) { alert('Erreur : ' + error.message); return; }
       await chargerCommandes();
     });
   });
   tbody.querySelectorAll('.commande-supprimer-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm('Supprimer définitivement cette demande ?')) return;
-      const { error } = await sbClient.from('boutique_commandes').delete().eq('id', btn.getAttribute('data-id'));
+      const ids = btn.getAttribute('data-ids').split(',');
+      const quantite = btn.getAttribute('data-quantite');
+      const texte = ids.length > 1 ? `Supprimer définitivement ces ${quantite} demandes identiques ?` : 'Supprimer définitivement cette demande ?';
+      if (!confirm(texte)) return;
+      const { error } = await sbClient.from('boutique_commandes').delete().in('id', ids);
       if (error) { alert('Erreur : ' + error.message); return; }
       await chargerCommandes();
     });
-  });
-}
-
-function bindCommandesSearch() {
-  document.getElementById('commandesSearchInput').addEventListener('input', (e) => {
-    filtreDemandeur = e.target.value.trim().toLowerCase();
-    renderCommandesGestion();
   });
 }
 

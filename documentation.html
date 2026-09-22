@@ -477,7 +477,7 @@
       <h3 class="admin-subheading">11.4 Synthèse pour le bureau</h3>
       <ul>
         <li><strong>Quantités par article et taille</strong> : tableau agrégé, pratique pour savoir combien commander de chaque taille en gros (ex. "5 × Taille M").</li>
-        <li><strong>Détail des demandes</strong> : liste complète avec recherche par demandeur, description de l'article rappelée à côté de son nom, changement de statut (En attente / Confirmée / Récupérée / Annulée) et case à cocher "Payée" — mise à jour immédiate en base à chaque changement.</li>
+        <li><strong>Détail des demandes</strong> : liste complète, filtrable par colonne (nom, article, description, taille, statut, payée). Le demandeur est affiché avec son nom et prénom tels que renseignés sur son inscription saison en cours (plus fiable que le nom librement choisi sur son compte, utilisé en repli si aucune inscription n'est reliée). Les demandes strictement identiques (même personne, même article, même taille, même flocage, même statut, même paiement) sont regroupées en une seule ligne avec une quantité, plutôt que répétées — dès qu'une de ces demandes change de statut ou de paiement individuellement, elle se détache naturellement du groupe. Changement de statut (En attente / Confirmée / Récupérée / Annulée), case à cocher "Payée" et suppression s'appliquent à toutes les demandes du groupe à la fois — mise à jour immédiate en base à chaque changement.</li>
       </ul>
     </section>
 
@@ -560,6 +560,7 @@
         <li>Certaines actions (validation d'inscription, suppression de profil, écriture sur les tournois) sont réservées aux profils précis nommés dans ce document.</li>
         <li>Des déclencheurs (triggers) en base garantissent certaines règles même en cas d'erreur côté site : une seule tête de poule par poule, un seul tournoi actif, blocage au-delà de la capacité, impossibilité de modifier son propre profil.</li>
         <li>Le formulaire public de demande d'inscription dispose d'un droit d'écriture volontairement restreint : il ne peut créer qu'une inscription "En attente", jamais la valider lui-même.</li>
+        <li><strong>Règle "ouvert à tous" = ouvert à tous, sans exception</strong> : une règle destinée à un visiteur non connecté doit systématiquement s'appliquer à tout le monde (aucune restriction de rôle "to anon"), jamais seulement au rôle technique "anon" — sinon une personne connectée sans droit spécifique se retrouve, par erreur, plus bloquée qu'un simple visiteur non connecté. Erreur identifiée et corrigée une fois sur les pages Phase Poule/Phase finale/Bénévoles/messages de tournoi et les 2 formulaires publics (inscription saison, inscription tournoi) — point de vigilance à conserver pour toute future ouverture similaire.</li>
       </ul>
 
       <h3 class="admin-subheading">13.5 Stockage de fichiers (Supabase Storage)</h3>
