@@ -10,6 +10,7 @@ const SAISON = '2026-2027';
 let currentUserId = null;
 let currentUserNom = null;
 let nomsParUserIdCache = {}; // { user_id: "Prénom Nom" }, depuis l'inscription saison en cours
+let monAdresseCache = '';
 let filtresColonnesCommandes = {};
 let isGestionnaire = false;
 let articlesCache = [];
@@ -39,6 +40,8 @@ async function initPage() {
     if (e.target.id === 'visionneuseArticle' || e.target.id === 'visionneuseArticleImg') fermerVisionneuseArticle();
   });
 
+  await chargerMaPropreInscription();
+
   if (isGestionnaire) {
     document.getElementById('gestionSection').hidden = false;
     document.getElementById('syntheseSection').hidden = false;
@@ -48,6 +51,24 @@ async function initPage() {
 
   await chargerArticles();
   await chargerCommandes();
+}
+
+/** Charge la propre inscription (saison en cours) de la personne
+ *  connectée, pour pré-remplir son adresse dans le widget de paiement
+ *  en ligne — inutile d'avoir le droit bureau "inscriptions" pour
+ *  lire sa propre fiche (règle dédiée en base). Silencieux en cas
+ *  d'échec ou d'absence d'inscription : les champs restent alors
+ *  simplement à compléter manuellement dans le widget. */
+async function chargerMaPropreInscription() {
+  const { data, error } = await sbClient
+    .from('inscriptions')
+    .select('champs')
+    .eq('user_id', currentUserId)
+    .eq('saison', SAISON)
+    .maybeSingle();
+
+  if (error || !data) return;
+  monAdresseCache = (data.champs || {}).adresse || '';
 }
 
 /** Charge le nom + prénom de chaque membre depuis son inscription
@@ -401,6 +422,8 @@ function renderMesCommandes() {
         montant: totalAPayer,
         prenom: currentUserNom ? currentUserNom.split(' ')[0] : '',
         nom: currentUserNom ? currentUserNom.split(' ').slice(1).join(' ') : '',
+        adresse: monAdresseCache,
+        pays: 'FRA',
         libelle: `Commandes boutique TBK (${commandesAPayer.length} article${commandesAPayer.length > 1 ? 's' : ''})`,
         onSuccess: async () => {
           let toutesReussies = true;

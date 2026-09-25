@@ -30,10 +30,14 @@ async function getHelloAssoUrl() {
  * @param {string} [options.prenom]
  * @param {string} [options.nom]
  * @param {string} [options.email]
+ * @param {string} [options.adresse]
+ * @param {string} [options.codePostal]
+ * @param {string} [options.ville]
+ * @param {string} [options.pays] - code ISO Alpha 3, ex. "FRA"
  * @param {string} options.libelle - texte affiché en haut de la fenêtre (ex. "Commandes boutique TBK")
  * @param {Function} options.onSuccess - appelée une fois le paiement confirmé
  */
-async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, libelle, onSuccess }) {
+async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, codePostal, ville, pays, libelle, onSuccess }) {
   const url = await getHelloAssoUrl();
   if (!url) {
     alert("Le paiement en ligne n'est pas encore configuré pour ce site. Contactez le club, ou réglez par un autre moyen.");
@@ -66,9 +70,20 @@ async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, libelle, o
     if (prenom) donnees.firstName = prenom;
     if (nom) donnees.lastName = nom;
     if (email) donnees.email = email;
+    if (adresse) donnees.address = adresse;
+    if (codePostal) donnees.zipCode = codePostal;
+    if (ville) donnees.city = ville;
+    if (pays) donnees.country = pays;
     iframe.contentWindow.postMessage(donnees, 'https://www.helloasso.com');
   };
-  iframe.addEventListener('load', preRemplir);
+  // Envoyé au chargement, puis une seconde fois peu après : certains
+  // navigateurs déclenchent "load" avant que le script interne du
+  // widget soit prêt à recevoir le message — un second envoi de
+  // rattrapage évite un pré-remplissage manqué dans ce cas.
+  iframe.addEventListener('load', () => {
+    preRemplir();
+    setTimeout(preRemplir, 800);
+  });
 
   function ecouteurMessage(event) {
     // Sécurité : on ne réagit qu'aux messages provenant réellement du
