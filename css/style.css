@@ -712,7 +712,11 @@ select.filtre-colonne-input{ background: var(--white); cursor:pointer; }
 }
 .helloasso-fermer-btn{ background:none; border:none; font-size:1.3rem; cursor:pointer; padding:4px 8px; line-height:1; color: var(--ink-soft); }
 .helloasso-iframe{ width:100%; flex:1; border:none; min-height:70vh; }
-.paiement-en-ligne-btn{ margin-top:8px; }
+.paiement-en-ligne-btn{
+  margin-top:8px; max-width:220px; width:100%;
+  background:#e67e00; border-color:#e67e00; color:#fff;
+}
+.paiement-en-ligne-btn:hover{ background:#c96e00; border-color:#c96e00; }
 
 .email-template-bloc{
   border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-top:14px;

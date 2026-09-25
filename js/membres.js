@@ -120,6 +120,28 @@ async function chargerMesInformations() {
 
   section.hidden = false;
   contenu.innerHTML = rendreMesInformations(data);
+
+  const btnPayer = document.getElementById('payerCotisationBtn');
+  if (btnPayer) {
+    btnPayer.addEventListener('click', () => {
+      const champs = data.champs || {};
+      ouvrirPaiementHelloAsso({
+        cleParametre: 'helloasso_url_paiement_cotisation',
+        montant: Number(data.cotisation || 0),
+        prenom: data.prenom,
+        nom: data.nom,
+        email: champs.email,
+        adresse: champs.adresse,
+        pays: 'FRA',
+        libelle: `Cotisation ${data.saison}`,
+        onSuccess: async () => {
+          const resultat = await sbClient.rpc('marquer_cotisation_payee_en_ligne', { p_inscription_id: data.id });
+          alert(resultat.data ? 'Merci ! Votre cotisation a été marquée comme payée.' : "Le paiement a bien été reçu par HelloAsso, mais la mise à jour automatique a échoué — contactez le bureau pour qu'il vérifie manuellement.");
+          await chargerMesInformations();
+        },
+      });
+    });
+  }
 }
 
 function rendreMesInformations(insc) {
@@ -154,7 +176,7 @@ function rendreMesInformations(insc) {
       <div class="info-ligne"><span class="info-label">Statut de l'inscription</span><span class="info-valeur">${statutBadge}</span></div>
       <div class="info-ligne"><span class="info-label">Catégorie</span><span class="info-valeur">${escapeHtml(insc.categorie || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
-      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? '✅ Payée' : '⏳ Non payée'}</span></div>
+      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? '✅ Payée' : '⏳ Non payée'}${!estValeurAffirmative(champs.cotisation_payee) && Number(insc.cotisation) > 0 ? '<br><button type="button" class="btn btn-primary btn-small paiement-en-ligne-btn" id="payerCotisationBtn">💳 Payer en ligne</button>' : ''}</span></div>
       ${certifLigne}
       ${qsSportLigne}
       <div class="info-ligne"><span class="info-label">N° téléphone</span><span class="info-valeur">${escapeHtml(champs.telephone || '—')}</span></div>

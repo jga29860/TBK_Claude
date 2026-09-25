@@ -18,21 +18,22 @@
 // identifier précisément où un paiement bloque en cas de problème.
 // ============================================================
 
-let helloAssoUrlCache = null;
+let helloAssoUrlCache = {}; // { cle_parametre: url }, une entrée par type de paiement
 
-async function getHelloAssoUrl() {
-  if (helloAssoUrlCache !== null) return helloAssoUrlCache;
-  const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'helloasso_url_paiement').single();
-  if (error) console.error('[HelloAsso] Erreur de lecture du paramètre helloasso_url_paiement :', error.message);
-  helloAssoUrlCache = (!error && data && data.valeur) ? data.valeur : '';
-  console.log('[HelloAsso] URL du widget configurée :', helloAssoUrlCache || '(vide — rien de configuré)');
-  return helloAssoUrlCache;
+async function getHelloAssoUrl(cleParametre) {
+  if (helloAssoUrlCache[cleParametre] !== undefined) return helloAssoUrlCache[cleParametre];
+  const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', cleParametre).single();
+  if (error) console.error(`[HelloAsso] Erreur de lecture du paramètre ${cleParametre} :`, error.message);
+  helloAssoUrlCache[cleParametre] = (!error && data && data.valeur) ? data.valeur : '';
+  console.log(`[HelloAsso] URL du widget configurée (${cleParametre}) :`, helloAssoUrlCache[cleParametre] || '(vide — rien de configuré)');
+  return helloAssoUrlCache[cleParametre];
 }
 
 /**
  * Ouvre une fenêtre de paiement en ligne HelloAsso (widget en iframe),
  * pré-remplie avec le montant et l'identité fournis.
  * @param {Object} options
+ * @param {string} options.cleParametre - clé du paramètre en base contenant l'URL du widget à utiliser (ex. "helloasso_url_paiement_boutique")
  * @param {number} options.montant
  * @param {string} [options.prenom]
  * @param {string} [options.nom]
@@ -44,8 +45,8 @@ async function getHelloAssoUrl() {
  * @param {string} options.libelle - texte affiché en haut de la fenêtre (ex. "Commandes boutique TBK")
  * @param {Function} options.onSuccess - appelée une fois le paiement confirmé
  */
-async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, codePostal, ville, pays, libelle, onSuccess }) {
-  console.log('[HelloAsso] Ouverture demandée — montant:', montant, 'prenom:', prenom, 'nom:', nom);
+async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, email, adresse, codePostal, ville, pays, libelle, onSuccess }) {
+  console.log('[HelloAsso] Ouverture demandée —', cleParametre, '— montant:', montant, 'prenom:', prenom, 'nom:', nom);
 
   if (!montant || Number.isNaN(Number(montant)) || Number(montant) <= 0) {
     console.error('[HelloAsso] Montant invalide, abandon :', montant);
@@ -53,7 +54,7 @@ async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, c
     return;
   }
 
-  const url = await getHelloAssoUrl();
+  const url = await getHelloAssoUrl(cleParametre);
   if (!url) {
     alert("Le paiement en ligne n'est pas encore configuré pour ce site. Contactez le club, ou réglez par un autre moyen.");
     return;

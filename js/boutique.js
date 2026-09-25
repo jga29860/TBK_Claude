@@ -419,6 +419,7 @@ function renderMesCommandes() {
   if (btnPayer) {
     btnPayer.addEventListener('click', () => {
       ouvrirPaiementHelloAsso({
+        cleParametre: 'helloasso_url_paiement_boutique',
         montant: totalAPayer,
         prenom: currentUserNom ? currentUserNom.split(' ')[0] : '',
         nom: currentUserNom ? currentUserNom.split(' ').slice(1).join(' ') : '',

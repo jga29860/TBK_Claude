@@ -1062,6 +1062,20 @@ Exécutez `supabase/migration_boutique_statut_payee.sql`.
 
 **3. Colonne "Payées" retirée de la synthèse** ("Quantités par article et taille") — devenue redondante avec le statut, désormais visible dans le détail des demandes uniquement. La synthèse reste centrée sur les quantités à commander.
 
+## Paiement en ligne HelloAsso — cotisation (en complément de la boutique)
+
+Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
+
+**1. Bouton "Payer en ligne" pour la cotisation** — dans "Mes informations" (espace membre), visible uniquement quand la cotisation n'est pas payée. Une fois confirmé, le champ "Cotisation payée" passe automatiquement à "Oui".
+
+**2. Deux formulaires HelloAsso distincts, paramétrables séparément** — la clé existante (boutique) est renommée en `helloasso_url_paiement_boutique` (votre URL déjà configurée est conservée, rien à ressaisir), et une nouvelle clé `helloasso_url_paiement_cotisation` est ajoutée. Deux champs séparés dans Administration → Paramètres du site.
+
+**3. Pré-remplissage maximal** — prénom, nom, email, adresse et pays (France par défaut), repris exactement du même mécanisme déjà en place pour la boutique.
+
+**4. Boutons de paiement redessinés** — fond orange (`#e67e00`), largeur réduite (220px max), appliqué de façon cohérente aux deux boutons (boutique et cotisation), vérifié sans conflit avec les styles existants.
+
+⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).

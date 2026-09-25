@@ -74,14 +74,15 @@ async function initAdminPage() {
 // ===== Paramètres du site =====
 
 async function loadParametres() {
-  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement']);
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement_boutique', 'helloasso_url_paiement_cotisation']);
   if (error) { console.error(error.message); return; }
   const valeurParametre = (cle) => {
     const trouve = (data || []).find(p => p.cle === cle);
     return trouve ? (trouve.valeur || '') : '';
   };
   document.getElementById('emailContactInput').value = valeurParametre('email_contact');
-  document.getElementById('helloassoUrlInput').value = valeurParametre('helloasso_url_paiement');
+  document.getElementById('helloassoUrlBoutiqueInput').value = valeurParametre('helloasso_url_paiement_boutique');
+  document.getElementById('helloassoUrlCotisationInput').value = valeurParametre('helloasso_url_paiement_cotisation');
 }
 
 function bindParametresForm() {
@@ -92,13 +93,15 @@ function bindParametresForm() {
     e.preventDefault();
     const hint = document.getElementById('parametresHint');
     const email = document.getElementById('emailContactInput').value.trim();
-    const urlHelloAsso = document.getElementById('helloassoUrlInput').value.trim();
+    const urlBoutique = document.getElementById('helloassoUrlBoutiqueInput').value.trim();
+    const urlCotisation = document.getElementById('helloassoUrlCotisationInput').value.trim();
 
     hint.textContent = 'Enregistrement…';
     const maintenant = new Date().toISOString();
     const { error: err1 } = await sbClient.from('parametres_site').update({ valeur: email, updated_at: maintenant }).eq('cle', 'email_contact');
-    const { error: err2 } = await sbClient.from('parametres_site').update({ valeur: urlHelloAsso, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement');
-    if (err1 || err2) { hint.textContent = 'Erreur : ' + ((err1 || err2).message); return; }
+    const { error: err2 } = await sbClient.from('parametres_site').update({ valeur: urlBoutique, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement_boutique');
+    const { error: err3 } = await sbClient.from('parametres_site').update({ valeur: urlCotisation, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement_cotisation');
+    if (err1 || err2 || err3) { hint.textContent = 'Erreur : ' + ((err1 || err2 || err3).message); return; }
     hint.textContent = 'Paramètres mis à jour.';
   });
 }
