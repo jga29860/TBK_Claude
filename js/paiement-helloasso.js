@@ -70,7 +70,7 @@ async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, c
         <span>${escapeHtml(libelle || 'Paiement en ligne')} — ${Number(montant).toFixed(2)} €</span>
         <button type="button" class="helloasso-fermer-btn" aria-label="Fermer">✕</button>
       </div>
-      <iframe src="${url}" class="helloasso-iframe" title="Paiement HelloAsso"></iframe>
+      <iframe src="${url}" class="helloasso-iframe" title="Paiement HelloAsso" allow="storage-access"></iframe>
     </div>
   `;
   document.body.appendChild(overlay);
