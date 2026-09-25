@@ -373,7 +373,7 @@ async function chargerCommandes() {
 }
 
 function statutLabel(s) {
-  return { en_attente: '⏳ En attente', confirmee: '✅ Confirmée', recuperee: '📦 Récupérée', annulee: '❌ Annulée' }[s] || s;
+  return { en_attente: '⏳ En attente', payee: '✅ Payée', recuperee: '📦 Récupérée', annulee: '❌ Annulée' }[s] || s;
 }
 
 function renderMesCommandes() {
@@ -403,7 +403,7 @@ function renderMesCommandes() {
               <td>${escapeHtml(c.article_nom)}${c.flocage ? `<br><span class="boutique-flocage-info">Flocage : "${escapeHtml(c.flocage_nom || '')}"</span>` : ''}</td>
               <td>${escapeHtml(c.taille)}</td>
               <td>${(Number(c.article_prix) + Number(c.flocage_prix || 0)).toFixed(2)} €</td>
-              <td>${statutLabel(c.statut)}${c.payee ? ' · ✅ Payée' : ''}</td>
+              <td>${statutLabel(c.statut)}${c.payee && c.statut !== 'payee' ? ' · ✅ Payée' : ''}</td>
               <td>${new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
               <td>${c.statut === 'en_attente' ? `<button type="button" class="btn btn-danger btn-small annuler-commande-btn" data-id="${c.id}">Annuler</button>` : ''}</td>
             </tr>`).join('')}
@@ -458,19 +458,17 @@ function renderSynthese() {
         description: articleRef ? (articleRef.description || '') : '',
         taille: c.taille,
         quantite: 0,
-        payees: 0,
         floques: 0,
       };
     }
     groupes[key].quantite++;
-    if (c.payee) groupes[key].payees++;
     if (c.flocage) groupes[key].floques++;
   });
 
   const lignes = Object.values(groupes).sort((a, b) => a.article.localeCompare(b.article) || a.taille.localeCompare(b.taille));
 
   if (lignes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6">Aucune demande pour le moment.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5">Aucune demande pour le moment.</td></tr>';
     return;
   }
 
@@ -481,7 +479,6 @@ function renderSynthese() {
       <td>${escapeHtml(l.taille)}</td>
       <td>${l.quantite}</td>
       <td>${l.floques > 0 ? l.floques : '—'}</td>
-      <td>${l.payees} / ${l.quantite}</td>
     </tr>`).join('');
 }
 
@@ -506,7 +503,7 @@ const COLONNES_COMMANDES = [
 /** Options de liste déroulante pour un filtre de colonne du détail des
  *  demandes, ou null pour un champ texte libre. */
 function optionsFiltreCommande(colKey) {
-  if (colKey === 'statut') return ['En attente', 'Confirmée', 'Récupérée', 'Annulée'];
+  if (colKey === 'statut') return ['En attente', 'Payée', 'Récupérée', 'Annulée'];
   if (colKey === 'payee') return ['Oui', 'Non'];
   return null;
 }
@@ -603,7 +600,7 @@ function renderCommandesGestion() {
       <td>${((Number(g.article_prix) + Number(g.flocage_prix || 0)) * g.quantite).toFixed(2)} €</td>
       <td>
         <select class="commande-statut-select" data-ids="${idsAttr}">
-          ${['en_attente', 'confirmee', 'recuperee', 'annulee'].map(s => `<option value="${s}" ${g.statut === s ? 'selected' : ''}>${statutLabel(s)}</option>`).join('')}
+          ${['en_attente', 'payee', 'recuperee', 'annulee'].map(s => `<option value="${s}" ${g.statut === s ? 'selected' : ''}>${statutLabel(s)}</option>`).join('')}
         </select>
       </td>
       <td><input type="checkbox" class="commande-payee-check" data-ids="${idsAttr}" ${g.payee ? 'checked' : ''}></td>
@@ -615,7 +612,12 @@ function renderCommandesGestion() {
   tbody.querySelectorAll('.commande-statut-select').forEach(sel => {
     sel.addEventListener('change', async () => {
       const ids = sel.getAttribute('data-ids').split(',');
-      const { error } = await sbClient.from('boutique_commandes').update({ statut: sel.value }).in('id', ids);
+      // Passer au statut "Payée" coche automatiquement la case payée —
+      // les autres statuts (dont "Récupérée") ne la touchent pas, une
+      // commande déjà payée puis récupérée doit rester payée.
+      const payload = { statut: sel.value };
+      if (sel.value === 'payee') payload.payee = true;
+      const { error } = await sbClient.from('boutique_commandes').update(payload).in('id', ids);
       if (error) { alert('Erreur : ' + error.message); return; }
       await chargerCommandes();
     });

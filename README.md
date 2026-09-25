@@ -1035,6 +1035,33 @@ Solution "simple" (pas de backend, pas de serveur) : un bouton "💳 Payer toute
 
 **Mise en place restante côté HelloAsso (avant de pouvoir tester)** : créer un formulaire "don" à montant libre dans votre compte HelloAsso, puis coller l'URL de son widget dans Administration → Paramètres du site → "URL du widget de paiement HelloAsso (boutique)".
 
+## Paiement boutique — pré-remplissage enrichi + limites HelloAsso clarifiées
+
+**Amélioration** : adresse et pays (France) désormais aussi pré-remplis automatiquement dans le widget HelloAsso (en plus du montant, prénom, nom), depuis l'inscription saison de la personne — réduit le nombre de champs à compléter manuellement. Un second envoi de rattrapage (800ms après le chargement) sécurise le pré-remplissage si le widget n'était pas encore prêt au premier essai.
+
+⚠️ **Limites qui viennent de HelloAsso lui-même, pas du site** :
+- Le formulaire utilisé est un formulaire **"don"** à montant libre — seul type HelloAsso permettant ce pré-remplissage dynamique. Son vocabulaire ("faire un don") ne peut pas être renommé "paiement" depuis le site : ce contenu est à l'intérieur de l'iframe HelloAsso, sur leur domaine, hors de portée du code.
+- L'adresse complète est exigée par HelloAsso (probablement pour un éventuel reçu fiscal, propre aux dons) — impossible de la rendre facultative depuis le site.
+- **À vérifier côté back-office HelloAsso** : l'option "don sur-mesure" doit être activée sur le formulaire, sinon le pré-remplissage est silencieusement ignoré par HelloAsso.
+
+## Diagnostic paiement HelloAsso — logs de débogage ajoutés
+
+Toutes les étapes clés du paiement en ligne (URL du widget, données envoyées au pré-remplissage, messages reçus en retour) sont désormais tracées dans la console du navigateur, préfixées "[HelloAsso]" — permet d'identifier précisément où un paiement bloque, sans deviner. Ajout aussi d'une vérification automatique du montant (bloque avec message clair si invalide/nul) et d'un avertissement si l'URL configurée ne se termine pas par "/widget" (erreur de configuration fréquente).
+
+## Diagnostic paiement — cause probable identifiée (cookies tiers)
+
+Analyse des logs de la console fournis par l'utilisateur : la vraie cause probable est le **blocage des cookies tiers** par le navigateur, empêchant le widget HelloAsso (chargé depuis un autre domaine) d'accéder à ses propres cookies de session — repérable par une erreur `401` sur `api.helloasso.com/v5/agg/user` et le message HelloAsso "User is not filled, cannot auto-fill payer information". **Confirmé sans lien avec notre intégration** : le pré-remplissage du site (montant, prénom, adresse) part correctement et HelloAsso répond bien (visible dans les logs). Ajout de `allow="storage-access"` sur l'iframe pour permettre au widget de demander l'accès à ses cookies si son code le prévoit. Les nombreuses requêtes bloquées vers Facebook/LinkedIn/Criteo/Datadog dans les logs sont de simples pixels publicitaires HelloAsso, sans rapport avec le paiement — à ignorer.
+
+## Boutique — statut "Payée" remplace "Confirmée"
+
+Exécutez `supabase/migration_boutique_statut_payee.sql`.
+
+**1. Statut renommé** : "Confirmée" devient "Payée" dans la liste des statuts possibles — migration des données existantes incluse (toute commande déjà "Confirmée" passe à "Payée" automatiquement).
+
+**2. Statut = source unique de vérité pour le paiement** : le paiement en ligne HelloAsso fait désormais passer directement le statut à "Payée" (plus seulement la case à cocher). Côté bureau, choisir "Payée" dans le détail des demandes coche automatiquement la case payée ; les autres statuts (dont "Récupérée") ne la décochent pas — une commande payée puis récupérée reste payée. Testé et vérifié sur 4 scénarios (statut/case combinés).
+
+**3. Colonne "Payées" retirée de la synthèse** ("Quantités par article et taille") — devenue redondante avec le statut, désormais visible dans le détail des demandes uniquement. La synthèse reste centrée sur les quantités à commander.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
