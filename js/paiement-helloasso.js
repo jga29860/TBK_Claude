@@ -11,6 +11,11 @@
 // pratique (l'origine du message est vérifiée), mais une vérification
 // ponctuelle depuis le back-office HelloAsso reste recommandée pour
 // le bureau, en complément.
+//
+// Diagnostic : toutes les étapes clés (URL utilisée, données envoyées,
+// messages reçus) sont tracées dans la console du navigateur (touche
+// F12 → onglet "Console") avec le préfixe "[HelloAsso]", pour pouvoir
+// identifier précisément où un paiement bloque en cas de problème.
 // ============================================================
 
 let helloAssoUrlCache = null;
@@ -18,7 +23,9 @@ let helloAssoUrlCache = null;
 async function getHelloAssoUrl() {
   if (helloAssoUrlCache !== null) return helloAssoUrlCache;
   const { data, error } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'helloasso_url_paiement').single();
+  if (error) console.error('[HelloAsso] Erreur de lecture du paramètre helloasso_url_paiement :', error.message);
   helloAssoUrlCache = (!error && data && data.valeur) ? data.valeur : '';
+  console.log('[HelloAsso] URL du widget configurée :', helloAssoUrlCache || '(vide — rien de configuré)');
   return helloAssoUrlCache;
 }
 
@@ -38,10 +45,21 @@ async function getHelloAssoUrl() {
  * @param {Function} options.onSuccess - appelée une fois le paiement confirmé
  */
 async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, codePostal, ville, pays, libelle, onSuccess }) {
+  console.log('[HelloAsso] Ouverture demandée — montant:', montant, 'prenom:', prenom, 'nom:', nom);
+
+  if (!montant || Number.isNaN(Number(montant)) || Number(montant) <= 0) {
+    console.error('[HelloAsso] Montant invalide, abandon :', montant);
+    alert("Montant invalide — impossible d'ouvrir le paiement en ligne. Contactez le bureau.");
+    return;
+  }
+
   const url = await getHelloAssoUrl();
   if (!url) {
     alert("Le paiement en ligne n'est pas encore configuré pour ce site. Contactez le club, ou réglez par un autre moyen.");
     return;
+  }
+  if (!url.includes('/widget')) {
+    console.warn('[HelloAsso] ⚠️ L\'URL configurée ne se termine pas par "/widget" — c\'est probablement le lien classique du formulaire, pas celui du widget. Le formulaire risque de refuser de s\'afficher en fenêtre.');
   }
 
   const overlay = document.createElement('div');
@@ -74,6 +92,7 @@ async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, c
     if (codePostal) donnees.zipCode = codePostal;
     if (ville) donnees.city = ville;
     if (pays) donnees.country = pays;
+    console.log('[HelloAsso] Envoi du pré-remplissage (postMessage) :', donnees);
     iframe.contentWindow.postMessage(donnees, 'https://www.helloasso.com');
   };
   // Envoyé au chargement, puis une seconde fois peu après : certains
@@ -81,15 +100,20 @@ async function ouvrirPaiementHelloAsso({ montant, prenom, nom, email, adresse, c
   // widget soit prêt à recevoir le message — un second envoi de
   // rattrapage évite un pré-remplissage manqué dans ce cas.
   iframe.addEventListener('load', () => {
+    console.log('[HelloAsso] iframe chargée (événement "load").');
     preRemplir();
     setTimeout(preRemplir, 800);
   });
 
   function ecouteurMessage(event) {
-    // Sécurité : on ne réagit qu'aux messages provenant réellement du
-    // domaine HelloAsso, jamais d'un autre expéditeur.
+    // Tout message reçu est tracé, même hors du domaine HelloAsso, pour
+    // pouvoir vérifier si HelloAsso répond bien et depuis quelle origine
+    // exacte — une origine différente de https://www.helloasso.com
+    // expliquerait un silence total côté confirmation.
+    console.log('[HelloAsso] Message reçu — origine:', event.origin, '— contenu:', event.data);
     if (event.origin !== 'https://www.helloasso.com') return;
     if (event.data && event.data.event === 'payment_completed') {
+      console.log('[HelloAsso] ✅ Paiement confirmé (payment_completed reçu).');
       fermer();
       if (onSuccess) onSuccess();
     }
