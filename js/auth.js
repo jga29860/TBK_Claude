@@ -33,6 +33,22 @@ function estIdentifiantTechnique(email) {
  * Centralisé ici pour que inscriptions.html et membres.html appliquent
  * toujours exactement la même règle.
  */
+/** Valeur du champ "Cotisation payée" quand le paiement a été fait en
+ *  ligne via HelloAsso (considérée comme payée partout sur le site). */
+const VALEUR_PAYE_HELLOASSO = 'Hello Asso';
+
+function estPayeHelloAsso(val) {
+  return typeof val === 'string' && val.replace(/\s+/g, '').toLowerCase() === 'helloasso';
+}
+
+/** Libellé d'un champ Oui / Non : "Oui", "Non", ou "Hello Asso" pour une
+ *  cotisation payée en ligne. */
+function libelleOuiNon(val) {
+  if (estPayeHelloAsso(val)) return VALEUR_PAYE_HELLOASSO;
+  if (typeof val === 'string' && ['non', 'false', ''].includes(val.trim().toLowerCase())) return 'Non';
+  return val ? 'Oui' : 'Non';
+}
+
 function estValeurAffirmative(val) {
   if (val === undefined || val === null || val === '' || val === false) return false;
   return String(val).trim().toLowerCase() !== 'non';

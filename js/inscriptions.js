@@ -142,11 +142,15 @@ function renderDynamicFormFields(values = {}) {
 function fieldInputHtml(champ, value) {
   const name = `champ_${champ.key}`;
   if (champ.type === 'booleen') {
-    const v = String(value) === 'true';
+    const libelle = libelleOuiNon(value);
+    // "Hello Asso" : cotisation payée en ligne — proposé pour le champ
+    // Cotisation payée, et conservé tel quel si l'inscription est modifiée.
+    const avecHelloAsso = champ.key === 'cotisation_payee' || libelle === VALEUR_PAYE_HELLOASSO;
     return `
       <select name="${name}">
-        <option value="false" ${!v ? 'selected' : ''}>Non</option>
-        <option value="true" ${v ? 'selected' : ''}>Oui</option>
+        <option value="false" ${libelle === 'Non' ? 'selected' : ''}>Non</option>
+        <option value="true" ${libelle === 'Oui' ? 'selected' : ''}>Oui</option>
+        ${avecHelloAsso ? `<option value="${VALEUR_PAYE_HELLOASSO}" ${libelle === VALEUR_PAYE_HELLOASSO ? 'selected' : ''}>${VALEUR_PAYE_HELLOASSO}</option>` : ''}
       </select>`;
   }
   if (champ.type === 'liste') {
@@ -171,7 +175,7 @@ function collectDynamicFieldValues(form) {
     const input = form.querySelector(`[name="champ_${champ.key}"]`);
     if (!input) return;
     let val = input.value;
-    if (champ.type === 'booleen') val = val === 'true';
+    if (champ.type === 'booleen') val = val === VALEUR_PAYE_HELLOASSO ? VALEUR_PAYE_HELLOASSO : val === 'true';
     else if (champ.type === 'nombre') val = val === '' ? null : Number(val);
     result[champ.key] = val;
   });
@@ -441,7 +445,7 @@ function getColumnRawText(record, key) {
   const champ = champsCache.find(c => c.key === key);
   const val = record.champs ? record.champs[key] : undefined;
   if (!champ || val === undefined || val === null || val === '') return '';
-  if (champ.type === 'booleen') return val ? 'Oui' : 'Non';
+  if (champ.type === 'booleen') return libelleOuiNon(val);
   return String(val);
 }
 
@@ -539,7 +543,7 @@ function getFilterOptions(colKey) {
   if (colKey === 'ufolep_fsgt' || colKey === 'membre_bureau') return ['Oui', 'Non'];
   const champ = champsCache.find(c => c.key === colKey);
   if (champ && champ.type === 'liste' && champ.options) return champ.options;
-  if (champ && champ.type === 'booleen') return ['Oui', 'Non'];
+  if (champ && champ.type === 'booleen') return champ.key === 'cotisation_payee' ? ['Oui', 'Non', VALEUR_PAYE_HELLOASSO] : ['Oui', 'Non'];
   return null;
 }
 
@@ -1029,7 +1033,7 @@ function formatColumnValue(record, key) {
   const champ = champsCache.find(c => c.key === key);
   const val = record.champs ? record.champs[key] : undefined;
   if (!champ || val === undefined || val === null || val === '') return '—';
-  if (champ.type === 'booleen') return val ? 'Oui' : 'Non';
+  if (champ.type === 'booleen') return escapeHtml(libelleOuiNon(val));
   return escapeHtml(String(val));
 }
 

@@ -36,6 +36,9 @@ const haEtat = {
 };
 
 async function initPage() {
+  // Période par défaut posée immédiatement, avant tout appel réseau :
+  // les dates ne peuvent jamais rester vides.
+  appliquerPeriodeParDefaut();
   const access = await getCurrentAccess();
   if (!access || !access.pages.includes('helloasso')) {
     document.getElementById('deniedPanel').hidden = false;
@@ -50,13 +53,18 @@ async function initPage() {
     : '';
 
   lierEvenements();
-  appliquerPeriodeSaison();
   await charger();
 }
 
 function lierEvenements() {
   document.getElementById('haPeriodeForm').addEventListener('submit', (e) => { e.preventDefault(); charger(); });
   document.getElementById('haSaisonBtn').addEventListener('click', () => { appliquerPeriodeSaison(); charger(); });
+  document.getElementById('haTroisMoisBtn').addEventListener('click', () => {
+    document.getElementById('haDuInput').value = '';
+    document.getElementById('haAuInput').value = '';
+    appliquerPeriodeParDefaut();
+    charger();
+  });
   document.getElementById('haMoisBtn').addEventListener('click', () => {
     const au = new Date();
     const du = new Date(au.getTime() - 30 * 24 * 3600 * 1000);
@@ -67,6 +75,17 @@ function lierEvenements() {
   ['haFiltreForm', 'haFiltreEtat'].forEach(id => document.getElementById(id).addEventListener('change', rendreTableau));
   document.getElementById('haFiltreTexte').addEventListener('input', rendreTableau);
   document.getElementById('haExportBtn').addEventListener('click', exporterCsv);
+}
+
+/** Période par défaut : du 1er jour du mois M-2 à aujourd'hui
+ *  (ex. le 27 septembre → du 1er juillet au 27 septembre). */
+function appliquerPeriodeParDefaut() {
+  const auj = new Date();
+  const debut = new Date(auj.getFullYear(), auj.getMonth() - 2, 1);
+  const du = document.getElementById('haDuInput');
+  const au = document.getElementById('haAuInput');
+  if (du && !du.value) du.value = dateIso(debut);
+  if (au && !au.value) au.value = dateIso(auj);
 }
 
 /** Saison sportive : du 1er septembre à aujourd'hui. */

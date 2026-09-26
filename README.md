@@ -1076,6 +1076,14 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Correctifs : période HelloAsso par défaut, cotisation payée "Hello Asso"
+
+Exécutez `supabase/migration_cotisation_payee_helloasso.sql`.
+
+**1. Page Paiements HelloAsso** — période posée dès l'ouverture, avant tout appel réseau : du 1er jour du mois M-2 à aujourd'hui. Nouveau raccourci "3 derniers mois".
+
+**2. Cotisation payée en ligne = "Hello Asso"** — `marquer_cotisation_payee_en_ligne` (widget) et `appliquer_notification_helloasso` (notification) écrivent `"Hello Asso"` au lieu de `"Oui"` ; reprise des cotisations déjà payées en ligne (journal des paiements, valeur `"Oui"` encore intacte). Côté site (`auth.js` : `VALEUR_PAYE_HELLOASSO`, `estPayeHelloAsso`, `libelleOuiNon`) : considérée comme payée partout (`estValeurAffirmative`), affichée "Hello Asso" dans le tableau et la fiche, filtre de colonne Oui / Non / Hello Asso, liste Non / Oui / Hello Asso dans la fiche avec conservation à l'enregistrement, "✅ Payée en ligne (Hello Asso)" dans Mes informations. Corrige au passage un défaut existant : une valeur texte "Oui" s'affichait "Non" dans la fiche et pouvait être écrasée à l'enregistrement.
+
 ## Audit — lot 2 : ergonomie mobile
 
 Aucune migration SQL. Trois scripts communs, sans effet sur PC :

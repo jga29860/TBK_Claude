@@ -177,7 +177,7 @@ function rendreMesInformations(insc) {
       <div class="info-ligne"><span class="info-label">Statut de l'inscription</span><span class="info-valeur">${statutBadge}</span></div>
       <div class="info-ligne"><span class="info-label">Catégorie</span><span class="info-valeur">${escapeHtml(insc.categorie || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
-      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? '✅ Payée' : '⏳ Non payée'}${!estValeurAffirmative(champs.cotisation_payee) && Number(insc.cotisation) > 0 ? '<br><button type="button" class="btn btn-primary btn-small paiement-en-ligne-btn" id="payerCotisationBtn">💳 Payer en ligne</button>' : ''}</span></div>
+      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? (estPayeHelloAsso(champs.cotisation_payee) ? '✅ Payée en ligne (Hello Asso)' : '✅ Payée') : '⏳ Non payée'}${!estValeurAffirmative(champs.cotisation_payee) && Number(insc.cotisation) > 0 ? '<br><button type="button" class="btn btn-primary btn-small paiement-en-ligne-btn" id="payerCotisationBtn">💳 Payer en ligne</button>' : ''}</span></div>
       ${certifLigne}
       ${qsSportLigne}
       <div class="info-ligne"><span class="info-label">N° téléphone</span><span class="info-valeur">${escapeHtml(champs.telephone || '—')}</span></div>
