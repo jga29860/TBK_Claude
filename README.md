@@ -1076,6 +1076,16 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Page Paiements HelloAsso (lecture directe de l'API + rapprochement)
+
+Exécutez `supabase/migration_helloasso_suivi.sql`, puis déployez l'Edge Function `supabase/functions/helloasso/index.ts` (première Edge Function du projet — procédure pas à pas dans la documentation, section 7.4).
+
+**1. Nouvelle page `helloasso.html`** (+ `js/helloasso.js`) — droit de page `helloasso`, paramétrable par profil dans Administration → Profils, pré-accordé à l'admin, entrée de menu Administration → Paiements HelloAsso. Période (saison en cours par défaut), totaux validés par catégorie (boutique / cotisation / autres), liste filtrable (formulaire, état, payeur), export CSV format Excel FR.
+
+**2. Edge Function `helloasso`** — détient la clé secrète HelloAsso (secrets Supabase `HELLOASSO_CLIENT_ID`, `HELLOASSO_CLIENT_SECRET`, facultatif `HELLOASSO_ORGANIZATION_SLUG`), vérifie le droit de page de l'appelant, jeton OAuth `client_credentials` mis en cache, lecture paginée de `GET /v5/organizations/{slug}/payments`, formulaires boutique / cotisation déduits des URL de widget. Rien n'est stocké.
+
+**3. Rapprochement** — nouvelle table `paiements_en_ligne_journal`, alimentée par la fonction `journaliser_paiement_en_ligne` appelée à chaque confirmation de paiement en ligne (`boutique.js`, `membres.js`, best-effort, n'interfère pas avec le marquage "Payée"). Appariement même type + même montant + 48 h, trois types d'écarts signalés. Démarre à la date d'exécution de la migration (`parametres_site.rapprochement_helloasso_depuis`). Table ajoutée à la page Sauvegarde.
+
 ## Boîte mail du club (Gmail) sous l'agenda
 
 Aucune migration SQL. Nouveau fichier `js/boite-mail.js`, chargé par `agenda.html`.

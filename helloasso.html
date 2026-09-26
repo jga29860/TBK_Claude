@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<title>Paiements HelloAsso — TBK</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Accès selon profil</p>
+  <h1>Paiements HelloAsso</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Votre profil n'a pas accès à cette page (droit "Paiements HelloAsso", réglable dans Administration → Profils).</p>
+  </div>
+
+  <div id="content" hidden>
+
+    <!-- ===== Période et filtres ===== -->
+    <section class="admin-section">
+      <p class="section-lead" id="haOrganisationLabel">Paiements reçus par l'association sur HelloAsso, lus en direct.</p>
+      <form class="inline-form" id="haPeriodeForm">
+        <label>Du
+          <input type="date" id="haDuInput" required>
+        </label>
+        <label>Au
+          <input type="date" id="haAuInput" required>
+        </label>
+        <button type="button" class="btn btn-ghost btn-small" id="haSaisonBtn">Saison en cours</button>
+        <button type="button" class="btn btn-ghost btn-small" id="haMoisBtn">30 derniers jours</button>
+        <button type="submit" class="btn btn-primary btn-small">Charger</button>
+        <p class="form-hint" id="haHint"></p>
+      </form>
+
+      <div class="field-grid" id="haKpis" style="margin-top:22px;">
+        <div class="kpi-card"><span class="kpi-value" id="kpiTotal">–</span><span class="kpi-label">Total encaissé (paiements validés)</span></div>
+        <div class="kpi-card"><span class="kpi-value" id="kpiBoutique">–</span><span class="kpi-label">Boutique</span></div>
+        <div class="kpi-card"><span class="kpi-value" id="kpiCotisation">–</span><span class="kpi-label">Cotisations</span></div>
+        <div class="kpi-card"><span class="kpi-value" id="kpiAutres">–</span><span class="kpi-label">Autres formulaires (dons, événements…)</span></div>
+        <div class="kpi-card"><span class="kpi-value" id="kpiEcarts">–</span><span class="kpi-label">Écarts de rapprochement</span></div>
+      </div>
+    </section>
+
+    <!-- ===== Rapprochement ===== -->
+    <section class="admin-section">
+      <h2>Rapprochement avec le site</h2>
+      <p class="section-lead">Compare les paiements en ligne confirmés sur le site (boutique, cotisation) avec les paiements réellement reçus sur HelloAsso — même formulaire, même montant, à 48 h près. <span id="haRapprochementDepuis"></span></p>
+      <div id="haRapprochement"></div>
+    </section>
+
+    <!-- ===== Liste des paiements ===== -->
+    <section class="admin-section">
+      <h2>Paiements <span class="count-badge" id="haCount"></span></h2>
+      <div class="inline-form">
+        <label>Formulaire
+          <select id="haFiltreForm">
+            <option value="">Tous</option>
+            <option value="boutique">Boutique</option>
+            <option value="cotisation">Cotisation</option>
+            <option value="autre">Autres</option>
+          </select>
+        </label>
+        <label>État
+          <select id="haFiltreEtat">
+            <option value="">Tous</option>
+            <option value="valide">Validés</option>
+            <option value="rembourse">Remboursés</option>
+            <option value="autre">Autres (en attente, refusés…)</option>
+          </select>
+        </label>
+        <label>Rechercher
+          <input type="text" id="haFiltreTexte" placeholder="Nom, prénom ou email du payeur">
+        </label>
+        <button type="button" class="btn btn-ghost btn-small" id="haExportBtn">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table class="schedule">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Payeur</th>
+              <th>Email</th>
+              <th>Formulaire</th>
+              <th style="text-align:right;">Montant</th>
+              <th>État</th>
+              <th>Moyen</th>
+              <th>Site</th>
+            </tr>
+          </thead>
+          <tbody id="haTableBody">
+            <tr><td colspan="8">Choisissez une période puis cliquez sur "Charger".</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/helloasso.js"></script>
+</body>
+</html>

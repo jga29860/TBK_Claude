@@ -28,6 +28,7 @@ const TABLES = [
   { key: 'visites_pages_log', label: 'Journal des visites publiques', description: 'Visites des pages ne nécessitant pas de connexion (accueil, inscription publique, bénévoles...).' },
   { key: 'boutique_articles', label: 'Articles boutique', description: 'Articles proposés à la vente (nom, prix, tailles, photo, dates).' },
   { key: 'boutique_commandes', label: 'Commandes boutique', description: 'Demandes des membres (article + taille), statut et paiement.' },
+  { key: 'paiements_en_ligne_journal', label: 'Journal des paiements en ligne', description: 'Paiements HelloAsso confirmés depuis le site (boutique, cotisation), pour le rapprochement.' },
   { key: 'tournoi_courses', label: 'Courses du tournoi', description: 'Achats effectués pour le tournoi (libellé, quantité, prix).' },
 ];
 

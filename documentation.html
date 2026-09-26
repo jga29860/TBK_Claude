@@ -120,6 +120,7 @@
             <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
             <tr><td>tournois_courses</td><td>courses.html</td><td>Suivi des achats effectués pour le tournoi</td></tr>
             <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar) et boîte mail du club (Gmail)</td></tr>
+            <tr><td>helloasso</td><td>helloasso.html</td><td>Consultation des paiements reçus sur HelloAsso, rapprochement avec le site, export CSV (trésorerie)</td></tr>
             <tr><td>jeu_cartes</td><td>jeu-de-cartes.html</td><td>Composition aléatoire d'équipes par tirage de cartes</td></tr>
             <tr><td>boutique</td><td>boutique.html</td><td>Consultation du catalogue et passage de commandes</td></tr>
             <tr><td>boutique_gestion</td><td>boutique.html (gestion + synthèse)</td><td>Ajout/modification/suppression des articles, suivi des demandes</td></tr>
@@ -426,6 +427,31 @@
       <p><strong>Cookies tiers bloqués (symptôme fréquent)</strong> : certains navigateurs modernes (Safari, Firefox, et de plus en plus Chrome par défaut) bloquent les cookies tiers, empêchant le widget HelloAsso — chargé depuis un autre domaine — d'accéder à ses propres cookies de session pour reconnaître un compte HelloAsso déjà connecté. Repérable dans la console par une erreur <code>401</code> sur <code>api.helloasso.com/v5/agg/user</code> et le message "User is not filled, cannot auto-fill payer information" — propre au widget HelloAsso, sans lien avec le pré-remplissage du site (qui continue de fonctionner normalement). L'attribut <code>allow="storage-access"</code> a été ajouté à l'iframe pour permettre au widget de demander l'accès à ses cookies si son code le prévoit.</p>
       <p><strong>Confirmation automatique</strong> : dès que le paiement est terminé sur HelloAsso, la commande boutique concernée passe automatiquement au statut "Payée", ou la cotisation au champ "Payée" — sans que le bureau ait quoi que ce soit à faire. Pour la boutique, le statut est la source unique de vérité pour le paiement, qu'il ait eu lieu en ligne ou par chèque/espèces (choix manuel de "Payée" dans le détail des demandes — voir 11.4). Cette confirmation repose sur un message envoyé par HelloAsso au navigateur de la personne (son origine est vérifiée par le site), et non sur une notification serveur-à-serveur classique (solution volontairement simple, sans serveur intermédiaire) : une vérification ponctuelle depuis le back-office HelloAsso reste recommandée pour le bureau, en complément, en particulier au début de la mise en service.</p>
       <p><strong>Sécurité</strong> : seule la personne connectée peut marquer ses <em>propres</em> commandes ou <em>sa propre</em> cotisation comme payées (vérifié côté base de données) — jamais celles/celle de quelqu'un d'autre, et aucun autre champ n'est modifiable par ce mécanisme.</p>
+    
+      <h3 class="admin-subheading">7.4 Paiements HelloAsso (helloasso.html)</h3>
+      <p>Page de consultation des paiements réellement reçus par l'association sur HelloAsso, lus en direct (rien n'est recopié dans la base du site). Accès paramétrable par profil : droit de page "helloasso" (Administration → Profils), pré-accordé au profil admin — à ouvrir par exemple à un profil trésorier. Accessible depuis le menu Organisation → Administration → Paiements HelloAsso.</p>
+      <ul>
+        <li><strong>Période</strong> : dates libres, ou raccourcis "Saison en cours" (depuis le 1er septembre, par défaut) et "30 derniers jours".</li>
+        <li><strong>Totaux</strong> : total encaissé (paiements validés uniquement), détaillé en boutique, cotisations et autres formulaires de l'association (dons libres, événements…), avec le nombre de paiements de chaque catégorie, et le nombre d'écarts de rapprochement.</li>
+        <li><strong>Liste des paiements</strong> : date, payeur (prénom, nom, email tels que saisis sur HelloAsso), formulaire, montant, état (validé, remboursé, refusé…), moyen de paiement, et résultat du rapprochement. Filtres par formulaire, par état et recherche sur le payeur. Les formulaires boutique et cotisation sont reconnus grâce aux URL de widget de Paramètres du site.</li>
+        <li><strong>Export CSV</strong> des lignes affichées (filtres appliqués), directement lisible dans Excel (séparateur point-virgule, montants avec virgule).</li>
+      </ul>
+      <p><strong>Rapprochement avec le site</strong> : chaque paiement en ligne confirmé sur le site (boutique ou cotisation) est journalisé au moment de la confirmation, puis comparé aux paiements HelloAsso — même formulaire, même montant, à 48 h près. Trois types d'écarts sont signalés, avec la page du site où corriger :</p>
+      <ul>
+        <li><strong>⚠️ Confirmé sur le site, introuvable sur HelloAsso</strong> : à vérifier dans le back-office HelloAsso ; si le paiement n'existe pas, repasser la commande ou la cotisation en "non payée".</li>
+        <li><strong>❔ Reçu sur HelloAsso, non confirmé sur le site</strong> : paiement encaissé mais confirmation non reçue par le site (fenêtre fermée trop tôt, mise à jour échouée, paiement fait directement sur la page HelloAsso) — marquer payé manuellement.</li>
+        <li><strong>↩ Remboursé sur HelloAsso, toujours payé sur le site</strong>.</li>
+      </ul>
+      <p>Le rapprochement ne porte que sur les paiements postérieurs à sa mise en service (date affichée sur la page) : les paiements plus anciens n'ont pas été journalisés et apparaissent "Non contrôlé". Les paiements marqués payés manuellement par le bureau (espèces, chèque) ne passent pas par HelloAsso et ne sont donc pas concernés.</p>
+      <p><strong>Fonctionnement technique et sécurité</strong> : la clé secrète de l'API HelloAsso ne peut pas figurer dans le site (dépôt GitHub public, code visible dans le navigateur). Elle est stockée dans Supabase, et utilisée uniquement par l'<strong>Edge Function</strong> <code>helloasso</code> (<code>supabase/functions/helloasso/index.ts</code>), qui vérifie à chaque appel que la personne connectée a bien le droit de page "helloasso" avant d'interroger HelloAsso.</p>
+      <p><strong>Mise en place (une seule fois)</strong> :</p>
+      <ol>
+        <li>HelloAsso, back-office de l'association : rubrique <em>Intégrations et API</em> (ou <em>Mon compte → API</em> selon l'interface) → générer / copier l'<strong>identifiant client</strong> (Client ID) et la <strong>clé secrète</strong> (Client Secret).</li>
+        <li>Supabase → <em>Edge Functions</em> → <em>Secrets</em> : ajouter <code>HELLOASSO_CLIENT_ID</code> et <code>HELLOASSO_CLIENT_SECRET</code> avec ces deux valeurs. (Facultatif : <code>HELLOASSO_ORGANIZATION_SLUG</code>, sinon l'association est déduite des URL de widget.)</li>
+        <li>Supabase → <em>Edge Functions</em> → <em>Deploy a new function</em> → <em>Via Editor</em> : nom <code>helloasso</code> (exactement), coller le contenu de <code>supabase/functions/helloasso/index.ts</code>, déployer. Laisser la vérification JWT activée.</li>
+        <li>Exécuter la migration <code>supabase/migration_helloasso_suivi.sql</code> (droit de page, journal, date de mise en service du rapprochement).</li>
+      </ol>
+      <p>En cas de modification ultérieure de la fonction, recoller le nouveau code dans l'éditeur Supabase et redéployer. Les erreurs de la fonction sont visibles dans Supabase → Edge Functions → helloasso → Logs, et les messages d'erreur sont affichés en clair sur la page (secrets manquants, clé refusée, fonction non déployée…).</p>
     </section>
 
     <!-- ===== 8. AGENDA ===== -->
@@ -552,6 +578,7 @@
             <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi, avec le nom de la personne (annonces_membres uniquement).</td></tr>
             <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité, option flocage + son prix).</td></tr>
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
+            <tr><td>paiements_en_ligne_journal</td><td>Journal des paiements en ligne confirmés depuis le site (type boutique / cotisation, membre, montant, commandes ou inscription concernées, date) — utilisé pour le rapprochement avec HelloAsso (voir 7.4). Alimenté uniquement par la fonction <code>journaliser_paiement_en_ligne</code>, limitée aux propres commandes / inscription de la personne connectée.</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact, titre de la section "Le club", affichage des anniversaires dans l'agenda (<code>agenda_anniversaires</code>).</td></tr>

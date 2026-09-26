@@ -135,6 +135,10 @@ async function chargerMesInformations() {
         pays: 'FRA',
         libelle: `Cotisation ${data.saison}`,
         onSuccess: async () => {
+          // Journal pour le rapprochement avec HelloAsso (page Paiements HelloAsso) — best-effort
+          sbClient.rpc('journaliser_paiement_en_ligne', {
+            p_type: 'cotisation', p_montant: Number(data.cotisation || 0), p_references: [data.id],
+          }).then(({ error }) => { if (error) console.warn('[HelloAsso] journal :', error.message); });
           const resultat = await sbClient.rpc('marquer_cotisation_payee_en_ligne', { p_inscription_id: data.id });
           alert(resultat.data ? 'Merci ! Votre cotisation a été marquée comme payée.' : "Le paiement a bien été reçu par HelloAsso, mais la mise à jour automatique a échoué — contactez le bureau pour qu'il vérifie manuellement.");
           await chargerMesInformations();

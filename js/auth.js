@@ -331,6 +331,7 @@ const TOOL_LINKS = [
   { pageKeys: ['jeu_cartes'], href: 'jeu-de-cartes.html', label: 'Jeu de cartes', group: 'Club' },
   { pageKeys: ['boutique', 'boutique_gestion'], href: 'boutique.html', label: 'Boutique', group: 'Club' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda et boîte mail', group: 'Administration' },
+  { pageKeys: ['helloasso'], href: 'helloasso.html', label: 'Paiements HelloAsso', group: 'Administration' },
 ];
 const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];
 
