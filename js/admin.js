@@ -74,7 +74,7 @@ async function initAdminPage() {
 // ===== Paramètres du site =====
 
 async function loadParametres() {
-  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement_boutique', 'helloasso_url_paiement_cotisation']);
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement_boutique', 'helloasso_url_paiement_cotisation', 'agenda_anniversaires']);
   if (error) { console.error(error.message); return; }
   const valeurParametre = (cle) => {
     const trouve = (data || []).find(p => p.cle === cle);
@@ -83,6 +83,7 @@ async function loadParametres() {
   document.getElementById('emailContactInput').value = valeurParametre('email_contact');
   document.getElementById('helloassoUrlBoutiqueInput').value = valeurParametre('helloasso_url_paiement_boutique');
   document.getElementById('helloassoUrlCotisationInput').value = valeurParametre('helloasso_url_paiement_cotisation');
+  document.getElementById('agendaAnniversairesInput').checked = valeurParametre('agenda_anniversaires') === 'true';
 }
 
 function bindParametresForm() {
@@ -95,13 +96,16 @@ function bindParametresForm() {
     const email = document.getElementById('emailContactInput').value.trim();
     const urlBoutique = document.getElementById('helloassoUrlBoutiqueInput').value.trim();
     const urlCotisation = document.getElementById('helloassoUrlCotisationInput').value.trim();
+    const anniversaires = document.getElementById('agendaAnniversairesInput').checked ? 'true' : 'false';
 
     hint.textContent = 'Enregistrement…';
     const maintenant = new Date().toISOString();
     const { error: err1 } = await sbClient.from('parametres_site').update({ valeur: email, updated_at: maintenant }).eq('cle', 'email_contact');
     const { error: err2 } = await sbClient.from('parametres_site').update({ valeur: urlBoutique, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement_boutique');
     const { error: err3 } = await sbClient.from('parametres_site').update({ valeur: urlCotisation, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement_cotisation');
-    if (err1 || err2 || err3) { hint.textContent = 'Erreur : ' + ((err1 || err2 || err3).message); return; }
+    // upsert (et non update) : la ligne est créée si la migration n'a pas encore été exécutée
+    const { error: err4 } = await sbClient.from('parametres_site').upsert({ cle: 'agenda_anniversaires', valeur: anniversaires, updated_at: maintenant }, { onConflict: 'cle' });
+    if (err1 || err2 || err3 || err4) { hint.textContent = 'Erreur : ' + ((err1 || err2 || err3 || err4).message); return; }
     hint.textContent = 'Paramètres mis à jour.';
   });
 }

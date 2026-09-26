@@ -11,6 +11,7 @@ let accessToken = null;
 let calendarId = null;
 let currentMonth = new Date(currentDateAtMidnight());
 let eventsCache = [];
+let anniversairesCache = []; // [{ prenom, nom, jour }] du mois affiché (option admin)
 let editingEventId = null;
 let editingRecurringEventId = null; // id de la série (si l'événement en fait partie)
 
@@ -215,11 +216,33 @@ async function loadEvents() {
     }
 
     eventsCache = data.items || [];
+    await loadAnniversaires(start.getFullYear(), start.getMonth() + 1);
     hint.textContent = '';
     renderMonth();
   } catch (err) {
     hint.textContent = 'Erreur réseau : ' + err.message;
   }
+}
+
+/**
+ * Anniversaires des membres (option "Paramètres du site" côté admin).
+ * La fonction Supabase renvoie une liste vide si l'option est désactivée :
+ * aucune condition à tester ici. Un échec n'empêche jamais l'affichage
+ * de l'agenda Google.
+ */
+async function loadAnniversaires(annee, mois) {
+  anniversairesCache = [];
+  try {
+    const { data, error } = await sbClient.rpc('anniversaires_membres', { p_annee: annee, p_mois: mois });
+    if (error) { console.warn('[Anniversaires]', error.message); return; }
+    anniversairesCache = data || [];
+  } catch (err) {
+    console.warn('[Anniversaires]', err.message);
+  }
+}
+
+function libelleAnniversaire(a) {
+  return `🎂 ${a.prenom} ${a.nom}`;
 }
 
 // ============================================================
@@ -251,6 +274,7 @@ function renderMonth() {
     const dateObj = new Date(year, month, d);
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const dayEvents = eventsCache.filter(e => eventDateStr(e) === dateStr);
+    const dayAnniversaires = anniversairesCache.filter(a => a.jour === d);
     const isToday = dateStr === todayStr;
 
     html += `
@@ -260,13 +284,16 @@ function renderMonth() {
           <button type="button" class="cal-add-btn" data-date="${dateStr}" title="Ajouter un événement">+</button>
         </div>
         <div class="cal-events">
+          ${dayAnniversaires.map(a => `
+            <span class="cal-event cal-event--anniversaire" title="Anniversaire de ${escapeHtml(a.prenom + ' ' + a.nom)}">${escapeHtml(libelleAnniversaire(a))}</span>
+          `).join('')}
           ${dayEvents.map(e => `
             <button type="button" class="cal-event" data-event-id="${e.id}">${escapeHtml(e.summary || '(sans titre)')}</button>
           `).join('')}
         </div>
       </div>`;
 
-    if (dayEvents.length > 0) {
+    if (dayEvents.length > 0 || dayAnniversaires.length > 0) {
       auMoinsUnJourAvecEvenement = true;
       htmlListe += `
         <div class="cal-jour-liste ${isToday ? 'cal-jour-liste--today' : ''}">
@@ -274,6 +301,12 @@ function renderMonth() {
             <span class="cal-jour-liste-date">${dateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
             <button type="button" class="cal-add-btn" data-date="${dateStr}" title="Ajouter un événement">+</button>
           </div>
+          ${dayAnniversaires.map(a => `
+            <div class="cal-event-liste cal-event-liste--anniversaire">
+              <span class="cal-event-liste-titre">${escapeHtml(libelleAnniversaire(a))}</span>
+              <span class="cal-event-liste-heure">Anniversaire</span>
+            </div>
+          `).join('')}
           ${dayEvents.map(e => `
             <button type="button" class="cal-event-liste" data-event-id="${e.id}">
               <span class="cal-event-liste-titre">${escapeHtml(e.summary || '(sans titre)')}</span>

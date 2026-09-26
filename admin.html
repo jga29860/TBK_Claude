@@ -64,10 +64,15 @@
         <label style="flex:1; min-width:320px;">URL du widget de paiement HelloAsso (cotisation)
           <input type="url" name="helloasso_url_paiement_cotisation" id="helloassoUrlCotisationInput" placeholder="https://www.helloasso.com/associations/.../formulaires/.../widget">
         </label>
+        <label class="checkbox-item" style="flex-basis:100%;">
+          <input type="checkbox" name="agenda_anniversaires" id="agendaAnniversairesInput">
+          Afficher les anniversaires des membres dans l'agenda du club
+        </label>
         <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
         <p class="form-hint" id="parametresHint"></p>
       </form>
       <p class="form-hint">Le paiement en ligne (boutique, cotisation) nécessite un formulaire HelloAsso "don" à montant libre par usage, dont vous copiez ici l'URL du widget (menu Partager → Bouton/Widget dans HelloAsso). Laissez un champ vide pour désactiver le paiement en ligne correspondant.</p>
+      <p class="form-hint">Anniversaires : quand la case est cochée, l'agenda affiche 🎂 le prénom et le nom des membres à la date de leur anniversaire (inscription validée de la saison en cours, date de naissance renseignée). L'année de naissance et l'âge ne sont jamais affichés, et rien n'est ajouté dans Google Agenda.</p>
     </section>
 
     <!-- ===== Page d'accueil — Section "Le club" ===== -->

@@ -39,7 +39,7 @@
 
     <section class="admin-section">
       <p class="section-lead" style="margin-bottom:0;">Cette page décrit le fonctionnement du site internet du club TBK, ses fonctionnalités, le système de comptes et de droits d'accès, et la structure de la base de données. Une version imprimable existe aussi au format Word.</p>
-      <p class="form-hint" style="margin-top:12px;">Dernière mise à jour : 28 août 2026. Ce document est tenu à jour manuellement à chaque évolution du site — aucune mise à jour automatique n'est possible sur un site statique.</p>
+      <p class="form-hint" style="margin-top:12px;">Dernière mise à jour : 26 septembre 2026. Ce document est tenu à jour manuellement à chaque évolution du site — aucune mise à jour automatique n'est possible sur un site statique.</p>
     </section>
 
     <!-- ===== Sommaire ===== -->
@@ -390,7 +390,7 @@
       <p>Réservée aux comptes ayant le droit "administration".</p>
       <ul>
         <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
-        <li><strong>Paramètres du site</strong> — email de contact du club, URL des deux widgets de paiement en ligne HelloAsso, boutique et cotisation (voir 7.3), utilisés automatiquement sur les pages publiques.</li>
+        <li><strong>Paramètres du site</strong> — email de contact du club, URL des deux widgets de paiement en ligne HelloAsso, boutique et cotisation (voir 7.3), utilisés automatiquement sur les pages publiques, et case Oui / Non d'affichage des anniversaires des membres dans l'agenda du club (voir 8).</li>
         <li><strong>Page d'accueil — Section "Le club"</strong> — voir 7.2 ci-dessous.</li>
         <li><strong>Anti-pause Supabase</strong> — voir 7.1 ci-dessous.</li>
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
@@ -435,8 +435,9 @@
         <li>Connexion Google via OAuth, avec tentative de reconnexion automatique et silencieuse à chaque ouverture de page.</li>
         <li>Ajout d'événement : titre, journée entière ou horaires précis, lieu, description, périodicité (aucune, quotidienne, hebdomadaire, toutes les 2 semaines, mensuelle, annuelle, avec date de fin facultative).</li>
         <li>Suppression d'un événement récurrent : "Supprimer cette occurrence" ou "Supprimer toute la série".</li>
+        <li><strong>Anniversaires des membres</strong> (option, activable par l'administrateur dans Administration → Paramètres du site, case "Afficher les anniversaires des membres dans l'agenda du club") : chaque anniversaire apparaît à sa date sous la forme "🎂 Prénom Nom", sur une teinte orangée distincte des événements Google, dans la grille comme dans la vue liste sur mobile. Sont concernés les membres dont l'inscription de la saison en cours est validée et dont la date de naissance est renseignée. Seuls le prénom, le nom et le jour sont transmis au navigateur : jamais l'année de naissance ni l'âge. Un anniversaire au 29 février s'affiche le 28 février les années non bissextiles. Ces lignes ne sont pas cliquables (non modifiables depuis l'agenda) : elles suivent automatiquement les inscriptions — corriger une date de naissance sur l'inscription suffit.</li>
       </ul>
-      <p>Aucune donnée de calendrier n'est stockée sur le site : tout est récupéré et modifié en direct via l'API Google Calendar.</p>
+      <p>Aucune donnée de calendrier n'est stockée sur le site : tout est récupéré et modifié en direct via l'API Google Calendar. Les anniversaires ne sont jamais écrits dans Google Agenda : ils sont calculés à l'affichage à partir des inscriptions (fonction Supabase <code>anniversaires_membres</code>, réservée aux profils ayant accès à la page Agenda, qui ne renvoie rien quand l'option est désactivée).</p>
     </section>
 
     <!-- ===== 9. SAUVEGARDE ===== -->
@@ -540,7 +541,7 @@
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
-            <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact, titre de la section "Le club".</td></tr>
+            <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact, titre de la section "Le club", affichage des anniversaires dans l'agenda (<code>agenda_anniversaires</code>).</td></tr>
             <tr><td>club_cartes</td><td>Cartes de la section "Le club" de la page d'accueil (tag, texte, ordre d'affichage) — lecture publique, écriture admin.</td></tr>
             <tr><td>inscriptions</td><td>Inscriptions saison (champs fixes + colonne JSON pour les champs personnalisés + colonnes <code>certificat_photo_url</code>/<code>qs_sport_photo_url</code> reliant les photos du certificat médical et du QS Sport stockées à part + colonne <code>user_id</code> reliant l'inscription au compte du membre une fois rattachée + colonnes <code>modifie_par</code>/<code>modifie_par_nom</code>/<code>modifie_le</code> remplies automatiquement par un déclencheur à chaque modification).</td></tr>
             <tr><td>inscription_champs</td><td>Définition des champs personnalisés du formulaire saison.</td></tr>

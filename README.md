@@ -1076,6 +1076,18 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Agenda — anniversaires des membres (option Oui / Non)
+
+Exécutez `supabase/migration_agenda_anniversaires.sql`.
+
+**1. Case à cocher dans Administration → Paramètres du site** : "Afficher les anniversaires des membres dans l'agenda du club". Enregistrée dans `parametres_site` (clé `agenda_anniversaires`, `true` / `false`, désactivée par défaut).
+
+**2. Affichage dans `agenda.html`** : "🎂 Prénom Nom" à la date d'anniversaire, teinte orangée distincte, non cliquable, dans la grille (PC) et la vue liste (mobile). Membres concernés : inscription validée de la saison la plus récente, date de naissance renseignée. 29 février → 28 février les années non bissextiles.
+
+**3. Données minimales et sécurisées** : fonction `anniversaires_membres(p_annee, p_mois)` (security definer) — vérifie le droit de page `agenda` et l'état de l'option côté serveur, ne renvoie que prénom, nom et jour (jamais l'année ni l'âge). Une date de naissance mal saisie est ignorée sans bloquer la liste. Un échec éventuel n'empêche jamais l'affichage de l'agenda Google (log `[Anniversaires]` en console).
+
+**4. Rien n'est écrit dans Google Agenda** : les anniversaires sont superposés à l'affichage et suivent automatiquement les inscriptions.
+
 ## Autres changements de ce tour
 
 - **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
