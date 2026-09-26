@@ -1076,6 +1076,12 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Correctif : saisie manuelle "Hello Asso" + numéro de version des fichiers
+
+**1. "Hello Asso" proposé quelle que soit la configuration du champ** "Cotisation payée" : type Oui / Non (cas standard), type liste (option ajoutée si absente), ou champ recréé sous une autre clé (reconnu par son libellé — `estChampCotisationPayee` dans `auth.js`). Idem pour le filtre de colonne.
+
+**2. Numéro de version sur tous les fichiers du site** (`js/…?v=20260927a`, `css/style.css?v=…`, 23 pages) : force les navigateurs à recharger les fichiers à chaque déploiement, au lieu de mélanger d'anciennes et de nouvelles versions en cache (cause fréquente de "la correction ne marche pas"). **À chaque livraison, le numéro est incrémenté.**
+
 ## Correctifs : période HelloAsso par défaut, cotisation payée "Hello Asso"
 
 Exécutez `supabase/migration_cotisation_payee_helloasso.sql`.

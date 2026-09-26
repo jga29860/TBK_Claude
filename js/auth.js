@@ -41,6 +41,16 @@ function estPayeHelloAsso(val) {
   return typeof val === 'string' && val.replace(/\s+/g, '').toLowerCase() === 'helloasso';
 }
 
+/** Le champ personnalisé est-il le champ "Cotisation payée" ? Reconnu
+ *  par sa clé, ou à défaut par son libellé (champ recréé ou renommé
+ *  depuis l'administration). */
+function estChampCotisationPayee(champ) {
+  if (!champ) return false;
+  if (champ.key === 'cotisation_payee') return true;
+  const texte = `${champ.key || ''} ${champ.label || ''}`.toLowerCase();
+  return texte.includes('cotis') && texte.includes('pay');
+}
+
 /** Libellé d'un champ Oui / Non : "Oui", "Non", ou "Hello Asso" pour une
  *  cotisation payée en ligne. */
 function libelleOuiNon(val) {

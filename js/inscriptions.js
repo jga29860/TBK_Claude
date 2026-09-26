@@ -145,7 +145,7 @@ function fieldInputHtml(champ, value) {
     const libelle = libelleOuiNon(value);
     // "Hello Asso" : cotisation payée en ligne — proposé pour le champ
     // Cotisation payée, et conservé tel quel si l'inscription est modifiée.
-    const avecHelloAsso = champ.key === 'cotisation_payee' || libelle === VALEUR_PAYE_HELLOASSO;
+    const avecHelloAsso = estChampCotisationPayee(champ) || libelle === VALEUR_PAYE_HELLOASSO;
     return `
       <select name="${name}">
         <option value="false" ${libelle === 'Non' ? 'selected' : ''}>Non</option>
@@ -154,10 +154,13 @@ function fieldInputHtml(champ, value) {
       </select>`;
   }
   if (champ.type === 'liste') {
-    const options = champ.options || [];
+    const options = [...(champ.options || [])];
+    // Champ "Cotisation payée" configuré en liste : "Hello Asso" toujours proposé
+    if (estChampCotisationPayee(champ) && !options.some(estPayeHelloAsso)) options.push(VALEUR_PAYE_HELLOASSO);
+    const estSelectionnee = (o) => o === value || (estPayeHelloAsso(o) && estPayeHelloAsso(value));
     return `
       <select name="${name}">
-        ${options.map(o => `<option value="${escapeHtml(o)}" ${o === value ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('')}
+        ${options.map(o => `<option value="${escapeHtml(o)}" ${estSelectionnee(o) ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('')}
       </select>`;
   }
   if (champ.type === 'date') {
@@ -542,8 +545,11 @@ function getFilterOptions(colKey) {
   if (colKey === 'bad_ping') return ['Bad', 'Ping', 'Bad et Ping'];
   if (colKey === 'ufolep_fsgt' || colKey === 'membre_bureau') return ['Oui', 'Non'];
   const champ = champsCache.find(c => c.key === colKey);
-  if (champ && champ.type === 'liste' && champ.options) return champ.options;
-  if (champ && champ.type === 'booleen') return champ.key === 'cotisation_payee' ? ['Oui', 'Non', VALEUR_PAYE_HELLOASSO] : ['Oui', 'Non'];
+  if (champ && champ.type === 'liste' && champ.options) {
+    return estChampCotisationPayee(champ) && !champ.options.some(estPayeHelloAsso)
+      ? [...champ.options, VALEUR_PAYE_HELLOASSO] : champ.options;
+  }
+  if (champ && champ.type === 'booleen') return estChampCotisationPayee(champ) ? ['Oui', 'Non', VALEUR_PAYE_HELLOASSO] : ['Oui', 'Non'];
   return null;
 }
 
