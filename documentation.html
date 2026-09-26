@@ -438,6 +438,7 @@
       </ul>
       <p><strong>Rapprochement avec le site</strong> : chaque paiement en ligne confirmé sur le site (boutique ou cotisation) est journalisé au moment de la confirmation, puis comparé aux paiements HelloAsso — même formulaire, même montant, à 48 h près. Trois types d'écarts sont signalés, avec la page du site où corriger :</p>
       <ul>
+        <li><strong>Rattachement exact</strong> : un paiement confirmé par notification HelloAsso (voir 7.5) est rattaché directement à sa demande, sans appariement approximatif.</li>
         <li><strong>⚠️ Confirmé sur le site, introuvable sur HelloAsso</strong> : à vérifier dans le back-office HelloAsso ; si le paiement n'existe pas, repasser la commande ou la cotisation en "non payée".</li>
         <li><strong>❔ Reçu sur HelloAsso, non confirmé sur le site</strong> : paiement encaissé mais confirmation non reçue par le site (fenêtre fermée trop tôt, mise à jour échouée, paiement fait directement sur la page HelloAsso) — marquer payé manuellement.</li>
         <li><strong>↩ Remboursé sur HelloAsso, toujours payé sur le site</strong>.</li>
@@ -452,6 +453,26 @@
         <li>Exécuter la migration <code>supabase/migration_helloasso_suivi.sql</code> (droit de page, journal, date de mise en service du rapprochement).</li>
       </ol>
       <p>En cas de modification ultérieure de la fonction, recoller le nouveau code dans l'éditeur Supabase et redéployer. Les erreurs de la fonction sont visibles dans Supabase → Edge Functions → helloasso → Logs, et les messages d'erreur sont affichés en clair sur la page (secrets manquants, clé refusée, fonction non déployée…).</p>
+    
+      <h3 class="admin-subheading">7.5 Confirmation automatique par notification HelloAsso</h3>
+      <p>En complément de la confirmation par le widget (immédiate, dans le navigateur du membre), HelloAsso prévient directement le site à chaque paiement. Le paiement est ainsi confirmé <strong>serveur à serveur</strong>, et appliqué même si le membre a fermé la fenêtre de paiement avant la fin, perdu sa connexion, etc.</p>
+      <ul>
+        <li><strong>Au clic sur "Payer en ligne"</strong> (boutique ou cotisation), le site enregistre une <em>demande de paiement</em> : membre, montant, commandes ou inscription concernées. L'email du membre (celui de son inscription, sinon de son compte) est pré-rempli dans le widget.</li>
+        <li><strong>Confirmation du widget</strong> : la commande / la cotisation passe payée immédiatement, comme avant.</li>
+        <li><strong>Notification HelloAsso</strong> (quelques secondes après le paiement) : l'Edge Function <code>helloasso-notification</code> relit le paiement auprès de HelloAsso, retrouve la demande correspondante — même type, même montant, dans les 24 h, puis même email, sinon même nom — et la marque "confirmée par HelloAsso" ; si le widget n'avait pas confirmé, la commande / la cotisation est marquée payée à ce moment-là.</li>
+        <li><strong>Prudence</strong> : si plusieurs demandes correspondent, ou si la seule demande possible concerne un autre membre sans confirmation du widget, <strong>rien n'est appliqué</strong> : la notification est signalée "❔ Non attribuée" sur la page Paiements HelloAsso, pour traitement manuel. Un remboursement notifié est signalé, mais ne repasse jamais automatiquement une commande ou une cotisation en "non payée".</li>
+      </ul>
+      <p>La page Paiements HelloAsso affiche le journal des notifications reçues (résultat et détail de chacune), et les paiements confirmés par notification apparaissent "✅ Confirmé HelloAsso" dans la liste et le rapprochement.</p>
+      <p><strong>Sécurité</strong> : l'adresse de notification contient une clé secrète, sans laquelle rien n'est traité ; le contenu envoyé à cette adresse n'est jamais utilisé tel quel (seul l'identifiant du paiement est lu, puis le paiement est relu auprès de HelloAsso avec les identifiants du club) ; l'écriture en base passe par une fonction SQL (<code>appliquer_notification_helloasso</code>) qu'aucun utilisateur du site ne peut appeler.</p>
+      <p><strong>Mise en place (une seule fois)</strong> :</p>
+      <ol>
+        <li>Exécuter <code>supabase/migration_helloasso_notification.sql</code> (après <code>migration_helloasso_suivi.sql</code>).</li>
+        <li>Choisir une clé secrète longue et aléatoire (lettres et chiffres uniquement, 30 caractères ou plus), et l'ajouter dans Supabase → Edge Functions → Secrets sous le nom <code>HELLOASSO_WEBHOOK_SECRET</code>.</li>
+        <li>Supabase → Edge Functions → Deploy a new function → Via Editor : nom <code>helloasso-notification</code> (exactement), coller le contenu de <code>supabase/functions/helloasso-notification/index.ts</code>, déployer, puis dans les réglages de la fonction <strong>désactiver "Verify JWT"</strong> (HelloAsso ne dispose pas d'un compte du site : c'est la clé secrète qui protège l'adresse).</li>
+        <li>HelloAsso, back-office de l'association, rubrique <em>Intégrations et API</em> → <em>Notifications</em> (URL de callback) : saisir <code>https://&lt;projet&gt;.supabase.co/functions/v1/helloasso-notification?cle=&lt;clé secrète&gt;</code> (l'adresse du projet est celle de <code>js/supabase-config.js</code>).</li>
+        <li>Test : payer 1 € en ligne (commande boutique test), fermer la fenêtre HelloAsso <em>avant</em> le retour au site, puis vérifier que la commande passe payée et que la notification apparaît "✅ Appliquée" sur la page Paiements HelloAsso.</li>
+      </ol>
+      <p>Les erreurs techniques sont visibles sur la page Paiements HelloAsso (notifications "⚠️ Erreur") et dans Supabase → Edge Functions → helloasso-notification → Logs.</p>
     </section>
 
     <!-- ===== 8. AGENDA ===== -->
@@ -578,7 +599,8 @@
             <tr><td>annonces_reactions</td><td>Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi, avec le nom de la personne (annonces_membres uniquement).</td></tr>
             <tr><td>boutique_articles</td><td>Articles proposés à la vente (nom, prix, tailles disponibles, photo, dates de disponibilité, option flocage + son prix).</td></tr>
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
-            <tr><td>paiements_en_ligne_journal</td><td>Journal des paiements en ligne confirmés depuis le site (type boutique / cotisation, membre, montant, commandes ou inscription concernées, date) — utilisé pour le rapprochement avec HelloAsso (voir 7.4). Alimenté uniquement par la fonction <code>journaliser_paiement_en_ligne</code>, limitée aux propres commandes / inscription de la personne connectée.</td></tr>
+            <tr><td>paiements_en_ligne_journal</td><td>Suivi des paiements en ligne (type boutique / cotisation, membre, email, montant, commandes ou inscription concernées) : demande au clic sur "Payer en ligne" (en attente), confirmation par le widget (déclarée), confirmation par la notification HelloAsso (confirmée, avec l'identifiant du paiement HelloAsso), remboursement. Utilisé pour le rapprochement et la confirmation automatique (voir 7.4 et 7.5). Alimenté uniquement par des fonctions dédiées, limitées aux propres commandes / inscription de la personne connectée.</td></tr>
+            <tr><td>notifications_helloasso</td><td>Notifications de paiement reçues de HelloAsso et résultat de leur traitement (appliquée, déjà traitée, ignorée, non attribuée, remboursement, erreur), avec un message explicatif (voir 7.5).</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
             <tr><td>parametres_site</td><td>Paramètres généraux (clé / valeur), ex. email de contact, titre de la section "Le club", affichage des anniversaires dans l'agenda (<code>agenda_anniversaires</code>).</td></tr>

@@ -426,11 +426,8 @@ function renderMesCommandes() {
         adresse: monAdresseCache,
         pays: 'FRA',
         libelle: `Commandes boutique TBK (${commandesAPayer.length} article${commandesAPayer.length > 1 ? 's' : ''})`,
+        intention: { type: 'boutique', references: commandesAPayer.map(c => c.id) },
         onSuccess: async () => {
-          // Journal pour le rapprochement avec HelloAsso (page Paiements HelloAsso) — best-effort
-          sbClient.rpc('journaliser_paiement_en_ligne', {
-            p_type: 'boutique', p_montant: totalAPayer, p_references: commandesAPayer.map(c => c.id),
-          }).then(({ error }) => { if (error) console.warn('[HelloAsso] journal :', error.message); });
           let toutesReussies = true;
           for (const c of commandesAPayer) {
             const resultat = await sbClient.rpc('marquer_commande_payee_en_ligne', { p_commande_id: c.id });

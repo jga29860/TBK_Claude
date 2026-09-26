@@ -123,6 +123,7 @@ async function charger() {
 
   rendreKpis();
   rendreRapprochement();
+  rendreNotifications();
   rendreTableau();
 }
 
@@ -149,18 +150,36 @@ async function chargerJournal(du, au) {
   // Marge de 2 jours autour de la période pour les paiements en limite
   const debut = new Date(new Date(du + 'T00:00:00').getTime() - TOLERANCE_RAPPROCHEMENT_MS).toISOString();
   const fin = new Date(new Date(au + 'T23:59:59').getTime() + TOLERANCE_RAPPROCHEMENT_MS).toISOString();
+  // Les intentions "en attente" (paiement ouvert mais ni confirmé par le
+  // widget ni par HelloAsso) ne sont pas des paiements : exclues.
   const { data, error } = await sbClient
     .from('paiements_en_ligne_journal')
     .select('*')
-    .gte('declare_le', debut)
-    .lte('declare_le', fin)
-    .order('declare_le', { ascending: true });
+    .neq('statut', 'en_attente')
+    .gte('cree_le', debut)
+    .lte('cree_le', fin)
+    .order('cree_le', { ascending: true });
   if (error) {
     console.warn('[HelloAsso page] journal :', error.message);
     haEtat.journal = [];
-    return;
+  } else {
+    haEtat.journal = data || [];
   }
-  haEtat.journal = data || [];
+
+  const { data: notifs, error: errNotifs } = await sbClient
+    .from('notifications_helloasso')
+    .select('*')
+    .gte('recu_le', debut)
+    .lte('recu_le', fin)
+    .order('recu_le', { ascending: false })
+    .limit(200);
+  if (errNotifs) console.warn('[HelloAsso page] notifications :', errNotifs.message);
+  haEtat.notifications = errNotifs ? null : (notifs || []);
+}
+
+/** Date de référence d'une ligne du journal (déclaration, sinon création). */
+function dateJournal(j) {
+  return new Date(j.declare_le || j.cree_le).getTime();
 }
 
 function categorieFormulaire(p, formulaires) {
@@ -189,8 +208,21 @@ function rapprocher(du, au) {
   const declaresSansPaiement = [];
   const rembourses = [];
 
+  // 1. Rattachements exacts, faits par la notification HelloAsso
+  const journalRestant = [];
   for (const j of haEtat.journal) {
-    const tJ = new Date(j.declare_le).getTime();
+    if (!j.helloasso_paiement_id) { journalRestant.push(j); continue; }
+    const p = candidats.find(c => Number(c.id) === Number(j.helloasso_paiement_id));
+    if (!p) continue; // paiement hors de la période affichée
+    utilises.add(p.id);
+    const rembourse = p.categorieEtat === 'rembourse' || j.statut === 'rembourse';
+    p.rapprochement = { statut: rembourse ? 'rembourse' : 'confirme', journal: j };
+    if (rembourse) rembourses.push({ paiement: p, journal: j });
+  }
+
+  // 2. Appariement par montant et date (paiements confirmés par le widget seulement)
+  for (const j of journalRestant) {
+    const tJ = dateJournal(j);
     let meilleur = null;
     let meilleurEcart = Infinity;
     for (const p of candidats) {
@@ -243,7 +275,7 @@ function rendreKpis() {
 function rendreRapprochement() {
   const zone = document.getElementById('haRapprochement');
   const e = haEtat.ecarts;
-  const nbRapproches = haEtat.paiements.filter(p => p.rapprochement && p.rapprochement.statut === 'ok').length;
+  const nbRapproches = haEtat.paiements.filter(p => p.rapprochement && ['ok', 'confirme'].includes(p.rapprochement.statut)).length;
 
   if (!e.declaresSansPaiement.length && !e.paiementsSansDeclaration.length && !e.rembourses.length) {
     zone.innerHTML = `<p class="ha-ok">✅ Aucun écart sur la période — ${nbRapproches} paiement(s) en ligne confirmé(s) sur le site retrouvé(s) sur HelloAsso.</p>`;
@@ -257,7 +289,7 @@ function rendreRapprochement() {
       <h3 class="ha-ecart-titre">⚠️ Confirmés sur le site, introuvables sur HelloAsso (${e.declaresSansPaiement.length})</h3>
       <p class="form-hint">Le site a reçu la confirmation du widget, mais aucun paiement de ce montant n'apparaît sur HelloAsso à 48 h près. À vérifier dans le back-office HelloAsso ; si le paiement n'existe pas, repasser la commande / la cotisation en "non payée".</p>
       ${tableauHtml(['Confirmé le', 'Membre', 'Type', 'Montant', 'À vérifier dans'], e.declaresSansPaiement.map(j => [
-        new Date(j.declare_le).toLocaleString('fr-FR'),
+        new Date(dateJournal(j)).toLocaleString('fr-FR'),
         escapeHtml(j.payeur_nom || '—'),
         LIBELLES_FORM[j.type],
         `<span class="ha-montant">${euros(j.montant)}</span>`,
@@ -293,6 +325,42 @@ function rendreRapprochement() {
   }
 
   zone.innerHTML = html;
+}
+
+const RESULTATS_NOTIF = {
+  appliquee: { libelle: '✅ Appliquée', classe: 'ha-etat--valide' },
+  deja_confirmee: { libelle: 'Déjà traitée', classe: 'ha-etat--autre' },
+  ignoree: { libelle: 'Ignorée', classe: 'ha-etat--autre' },
+  non_attribuee: { libelle: '❔ Non attribuée', classe: 'ha-etat--rembourse' },
+  rembourse: { libelle: '↩ Remboursement', classe: 'ha-etat--rembourse' },
+  erreur: { libelle: '⚠️ Erreur', classe: 'ha-etat--erreur' },
+};
+
+function rendreNotifications() {
+  const zone = document.getElementById('haNotifications');
+  const liste = haEtat.notifications;
+  if (liste === null) {
+    zone.innerHTML = '<p class="form-hint">Journal des notifications indisponible (migration <code>migration_helloasso_notification.sql</code> exécutée ?).</p>';
+    return;
+  }
+  if (!liste.length) {
+    zone.innerHTML = '<p class="form-hint">Aucune notification reçue de HelloAsso sur la période. Si des paiements ont eu lieu, vérifier l\'URL de notification déclarée dans HelloAsso (voir documentation, 7.5).</p>';
+    return;
+  }
+  const aTraiter = liste.filter(n => n.resultat === 'non_attribuee' || n.resultat === 'erreur' || n.resultat === 'rembourse').length;
+  zone.innerHTML = `
+    <p class="form-hint">${liste.length} notification(s) reçue(s)${aTraiter ? ` — <strong>${aTraiter} à examiner</strong>` : ', aucune à examiner'}.</p>
+    ${tableauHtml(['Reçue le', 'Payeur', 'Type', 'Montant', 'Résultat', 'Détail'], liste.map(n => {
+      const r = RESULTATS_NOTIF[n.resultat] || { libelle: n.resultat, classe: 'ha-etat--autre' };
+      return [
+        new Date(n.recu_le).toLocaleString('fr-FR'),
+        escapeHtml(n.payeur || '—'),
+        escapeHtml(LIBELLES_FORM[n.type] || n.type || '—'),
+        n.montant !== null && n.montant !== undefined ? `<span class="ha-montant">${euros(n.montant)}</span>` : '—',
+        `<span class="statut-badge ${r.classe}">${r.libelle}</span>`,
+        escapeHtml(n.message || ''),
+      ];
+    }))}`;
 }
 
 function tableauHtml(entetes, lignes) {
@@ -356,6 +424,7 @@ function libelleRapprochement(p) {
   const r = p.rapprochement;
   if (!r) return '<span class="form-hint-inline">—</span>';
   return {
+    confirme: '<span title="Confirmé automatiquement par la notification HelloAsso">✅ Confirmé HelloAsso</span>',
     ok: '<span title="Paiement confirmé sur le site et retrouvé sur HelloAsso">✅ Rapproché</span>',
     rembourse: '<span title="Payé sur le site, remboursé sur HelloAsso">↩ Remboursé</span>',
     non_declare: '<span title="Non confirmé sur le site">❔ Non confirmé</span>',
@@ -370,7 +439,7 @@ function libelleRapprochement(p) {
 function exporterCsv() {
   const liste = paiementsFiltres();
   if (!liste.length) { alert('Aucun paiement à exporter.'); return; }
-  const statutsTexte = { ok: 'Rapproché', rembourse: 'Remboursé', non_declare: 'Non confirmé sur le site', anterieur: 'Non contrôlé' };
+  const statutsTexte = { confirme: 'Confirmé par HelloAsso', ok: 'Rapproché', rembourse: 'Remboursé', non_declare: 'Non confirmé sur le site', anterieur: 'Non contrôlé' };
   const lignes = [
     ['Date', 'Prénom', 'Nom', 'Email', 'Formulaire', 'Montant', 'État', 'Moyen', 'Rapprochement', 'N° commande HelloAsso'],
     ...liste.map(p => [

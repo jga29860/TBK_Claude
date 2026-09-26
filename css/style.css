@@ -1391,3 +1391,4 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   font-family: var(--font-body); font-size:0.95rem; padding: 9px 12px;
   border-radius:8px; border:1px solid #a9d18e; background: var(--white); color: var(--ink);
 }
+.ha-etat--erreur{ background:#fde2e2; color:#a00000; }

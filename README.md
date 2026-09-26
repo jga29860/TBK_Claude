@@ -1076,6 +1076,18 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Confirmation automatique des paiements par notification HelloAsso
+
+Exécutez `supabase/migration_helloasso_notification.sql` (après `migration_helloasso_suivi.sql`), ajoutez le secret `HELLOASSO_WEBHOOK_SECRET`, déployez `supabase/functions/helloasso-notification/index.ts` **avec "Verify JWT" désactivé**, puis déclarez l'URL `https://<projet>.supabase.co/functions/v1/helloasso-notification?cle=<secret>` dans HelloAsso (Intégrations et API → Notifications). Détails : documentation, section 7.5.
+
+**1. Intention de paiement** — `paiement-helloasso.js` accepte `intention: { type, references }` : au clic, `creer_intention_paiement` enregistre la demande (statut `en_attente`) et renvoie l'email du membre, pré-rempli dans le widget. À la confirmation du widget, `declarer_paiement_en_ligne` (statut `declaree`). `boutique.js` et `membres.js` passent l'intention (l'ancien appel `journaliser_paiement_en_ligne` est retiré, la fonction reste en base pour compatibilité).
+
+**2. Edge Function publique `helloasso-notification`** — clé secrète dans l'URL (comparaison à temps constant), paiement relu via `GET /v5/payments/{id}` (le contenu de la notification n'est jamais utilisé tel quel), connexion directe à la base (`SUPABASE_DB_URL`, indépendante des clés d'API), appel de `appliquer_notification_helloasso` (non exécutable par anon / authenticated). Gère les événements `Payment` et `Order`, idempotente (même paiement notifié plusieurs fois).
+
+**3. Appariement prudent** — même type + même montant + intention créée dans les 24 h ; puis email unique, sinon nom unique (deux ordres, sans accents), sinon candidate unique déjà déclarée par le widget. Sinon : "non attribuée", rien appliqué. Remboursement : signalé, jamais d'annulation automatique du paiement.
+
+**4. Page Paiements HelloAsso** — nouvelle section "Notifications HelloAsso" (résultat + détail), statut "✅ Confirmé HelloAsso" et rattachement exact par identifiant de paiement dans le rapprochement. Table `notifications_helloasso` ajoutée à la page Sauvegarde.
+
 ## Page Paiements HelloAsso (lecture directe de l'API + rapprochement)
 
 Exécutez `supabase/migration_helloasso_suivi.sql`, puis déployez l'Edge Function `supabase/functions/helloasso/index.ts` (première Edge Function du projet — procédure pas à pas dans la documentation, section 7.4).

@@ -6,11 +6,13 @@
 // depuis le domaine HelloAsso), la fonction onSuccess fournie par
 // l'appelant est déclenchée.
 //
-// Solution volontairement "simple" (pas de backend, pas de webhook) :
-// la confirmation est déclarative, basée sur ce message — fiable en
-// pratique (l'origine du message est vérifiée), mais une vérification
-// ponctuelle depuis le back-office HelloAsso reste recommandée pour
-// le bureau, en complément.
+// Double confirmation :
+// 1. immédiate, par le widget (message "payment_completed", origine
+//    vérifiée) : le membre voit tout de suite sa commande / cotisation payée ;
+// 2. serveur à serveur, par la notification HelloAsso (Edge Function
+//    "helloasso-notification") : confirme le paiement réellement reçu, et
+//    l'applique même si la fenêtre a été fermée avant la fin. Elle
+//    s'appuie sur l'"intention de paiement" enregistrée à l'ouverture.
 //
 // Diagnostic : toutes les étapes clés (URL utilisée, données envoyées,
 // messages reçus) sont tracées dans la console du navigateur (touche
@@ -43,9 +45,13 @@ async function getHelloAssoUrl(cleParametre) {
  * @param {string} [options.ville]
  * @param {string} [options.pays] - code ISO Alpha 3, ex. "FRA"
  * @param {string} options.libelle - texte affiché en haut de la fenêtre (ex. "Commandes boutique TBK")
+ * @param {{type: string, references: string[]}} [options.intention] - ce qui est payé
+ *        ("boutique" + ids des commandes, ou "cotisation" + id de l'inscription) :
+ *        enregistré avant l'ouverture, pour que la notification HelloAsso puisse
+ *        confirmer le paiement même si la fenêtre est fermée avant la fin.
  * @param {Function} options.onSuccess - appelée une fois le paiement confirmé
  */
-async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, email, adresse, codePostal, ville, pays, libelle, onSuccess }) {
+async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, email, adresse, codePostal, ville, pays, libelle, intention, onSuccess }) {
   console.log('[HelloAsso] Ouverture demandée —', cleParametre, '— montant:', montant, 'prenom:', prenom, 'nom:', nom);
 
   if (!montant || Number.isNaN(Number(montant)) || Number(montant) <= 0) {
@@ -61,6 +67,20 @@ async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, ema
   }
   if (!url.includes('/widget')) {
     console.warn('[HelloAsso] ⚠️ L\'URL configurée ne se termine pas par "/widget" — c\'est probablement le lien classique du formulaire, pas celui du widget. Le formulaire risque de refuser de s\'afficher en fenêtre.');
+  }
+
+  // Intention de paiement (confirmation automatique par notification
+  // HelloAsso) — best-effort : n'empêche jamais d'ouvrir le paiement.
+  let intentionId = null;
+  if (intention && intention.type && intention.references && intention.references.length) {
+    const { data: creee, error: errIntention } = await sbClient.rpc('creer_intention_paiement', {
+      p_type: intention.type, p_montant: Number(montant), p_references: intention.references,
+    });
+    if (errIntention) console.warn('[HelloAsso] intention non enregistrée :', errIntention.message);
+    intentionId = (creee && creee.id) || null;
+    // Même email que l'intention : permet à la notification HelloAsso de la retrouver
+    if (!email && creee && creee.payeur_email) email = creee.payeur_email;
+    console.log('[HelloAsso] Intention de paiement :', intentionId || '(aucune)');
   }
 
   const overlay = document.createElement('div');
@@ -116,6 +136,10 @@ async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, ema
     if (event.data && event.data.event === 'payment_completed') {
       console.log('[HelloAsso] ✅ Paiement confirmé (payment_completed reçu).');
       fermer();
+      if (intentionId) {
+        sbClient.rpc('declarer_paiement_en_ligne', { p_intention_id: intentionId })
+          .then(({ error }) => { if (error) console.warn('[HelloAsso] déclaration :', error.message); });
+      }
       if (onSuccess) onSuccess();
     }
   }
