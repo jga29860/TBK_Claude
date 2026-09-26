@@ -62,7 +62,7 @@
   </section>
 
   <!-- Affiché dès qu'on est connecté, quel que soit le profil -->
-  <section id="monCompteSection" class="admin-section" hidden>
+  <section id="monCompteSection" class="admin-section" data-repliable-mobile hidden>
     <h2>Mon compte</h2>
     <p class="section-lead">Connecté en tant que <strong id="monCompteIdentifiant"></strong>.</p>
     <form id="changePasswordForm" class="inline-form">
@@ -124,6 +124,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/menu-mobile.js"></script>
+<script src="js/tableaux-mobile.js"></script>
+<script src="js/sections-repliables.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/paiement-helloasso.js"></script>

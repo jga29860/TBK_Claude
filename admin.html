@@ -38,7 +38,7 @@
   <div id="adminPanel" hidden>
 
     <!-- ===== Mon compte ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Mon compte</h2>
       <p class="section-lead">Changez votre propre mot de passe de connexion.</p>
       <form id="changePasswordForm" class="inline-form">
@@ -54,7 +54,7 @@
     </section>
 
     <!-- ===== Paramètres du site ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Paramètres du site</h2>
       <p class="section-lead">Modifiez ici les informations utilisées automatiquement sur les pages publiques du site.</p>
       <form id="parametresForm" class="inline-form">
@@ -79,7 +79,7 @@
     </section>
 
     <!-- ===== Page d'accueil — Section "Le club" ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Page d'accueil — Section "Le club"</h2>
       <p class="section-lead">Titre et cartes de la première section de la page d'accueil (index.html), entièrement modifiables ici.</p>
       <form id="clubTitreForm" class="inline-form">
@@ -111,7 +111,7 @@
     </section>
 
     <!-- ===== Keepalive Supabase (anti-pause) ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Anti-pause Supabase</h2>
       <p class="section-lead">Le plan gratuit Supabase met le site en pause après 7 jours sans activité (message "Failed to fetch" pour les utilisateurs). Un GitHub Actions programmé "touche" la base à intervalle régulier pour l'éviter — réglez ici la fréquence souhaitée.</p>
       <form id="keepaliveForm" class="inline-form">
@@ -125,7 +125,7 @@
     </section>
 
     <!-- ===== Profils (rôles) ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Profils</h2>
       <p class="section-lead">Un profil définit à quelles pages du site il donne accès. Cochez les pages, puis enregistrez.</p>
 
@@ -158,7 +158,7 @@
     </section>
 
     <!-- ===== Utilisateurs ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Utilisateurs</h2>
       <p class="section-lead">Changez le profil d'un utilisateur puis cliquez sur « Enregistrer » sur sa ligne.</p>
       <div class="table-wrap">
@@ -175,7 +175,7 @@
     </section>
 
     <!-- ===== Invitations ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2>Inviter un utilisateur</h2>
       <p class="section-lead">
         Le site étant en inscription libre, vous ne pouvez pas créer un compte avec mot de passe à la place de quelqu'un.
@@ -219,6 +219,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/menu-mobile.js"></script>
+<script src="js/tableaux-mobile.js"></script>
+<script src="js/sections-repliables.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/admin.js"></script>

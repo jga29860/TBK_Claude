@@ -38,7 +38,7 @@
   <div id="mainPanel" hidden>
 
     <!-- ===== Formulaire d'inscription ===== -->
-    <section class="admin-section">
+    <section class="admin-section" data-repliable-mobile>
       <h2 id="formTitle">Nouvelle inscription</h2>
       <form id="inscriptionForm">
         <div class="field-grid">
@@ -104,7 +104,7 @@
     </section>
 
     <!-- ===== Envoi groupé par critères (profil admin) ===== -->
-    <section class="admin-section" id="envoiGroupeSection" hidden>
+    <section class="admin-section" data-repliable-mobile id="envoiGroupeSection" hidden>
       <h2>Envoi groupé par critères</h2>
       <p class="section-lead">Filtrer les inscriptions de la saison selon plusieurs critères à la fois, pour envoyer le même email de relance à toutes les personnes concernées.</p>
       <div class="filtres-groupe-grid">
@@ -178,7 +178,7 @@
       <input type="file" id="certificatFileInput" accept="image/*" capture="environment" style="display:none">
       <input type="file" id="qsSportFileInput" accept="image/*" capture="environment" style="display:none">
     </section>    <!-- ===== Configuration (admin uniquement) ===== -->
-    <section class="admin-section" id="configSection" hidden>
+    <section class="admin-section" data-repliable-mobile id="configSection" hidden>
       <h2>Configuration</h2>
       <p class="section-lead">Réservé au profil admin : définissez les champs du formulaire et les montants de cotisation.</p>
 
@@ -260,6 +260,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="js/menu-mobile.js"></script>
+<script src="js/tableaux-mobile.js"></script>
+<script src="js/sections-repliables.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/main.js"></script>

@@ -1433,3 +1433,82 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   .club-carte-admin-actions{ flex-shrink:1; }
   .cotisation-row input{ min-width:0; }
 }
+
+/* ============================================================
+   Audit mobile — lot 2 : ergonomie mobile
+   ============================================================ */
+@media (max-width: 760px){
+  /* Tableaux déjà présentés en cartes sur mobile : la largeur minimale
+     de 480 px des tableaux les faisait déborder de leur cadre (boutons
+     d'émargement coupés, noms tronqués dans les poules…) */
+  #inscriptionsTable, #tournoisTable, .equipes-table, .poule-fiche-table, .match-table,
+  #rolesTable, #usersTable, table.table-emargement, table.table-cartes{ min-width:0 !important; }
+}
+
+@media (max-width: 760px){
+  /* ----- Tableaux en cartes (js/tableaux-mobile.js) ----- */
+  .table-wrap--cartes{ border:none; border-radius:0; overflow:visible; }
+  table.table-cartes, table.table-cartes tbody{ display:block; width:100%; min-width:0 !important; background:none; }
+  table.table-cartes thead{ display:none; }
+  table.table-cartes tr{
+    display:block; width:100%; margin:0 0 10px; padding:6px 0;
+    border:1px solid var(--border); border-radius:10px; background:var(--white);
+  }
+  table.table-cartes td{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:7px 14px !important; border:none !important; text-align:right; min-width:0;
+    overflow-wrap:anywhere;
+  }
+  table.table-cartes td::before{
+    content:attr(data-label); flex:0 0 auto; max-width:45%; text-align:left;
+    font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft);
+  }
+  table.table-cartes td[data-label=""]::before, table.table-cartes td.cellule-pleine::before{ content:none; }
+  table.table-cartes td[data-label=""], table.table-cartes td.cellule-pleine{ justify-content:flex-start; text-align:left; flex-wrap:wrap; }
+  /* Cellules contenant un champ de saisie : titre au-dessus, champ sur toute la largeur */
+  table.table-cartes td:has(input:not([type="checkbox"]):not([type="radio"]), select, textarea){
+    flex-direction:column; align-items:stretch; text-align:left; gap:4px;
+  }
+  table.table-cartes td:has(input:not([type="checkbox"]):not([type="radio"]), select, textarea)::before{ max-width:none; }
+  table.table-cartes td input:not([type="checkbox"]):not([type="radio"]), table.table-cartes td select, table.table-cartes td textarea{
+    width:100% !important; max-width:100%; box-sizing:border-box;
+  }
+  table.table-cartes td .btn{ margin:2px 0; }
+
+  /* ----- Boutons : cibles tactiles confortables (44 px) ----- */
+  .btn{ min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+
+  /* ----- Espacements : plus de place utile sur petit écran ----- */
+  .page-section{ padding-top:28px; padding-left:16px; padding-right:16px; }
+  .admin-section{ padding:20px 16px; }
+
+  /* ----- En-tête connecté : une seule ligne compacte ----- */
+  .auth-state{ flex-wrap:nowrap; gap:6px; justify-content:flex-end; min-width:0; }
+  .nav-auth-name{ padding:4px 10px; min-height:36px; min-width:0; max-width:38vw; }
+  .nav-auth-name small{ display:none; }
+  .nav-auth-name{ overflow:hidden; white-space:nowrap; text-overflow:ellipsis; display:inline-block; line-height:28px; }
+  .pending-badge{ padding:4px 8px; font-size:0.72rem; white-space:nowrap; min-height:36px; display:inline-flex; align-items:center; margin-left:0; }
+  .nav-auth-link{ white-space:nowrap; min-height:36px; padding:0 4px; }
+}
+
+@media (max-width: 760px){
+  /* ----- Sections repliables (js/sections-repliables.js) ----- */
+  .section-repliable > :first-child{
+    cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .section-repliable > :first-child::after{
+    content:'▾'; flex-shrink:0; color:var(--green); font-size:1.1rem; transition:transform .15s ease;
+  }
+  .section-repliable.section-repliee > :first-child::after{ transform:rotate(-90deg); }
+  .section-repliable.section-repliee > :first-child{ margin-bottom:0; }
+  .section-repliable.section-repliee > :not(:first-child){ display:none !important; }
+  .section-repliable.section-repliee{ padding-top:16px; padding-bottom:16px; }
+}
+@media (max-width: 760px){
+  .auth-state{ gap:5px; }
+  .nav-auth-name{ flex:0 1 auto; min-width:72px; }
+  #pendingBadgeContainer{ display:flex; min-width:0; flex:0 1 auto; }
+  .pending-badge{ display:block; overflow:hidden; text-overflow:ellipsis; min-width:0; line-height:28px; }
+  .nav-auth-link{ flex:none; font-size:0.8rem; }
+}

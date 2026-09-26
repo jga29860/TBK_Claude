@@ -190,7 +190,7 @@ function renderPouleBlock(poule, equipes, isDouble) {
     <div class="poule-block">
       <h3 class="poule-block-title">${escapeHtml(titre)} <span class="poule-count">(${equipes.length})</span></h3>
       <div class="table-wrap">
-        <table class="schedule table-center">
+        <table class="schedule table-center table-emargement">
           <thead>
             <tr>
               <th>Joueur 1</th>

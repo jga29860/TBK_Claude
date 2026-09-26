@@ -1076,6 +1076,20 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Audit — lot 2 : ergonomie mobile
+
+Aucune migration SQL. Trois scripts communs, sans effet sur PC :
+
+**1. `js/tableaux-mobile.js` — tableaux en cartes** (23 pages). Tout `table.schedule` avec en-tête reçoit la classe `table-cartes` et un `data-label` par cellule (repris du `thead`, lignes ajoutées après coup suivies par `MutationObserver`). CSS mobile : une carte par ligne, libellé à gauche, valeur à droite ; champs de saisie sous leur libellé. Exclus (présentation mobile déjà spécifique) : `#inscriptionsTable`, `#tournoisTable`, `#rolesTable`, `#usersTable`, `.equipes-table`, `.poule-fiche-table`, `.match-table`, `.table-emargement`.
+
+**2. Largeur minimale de 480 px levée sur mobile** pour les tableaux déjà en cartes : corrige les boutons Absent / Payée coupés en Émargement (`emargement.js` : classe `table-emargement`) et les noms tronqués dans les poules et le planning.
+
+**3. `js/sections-repliables.js` — sections repliables** (attribut `data-repliable-mobile`) : Inscriptions (Nouvelle inscription, Envoi groupé, Configuration), Boutique (Gérer les articles, Synthèse), Tournois (Types, Créer), Administration (toutes), Connexion (Mon compte). Repliées par défaut sur mobile ; ouverture au toucher du titre, au focus d'un champ, et automatiquement avant tout `scrollIntoView` (boutons "Modifier" des pages).
+
+**4. Confort** : boutons 44 px min. sur mobile, en-tête connecté sur une ligne (80 px au lieu de 115), marges de page et de sections réduites.
+
+**Non-régression vérifiée** : 0 erreur JS (23 pages × PC / mobile), 0 débordement horizontal, PC identique pixel à pixel hors évolutions voulues, menu testé partout, parcours "Modifier" d'une inscription testé sur mobile (section ouverte, formulaire affiché). Mesures mobile : cibles tactiles < 32 px 248 → 72 ; hauteur Inscriptions 9 247 → 1 893 px, Administration 7 772 → 1 099 px, Boutique 5 583 → 2 700 px.
+
 ## Audit — lot 1 : menu mobile, protection des coordonnées, champs de saisie
 
 Exécutez `supabase/migration_protection_contacts_equipes.sql`.
