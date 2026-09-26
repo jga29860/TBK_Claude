@@ -53,7 +53,7 @@
         <div><a href="#inscriptions-saison">5. Inscriptions à la saison</a></div>
         <div><a href="#tournois">6. Gestion des tournois</a></div>
         <div><a href="#administration">7. Administration du site</a></div>
-        <div><a href="#agenda">8. Agenda du club</a></div>
+        <div><a href="#agenda">8. Agenda et boîte mail du club</a></div>
         <div><a href="#sauvegarde">9. Sauvegarde des données</a></div>
         <div><a href="#jeu-de-cartes">10. Jeu de cartes</a></div>
         <div><a href="#suivi-connexions">11. Suivi des connexions</a></div>
@@ -81,6 +81,7 @@
         <li><strong>GitHub Pages</strong> — hébergement du site (gratuit, fichiers statiques).</li>
         <li><strong>Supabase</strong> — base de données, authentification, sécurité.</li>
         <li><strong>Google Calendar API</strong> — pour la page Agenda du club (lecture/écriture des événements, via connexion OAuth de l'administrateur).</li>
+        <li><strong>Gmail API</strong> — pour la boîte mail du club affichée sous l'agenda (lecture, mise à la corbeille, envoi), avec la même connexion OAuth.</li>
         <li><strong>api.qrserver.com</strong> — génération du QR code d'inscription sur la page d'accueil.</li>
       </ul>
 
@@ -90,7 +91,7 @@
         <li>La gestion des adhésions à la saison (inscriptions, cotisations, validation par le bureau).</li>
         <li>La gestion complète des tournois (inscriptions, poules, émargement, planning, phases finales).</li>
         <li>L'administration du site (comptes, droits d'accès, paramètres).</li>
-        <li>L'agenda du club, relié à Google Calendar.</li>
+        <li>L'agenda du club, relié à Google Calendar, et la boîte mail du club, reliée à Gmail.</li>
       </ul>
     </section>
 
@@ -118,7 +119,7 @@
             <tr><td>tournois_inscriptions</td><td>tournoi-inscriptions.html</td><td>Gestion des équipes inscrites et des poules, sans accès aux autres pages tournoi</td></tr>
             <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
             <tr><td>tournois_courses</td><td>courses.html</td><td>Suivi des achats effectués pour le tournoi</td></tr>
-            <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar)</td></tr>
+            <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar) et boîte mail du club (Gmail)</td></tr>
             <tr><td>jeu_cartes</td><td>jeu-de-cartes.html</td><td>Composition aléatoire d'équipes par tirage de cartes</td></tr>
             <tr><td>boutique</td><td>boutique.html</td><td>Consultation du catalogue et passage de commandes</td></tr>
             <tr><td>boutique_gestion</td><td>boutique.html (gestion + synthèse)</td><td>Ajout/modification/suppression des articles, suivi des demandes</td></tr>
@@ -429,7 +430,7 @@
 
     <!-- ===== 8. AGENDA ===== -->
     <section class="admin-section" id="agenda">
-      <h2>8. Agenda du club (agenda.html)</h2>
+      <h2>8. Agenda et boîte mail du club (agenda.html)</h2>
       <p>Réservée pour l'instant au profil administrateur. Affiche l'agenda Google du club en vue mensuelle, avec ajout, modification et suppression d'événements directement depuis le site.</p>
       <ul>
         <li>Connexion Google via OAuth, avec tentative de reconnexion automatique et silencieuse à chaque ouverture de page.</li>
@@ -438,6 +439,18 @@
         <li><strong>Anniversaires des membres</strong> (option, activable par l'administrateur dans Administration → Paramètres du site, case "Afficher les anniversaires des membres dans l'agenda du club") : chaque anniversaire apparaît à sa date sous la forme "🎂 Prénom Nom", sur une teinte orangée distincte des événements Google, dans la grille comme dans la vue liste sur mobile. Sont concernés les membres dont l'inscription de la saison en cours est validée et dont la date de naissance est renseignée. Seuls le prénom, le nom et le jour sont transmis au navigateur : jamais l'année de naissance ni l'âge. Un anniversaire au 29 février s'affiche le 28 février les années non bissextiles. Ces lignes ne sont pas cliquables (non modifiables depuis l'agenda) : elles suivent automatiquement les inscriptions — corriger une date de naissance sur l'inscription suffit.</li>
       </ul>
       <p>Aucune donnée de calendrier n'est stockée sur le site : tout est récupéré et modifié en direct via l'API Google Calendar. Les anniversaires ne sont jamais écrits dans Google Agenda : ils sont calculés à l'affichage à partir des inscriptions (fonction Supabase <code>anniversaires_membres</code>, réservée aux profils ayant accès à la page Agenda, qui ne renvoie rien quand l'option est désactivée).</p>
+    
+      <h3>8.1 Boîte mail du club (Gmail)</h3>
+      <p>Affichée sous l'agenda, avec la même connexion Google : le compte utilisé est celui de l'email de contact du club (le compte connecté est rappelé en tête de section). Aucun message n'est stocké sur le site : tout est lu et envoyé en direct via l'API Gmail.</p>
+      <ul>
+        <li><strong>Dossiers</strong> : Réception, Envoyés, Corbeille — 20 messages par page, du plus récent au plus ancien, avec navigation "Plus récents / Plus anciens". Les messages non lus sont en gras, et leur nombre est rappelé à côté du titre de la section.</li>
+        <li><strong>Recherche</strong> : même syntaxe que dans Gmail (ex. un nom, un mot de l'objet, <code>from:adresse</code>, <code>has:attachment</code>), appliquée au dossier affiché.</li>
+        <li><strong>Consultation</strong> : un clic ouvre le message (expéditeur, destinataires, date, contenu mis en forme, pièces jointes téléchargeables, images intégrées affichées). Ouvrir un message le marque comme lu, comme dans Gmail. Pour la sécurité, le contenu est affiché dans un cadre isolé où aucun script ne peut s'exécuter ; les liens s'ouvrent dans un nouvel onglet.</li>
+        <li><strong>Supprimer</strong> : met le message à la corbeille Gmail, après confirmation. Il reste récupérable 30 jours (bouton "Restaurer" depuis le dossier Corbeille), puis Gmail le supprime automatiquement. La suppression définitive immédiate n'est volontairement pas possible depuis le site.</li>
+        <li><strong>Envoyer</strong> : "Nouveau message", "Répondre" (destinataire, objet "Re:" et citation du message d'origine pré-remplis, réponse rangée dans la même conversation Gmail) ou "Transférer" (objet "Tr:", message d'origine repris, avec option pour joindre ses pièces jointes). Plusieurs destinataires séparés par des virgules, copie (Cc), pièces jointes (25 Mo maximum au total). Le message part du compte Gmail du club et apparaît dans ses Envoyés.</li>
+        <li><strong>Session</strong> : la connexion Google dure une heure ; à son expiration, le site revient à l'écran de connexion (agenda et boîte mail ensemble). Si l'accès Gmail a été décoché lors de la connexion, un bouton "Autoriser l'accès Gmail" permet de le redonner.</li>
+      </ul>
+      <p><strong>Mise en place côté Google Cloud</strong> (une seule fois, dans le projet Google Cloud déjà utilisé pour l'agenda) : activer l'<strong>API Gmail</strong> (API et services → Bibliothèque), puis ajouter l'autorisation <code>https://www.googleapis.com/auth/gmail.modify</code> dans l'écran de consentement OAuth (Accès aux données). Google classe cette autorisation comme "restreinte" : l'application doit rester en mode <strong>Test</strong>, avec le compte du club parmi les utilisateurs test — un passage en production exigerait une vérification payante par Google. À la première ouverture de la page après la mise à jour, une connexion manuelle est nécessaire pour accepter la nouvelle autorisation (cocher l'accès à l'agenda <em>et</em> à Gmail).</p>
     </section>
 
     <!-- ===== 9. SAUVEGARDE ===== -->

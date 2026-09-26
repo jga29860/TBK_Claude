@@ -1076,6 +1076,20 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Boîte mail du club (Gmail) sous l'agenda
+
+Aucune migration SQL. Nouveau fichier `js/boite-mail.js`, chargé par `agenda.html`.
+
+**1. Consultation** : dossiers Réception / Envoyés / Corbeille, 20 messages par page avec pagination, recherche (syntaxe Gmail), non lus en gras + compteur. Lecture complète : en-têtes, corps HTML dans une iframe `sandbox` sans scripts, images intégrées (`cid:`), pièces jointes téléchargeables. Ouvrir un message le marque comme lu.
+
+**2. Suppression** : mise à la corbeille Gmail (récupérable 30 jours, bouton "Restaurer"). Pas de suppression définitive depuis le site (volontaire).
+
+**3. Envoi** : nouveau message, répondre (dans le même fil Gmail : `threadId`, `In-Reply-To`, `References`), transférer (option pour reprendre les pièces jointes d'origine). Cc, pièces jointes (25 Mo max). Message MIME 100 % ASCII (en-têtes accentués encodés RFC 2047, corps en base64), envoyé en `uploadType=multipart`.
+
+**4. Connexion Google unique** : `js/google-config.js` définit `GOOGLE_GMAIL_SCOPE` (`gmail.modify`) et `GOOGLE_SCOPES` (agenda + Gmail), utilisé par `agenda.js`. Point d'entrée commun `demarrerApresConnexion()` ; expiration de session commune `sessionGoogleExpiree()` ; bouton de ré-autorisation si l'accès Gmail a été décoché.
+
+⚠️ **Mise en place côté Google Cloud (avant de tester)** : activer l'API Gmail dans le projet, ajouter le scope `https://www.googleapis.com/auth/gmail.modify` à l'écran de consentement OAuth, garder l'application en mode Test avec le compte du club en utilisateur test. Première ouverture : connexion manuelle pour accepter la nouvelle autorisation.
+
 ## Agenda — anniversaires des membres (option Oui / Non)
 
 Exécutez `supabase/migration_agenda_anniversaires.sql`.

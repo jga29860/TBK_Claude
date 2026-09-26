@@ -14,6 +14,7 @@ let eventsCache = [];
 let anniversairesCache = []; // [{ prenom, nom, jour }] du mois affiché (option admin)
 let editingEventId = null;
 let editingRecurringEventId = null; // id de la série (si l'événement en fait partie)
+let scopesAccordes = ''; // autorisations réellement accordées par Google (l'utilisateur peut décocher Gmail)
 
 function currentDateAtMidnight() {
   const d = new Date();
@@ -52,7 +53,7 @@ async function initPage() {
   if (recupererJetonDepuisRedirection()) {
     document.getElementById('connectPanel').hidden = true;
     document.getElementById('calendarContent').hidden = false;
-    loadEvents();
+    demarrerApresConnexion();
     return;
   }
 
@@ -73,6 +74,7 @@ function recupererJetonDepuisRedirection() {
   if (!token) return false;
 
   accessToken = token;
+  scopesAccordes = params.get('scope') || '';
   history.replaceState(null, '', window.location.pathname + window.location.search);
   return true;
 }
@@ -88,28 +90,61 @@ function initGoogleClient() {
   }
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: GOOGLE_CLIENT_ID,
-    scope: GOOGLE_CALENDAR_SCOPE,
+    scope: GOOGLE_SCOPES,
     callback: (response) => {
       annulerDelaiSecurite();
       document.getElementById('connectBtn').hidden = false;
-      document.getElementById('connectBtn').textContent = 'Se connecter à Google Agenda';
+      document.getElementById('connectBtn').textContent = 'Se connecter à Google';
       if (response.error) {
         // Échec silencieux normal si aucune session Google active ou consentement
         // pas encore donné : on laisse simplement le bouton de connexion manuel.
         if (response.error !== 'popup_closed_by_user') {
           document.getElementById('connectHint').textContent =
-            response.error === 'immediate_failed' || response.error === 'user_logged_out'
-              ? 'Connexion automatique impossible : cliquez sur le bouton pour vous connecter.'
-              : 'Erreur de connexion : ' + response.error;
+            response.error === 'consent_required' || response.error === 'interaction_required'
+              ? 'Nouvelle autorisation Google nécessaire (accès à la boîte mail) : cliquez sur le bouton pour vous connecter et acceptez l\'accès à l\'agenda et à Gmail.'
+              : response.error === 'immediate_failed' || response.error === 'user_logged_out'
+                ? 'Connexion automatique impossible : cliquez sur le bouton pour vous connecter.'
+                : 'Erreur de connexion : ' + response.error;
         }
         return;
       }
       accessToken = response.access_token;
+      scopesAccordes = response.scope || '';
       document.getElementById('connectPanel').hidden = true;
       document.getElementById('calendarContent').hidden = false;
-      loadEvents();
+      demarrerApresConnexion();
     },
   });
+}
+
+/**
+ * Point d'entrée unique après une connexion Google réussie (fenêtre,
+ * redirection mobile ou reconnexion silencieuse) : agenda + boîte mail.
+ */
+function demarrerApresConnexion() {
+  loadEvents();
+  if (typeof demarrerBoiteMail === 'function') demarrerBoiteMail();
+}
+
+/**
+ * Session Google expirée (jeton d'une heure) : retour à l'écran de
+ * connexion, commun à l'agenda et à la boîte mail.
+ */
+function sessionGoogleExpiree() {
+  document.getElementById('calendarHint').textContent = '';
+  document.getElementById('connectPanel').hidden = false;
+  document.getElementById('calendarContent').hidden = true;
+  document.getElementById('connectHint').textContent = 'Session Google expirée, reconnectez-vous.';
+}
+
+/**
+ * Reconnexion en forçant l'écran de consentement Google, pour redonner
+ * une autorisation décochée (ex. accès Gmail) lors d'une connexion précédente.
+ */
+function redemanderAutorisations() {
+  if (estMobile()) { connect(); return; }
+  if (!tokenClient) { initGoogleClient(); }
+  tokenClient.requestAccessToken({ prompt: 'consent', hint: calendarId });
 }
 
 let delaiSecuriteId = null;
@@ -163,7 +198,7 @@ function connect() {
       client_id: GOOGLE_CLIENT_ID,
       redirect_uri: redirectUri,
       response_type: 'token',
-      scope: GOOGLE_CALENDAR_SCOPE,
+      scope: GOOGLE_SCOPES,
       include_granted_scopes: 'true',
       login_hint: calendarId || '',
     });
@@ -202,10 +237,7 @@ async function loadEvents() {
     );
 
     if (res.status === 401) {
-      hint.textContent = '';
-      document.getElementById('connectPanel').hidden = false;
-      document.getElementById('calendarContent').hidden = true;
-      document.getElementById('connectHint').textContent = 'Session Google expirée, reconnectez-vous.';
+      sessionGoogleExpiree();
       return;
     }
 

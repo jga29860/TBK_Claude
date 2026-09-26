@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
-<title>Agenda du club — TBK</title>
+<title>Agenda et boîte mail du club — TBK</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
 <main class="wrap page-section page-section--wide">
   <p class="section-eyebrow">Réservé à l'administrateur</p>
-  <h1>Agenda du club</h1>
+  <h1>Agenda et boîte mail du club</h1>
 
   <div id="deniedPanel" class="status-panel" hidden>
     <h2>Accès refusé</h2>
@@ -39,9 +39,9 @@
 
     <!-- ===== Connexion à Google ===== -->
     <section class="admin-section" id="connectPanel">
-      <h2>Connexion à Google Agenda</h2>
-      <p class="section-lead">L'agenda affiché est celui associé à l'email de contact du club (<span id="calendarEmailLabel">…</span>), modifiable depuis <a href="admin.html">Administration → Paramètres du site</a>.</p>
-      <button type="button" class="btn btn-primary" id="connectBtn">Se connecter à Google Agenda</button>
+      <h2>Connexion à Google (agenda et boîte mail)</h2>
+      <p class="section-lead">L'agenda et la boîte mail affichés sont ceux du compte Google de l'email de contact du club (<span id="calendarEmailLabel">…</span>), modifiable depuis <a href="admin.html">Administration → Paramètres du site</a>.</p>
+      <button type="button" class="btn btn-primary" id="connectBtn">Se connecter à Google</button>
       <p class="form-hint" id="connectHint"></p>
     </section>
 
@@ -118,6 +118,85 @@
         </form>
       </section>
 
+      <!-- ===== Boîte mail du club (Gmail) ===== -->
+      <section class="admin-section" id="mailSection">
+        <div class="mail-entete">
+          <h2 style="margin:0;">Boîte mail du club <span class="count-badge" id="mailNonLusBadge"></span></h2>
+          <button type="button" class="btn btn-primary btn-small" id="mailNouveauBtn">✉️ Nouveau message</button>
+        </div>
+        <p class="section-lead" id="mailCompteLabel"></p>
+
+        <div id="mailContenu">
+          <div class="mail-toolbar">
+            <div class="mail-dossiers" role="tablist">
+              <button type="button" class="mail-dossier mail-dossier--actif" data-dossier="INBOX">Réception</button>
+              <button type="button" class="mail-dossier" data-dossier="SENT">Envoyés</button>
+              <button type="button" class="mail-dossier" data-dossier="TRASH">Corbeille</button>
+            </div>
+            <form class="mail-recherche" id="mailRechercheForm">
+              <input type="search" id="mailRechercheInput" placeholder="Rechercher (expéditeur, objet, contenu…)">
+              <button type="submit" class="btn btn-ghost btn-small">Rechercher</button>
+              <button type="button" class="btn btn-ghost btn-small" id="mailActualiserBtn" title="Actualiser">⟳</button>
+            </form>
+          </div>
+
+          <div class="mail-liste" id="mailListe"></div>
+
+          <div class="mail-pagination">
+            <button type="button" class="btn btn-ghost btn-small" id="mailPagePrecBtn" disabled>◀ Plus récents</button>
+            <span class="form-hint" id="mailPageLabel"></span>
+            <button type="button" class="btn btn-ghost btn-small" id="mailPageSuivBtn" disabled>Plus anciens ▶</button>
+          </div>
+          <p class="form-hint" id="mailHint"></p>
+        </div>
+
+        <!-- Lecture d'un message -->
+        <div class="mail-lecture" id="mailLecture" hidden>
+          <div class="mail-lecture-actions">
+            <button type="button" class="btn btn-ghost btn-small" id="mailRetourBtn">◀ Retour à la liste</button>
+            <button type="button" class="btn btn-primary btn-small" id="mailRepondreBtn">↩ Répondre</button>
+            <button type="button" class="btn btn-ghost btn-small" id="mailTransfererBtn">↪ Transférer</button>
+            <button type="button" class="btn btn-ghost btn-small" id="mailRestaurerBtn" hidden>♻ Restaurer</button>
+            <button type="button" class="btn btn-danger btn-small" id="mailSupprimerBtn">🗑 Supprimer</button>
+          </div>
+          <h3 class="mail-lecture-objet" id="mailLectureObjet"></h3>
+          <div class="mail-lecture-entetes" id="mailLectureEntetes"></div>
+          <div class="mail-pieces-jointes" id="mailLecturePJ"></div>
+          <iframe class="mail-lecture-corps" id="mailLectureCorps" title="Contenu du message"
+                  sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+          <p class="form-hint" id="mailLectureHint"></p>
+        </div>
+
+        <!-- Rédaction -->
+        <div class="mail-redaction" id="mailRedaction" hidden>
+          <h3 id="mailRedactionTitre">Nouveau message</h3>
+          <form id="mailRedactionForm">
+            <div class="mail-redaction-champs">
+              <label>À <span class="form-hint-inline">(plusieurs adresses séparées par des virgules)</span>
+                <input type="text" name="a" required>
+              </label>
+              <label>Cc <span class="form-hint-inline">(facultatif)</span>
+                <input type="text" name="cc">
+              </label>
+              <label>Objet
+                <input type="text" name="objet">
+              </label>
+              <label>Message
+                <textarea name="message" rows="12"></textarea>
+              </label>
+              <label>Pièces jointes <span class="form-hint-inline">(facultatif, 25 Mo maximum au total)</span>
+                <input type="file" name="pieces" multiple>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="mailEnvoyerBtn">Envoyer</button>
+              <button type="button" class="btn btn-ghost" id="mailAnnulerBtn">Annuler</button>
+            </div>
+            <p class="form-hint" id="mailRedactionHint"></p>
+          </form>
+        </div>
+      </section>
+
     </div>
 
   </div>
@@ -137,5 +216,6 @@
 <script src="js/google-config.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="js/agenda.js"></script>
+<script src="js/boite-mail.js"></script>
 </body>
 </html>

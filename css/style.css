@@ -1205,6 +1205,73 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .cal-event-liste--anniversaire:active, .cal-event-liste--anniversaire:hover{ background:none; }
 .cal-event-liste--anniversaire .cal-event-liste-heure{ color:#d9731f; }
 .cal-event-liste--anniversaire ~ .cal-event-liste{ border-top:1px solid var(--border); }
+
+/* ===== Boîte mail du club (Gmail), sous l'agenda ===== */
+.mail-entete{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.mail-toolbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0 12px; }
+.mail-dossiers{ display:flex; gap:6px; flex-wrap:wrap; }
+.mail-dossier{
+  border:1px solid var(--border); background:var(--white); color:var(--dark); border-radius:6px;
+  padding:7px 14px; font-size:0.85rem; font-weight:600; cursor:pointer;
+}
+.mail-dossier:hover{ background:var(--pale); }
+.mail-dossier--actif{ background:var(--green); border-color:var(--green); color:var(--white); }
+.mail-dossier--actif:hover{ background:var(--dark); }
+.mail-recherche{ display:flex; gap:6px; flex:1; max-width:520px; min-width:240px; }
+.mail-recherche input{
+  flex:1; min-width:0; font-family:var(--font-body); font-size:0.9rem; padding:8px 12px;
+  border-radius:8px; border:1px solid #a9d18e;
+}
+.mail-recherche button{ cursor:pointer; }
+
+.mail-liste{ border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.mail-ligne{
+  display:grid; grid-template-columns: 220px 1fr auto; gap:14px; align-items:baseline; width:100%;
+  text-align:left; background:var(--white); border:none; border-top:1px solid var(--border);
+  padding:11px 14px; cursor:pointer; font-size:0.9rem; color:var(--ink);
+}
+.mail-ligne:first-child{ border-top:none; }
+.mail-ligne:hover{ background:var(--pale); }
+.mail-ligne-de, .mail-ligne-sujet{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mail-ligne-sujet{ min-width:0; }
+.mail-ligne-objet{ color:var(--dark); }
+.mail-ligne-extrait{ color:var(--ink-soft); margin-left:8px; font-size:0.85rem; }
+.mail-ligne-date{ font-size:0.8rem; color:var(--ink-soft); white-space:nowrap; }
+.mail-ligne--non-lu{ background:#fbfefa; box-shadow: inset 3px 0 0 var(--green); }
+.mail-ligne--non-lu .mail-ligne-de, .mail-ligne--non-lu .mail-ligne-objet, .mail-ligne--non-lu .mail-ligne-date{ font-weight:700; color:var(--dark); }
+
+.mail-pagination{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; }
+.mail-pagination button{ cursor:pointer; }
+.mail-pagination button:disabled{ opacity:0.4; cursor:default; }
+
+.mail-lecture-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.mail-lecture-actions button{ cursor:pointer; }
+.mail-lecture-objet{ margin:18px 0 8px; }
+.mail-lecture-entetes{ font-size:0.88rem; color:var(--ink); display:flex; flex-direction:column; gap:3px; overflow-wrap:anywhere; }
+.mail-entete-label{ display:inline-block; min-width:44px; font-weight:700; color:var(--ink-soft); }
+.mail-pieces-jointes{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.mail-pj{ cursor:pointer; }
+.mail-lecture-corps{
+  width:100%; min-height:220px; margin-top:14px; border:1px solid var(--border); border-radius:10px; background:#fff;
+}
+
+.mail-redaction-champs{ display:flex; flex-direction:column; gap:14px; margin-top:12px; }
+.mail-redaction-champs label{ display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:700; color:var(--dark); }
+.mail-redaction-champs input[type="text"], .mail-redaction-champs textarea{
+  font-family:var(--font-body); font-size:0.95rem; padding:10px 12px;
+  border-radius:8px; border:1px solid #a9d18e; background:var(--white); color:var(--ink); width:100%;
+}
+.mail-redaction-champs textarea{ resize:vertical; line-height:1.5; }
+.mail-redaction-champs input:focus, .mail-redaction-champs textarea:focus{ outline:3px solid var(--green); }
+
+@media (max-width: 760px){
+  .mail-ligne{ grid-template-columns: 1fr auto; gap:2px 10px; }
+  .mail-ligne-sujet{ grid-column: 1 / -1; white-space:normal; }
+  .mail-ligne-extrait{ display:block; margin-left:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mail-ligne-date{ grid-row:1; grid-column:2; }
+  .mail-recherche{ max-width:none; }
+  .mail-lecture-actions .btn{ flex:1 1 auto; }
+}
 .cal-event-liste-titre{ font-weight:700; font-size:1rem; color:var(--dark); }
 .cal-event-liste-heure{ font-size:0.85rem; color:var(--green); font-weight:600; }
 .cal-event-liste-lieu{ font-size:0.82rem; color:var(--ink-soft); }
