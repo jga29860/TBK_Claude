@@ -52,13 +52,14 @@
         <div><a href="#espace-membres">4. Espace membres</a></div>
         <div><a href="#inscriptions-saison">5. Inscriptions à la saison</a></div>
         <div><a href="#tournois">6. Gestion des tournois</a></div>
-        <div><a href="#administration">7. Administration du site</a></div>
+        <div><a href="#administration">7. Administration du site (dont paiements HelloAsso)</a></div>
         <div><a href="#agenda">8. Agenda et boîte mail du club</a></div>
         <div><a href="#sauvegarde">9. Sauvegarde des données</a></div>
         <div><a href="#jeu-de-cartes">10. Jeu de cartes</a></div>
-        <div><a href="#suivi-connexions">11. Suivi des connexions</a></div>
-        <div><a href="#base-donnees">12. Structure de la base de données</a></div>
-        <div><a href="#glossaire">13. Glossaire</a></div>
+        <div><a href="#boutique">11. Boutique</a></div>
+        <div><a href="#suivi-connexions">12. Suivi des connexions</a></div>
+        <div><a href="#base-donnees">13. Structure de la base de données</a></div>
+        <div><a href="#glossaire">14. Glossaire</a></div>
       </div>
     </section>
 
@@ -79,7 +80,8 @@
       <h3 class="admin-subheading">1.3 Services externes utilisés</h3>
       <ul>
         <li><strong>GitHub Pages</strong> — hébergement du site (gratuit, fichiers statiques).</li>
-        <li><strong>Supabase</strong> — base de données, authentification, sécurité.</li>
+        <li><strong>Supabase</strong> — base de données, authentification, sécurité, et deux <strong>Edge Functions</strong> (petits programmes côté serveur) pour HelloAsso : <code>helloasso</code> (lecture des paiements, voir 7.4) et <code>helloasso-notification</code> (réception des notifications de paiement, voir 7.5).</li>
+        <li><strong>HelloAsso</strong> — paiement en ligne de la boutique et des cotisations (widget, voir 7.3), API de consultation des paiements (7.4) et notifications de paiement (7.5).</li>
         <li><strong>Google Calendar API</strong> — pour la page Agenda du club (lecture/écriture des événements, via connexion OAuth de l'administrateur).</li>
         <li><strong>Gmail API</strong> — pour la boîte mail du club affichée sous l'agenda (lecture, mise à la corbeille, envoi), avec la même connexion OAuth.</li>
         <li><strong>api.qrserver.com</strong> — génération du QR code d'inscription sur la page d'accueil.</li>
@@ -91,8 +93,12 @@
         <li>La gestion des adhésions à la saison (inscriptions, cotisations, validation par le bureau).</li>
         <li>La gestion complète des tournois (inscriptions, poules, émargement, planning, phases finales).</li>
         <li>L'administration du site (comptes, droits d'accès, paramètres).</li>
-        <li>L'agenda du club, relié à Google Calendar, et la boîte mail du club, reliée à Gmail.</li>
+        <li>L'agenda du club, relié à Google Calendar (avec les anniversaires des membres en option), et la boîte mail du club, reliée à Gmail.</li>
+        <li>La boutique du club et le paiement en ligne HelloAsso (boutique, cotisation), avec suivi et rapprochement des paiements.</li>
       </ul>
+
+      <h3 class="admin-subheading">1.5 Utilisation sur téléphone</h3>
+      <p>Toutes les pages s'adaptent à l'écran du téléphone. Le menu du bandeau (dont le menu Organisation donnant accès aux outils selon le profil) s'ouvre avec le bouton ☰ en haut à droite, présent sur toutes les pages, et se referme en choisissant une page, en touchant de nouveau ☰ ou en touchant ailleurs. Les champs de saisie sont affichés en taille 16 px sur téléphone, pour éviter le zoom automatique des iPhone à chaque saisie, et les formulaires passent à un champ par ligne.</p>
     </section>
 
     <!-- ===== 2. COMPTES ET PROFILS ===== -->
@@ -328,6 +334,7 @@
       <p><strong>Accessible sans connexion</strong> — page ouverte à tous (joueurs extérieurs au club inclus), accessible via un lien ou un QR code affiché sur la page d'accueil du site (voir 1.2). Chaque équipe se déclare elle-même : coordonnées de la personne qui fait la demande (email et téléphone, pour la recontacter et l'informer par la suite), choix de la compétition (le formulaire s'adapte automatiquement en simple/double selon son format), puis pour chaque joueur — nom, prénom, club, niveau (Débutant / Intermédiaire / Confirmé), et affiliation fédérale (Oui/Non). Une demande soumise via ce formulaire démarre toujours au statut "En attente" — jamais directement validée.</p>
       <p><strong>Validation par l'organisation</strong> (droits "Tournois - Administration" ou "Tournois - Gestion") : sur tournoi-inscriptions.html, une section "🟠 Demandes en attente" regroupe les demandes à traiter — coordonnées du demandeur visibles dans une colonne dédiée — avec un bouton "Valider" (la demande rejoint alors le tableau normal des équipes, avec ses données de niveau/Fédé visibles au survol) et un bouton "Refuser" (la demande bascule dans une section "⛔ Demandes refusées", d'où elle peut être remise en attente en cas d'erreur). Les équipes saisies directement par le bureau via le formulaire habituel de cette page restent automatiquement validées, comme auparavant.</p>
       <p><strong>Email de confirmation</strong> : au moment de valider une demande, si un email a été renseigné par le demandeur, une confirmation d'envoi est proposée ("Envoyer un email de confirmation à [adresse] ?") — un lien mailto pré-rempli s'ouvre alors dans le client email de la personne connectée, qui valide l'envoi elle-même (rien n'est envoyé automatiquement). Un bouton "Renvoyer confirmation" reste ensuite disponible sur l'équipe validée, dans le tableau normal, pour un nouvel envoi si besoin.</p>
+      <p><strong>Protection des coordonnées</strong> : les pages Phase Poule et Phase finale étant consultables sans connexion (QR code), la liste des équipes est publique. L'email et le téléphone du demandeur sont donc conservés à part, dans une table non publique, et n'apparaissent que sur tournoi-inscriptions.html pour les profils autorisés — aucune différence pour le demandeur ni pour l'organisation.</p>
 
       <h3 class="admin-subheading">6.4 Émargement (emargement.html)</h3>
       <p>Bandeau du haut fixe : cotisation, recherche instantanée, compteur de présents / inscrits, montant réglé — recalculés en direct.</p>
@@ -420,12 +427,12 @@
       <p><strong>Mise en place côté HelloAsso</strong> (une seule fois par usage, hors du site) : créer un formulaire de type "don" à <strong>montant libre</strong> sur HelloAsso — un pour la boutique, un second, distinct, pour la cotisation — puis copier l'URL de son widget (menu Partager → Bouton/Widget) dans le champ correspondant de Paramètres du site ("URL du widget de paiement HelloAsso (boutique)" ou "(cotisation)"). Laisser un champ vide désactive entièrement le paiement en ligne correspondant (le bouton reste alors masqué), sans affecter l'autre.</p>
       <p><strong>Boutique</strong> : un bouton "💳 Payer toutes mes commandes en ligne" apparaît dans "Mes commandes" (boutique.html) dès qu'une ou plusieurs commandes restent à régler — un seul paiement, quel que soit le nombre d'articles en attente, avec le montant total pré-rempli.</p>
       <p><strong>Cotisation</strong> : un bouton "💳 Payer en ligne" apparaît dans "Mes informations" (membres.html), sous la ligne Cotisation, dès qu'elle n'est pas encore payée. Une fois le paiement confirmé, le champ "Cotisation payée" passe automatiquement à "Oui".</p>
-      <p><strong>Pré-remplissage</strong>, pour les deux : prénom, nom, adresse (depuis l'inscription saison de la personne, si renseignée) et pays (France par défaut) sont automatiquement pré-remplis dans le formulaire HelloAsso, ouvert dans une fenêtre par-dessus la page — le code postal et la ville restent à compléter manuellement, le club ne collectant pour l'instant qu'une adresse en un seul champ libre.</p>
+      <p><strong>Pré-remplissage</strong>, pour les deux : prénom, nom, email (celui de l'inscription saison, sinon du compte), adresse (depuis l'inscription saison de la personne, si renseignée) et pays (France par défaut) sont automatiquement pré-remplis dans le formulaire HelloAsso, ouvert dans une fenêtre par-dessus la page — le code postal et la ville restent à compléter manuellement, le club ne collectant pour l'instant qu'une adresse en un seul champ libre.</p>
       <p><strong>Boutons de paiement</strong> : affichage volontairement distinct du reste du site — fond orange, largeur réduite (220px maximum) — pour les repérer facilement au milieu des autres informations.</p>
       <p><strong>Limites propres à HelloAsso, à connaître</strong> : le formulaire utilisé est un formulaire de <strong>don</strong> à montant libre — seul type de formulaire HelloAsso permettant ce pré-remplissage dynamique par le site. Son vocabulaire interne ("faire un don"...) et l'exigence d'une adresse complète (utilisée par HelloAsso pour un éventuel reçu fiscal) viennent de HelloAsso lui-même et ne sont pas modifiables depuis le site. Vérifier dans le back-office HelloAsso que l'option "don sur-mesure" est bien activée sur chaque formulaire — sans cela, le pré-remplissage est ignoré par HelloAsso.</p>
       <p><strong>Diagnostic en cas de problème</strong> : toutes les étapes clés (URL du widget utilisée, données envoyées au pré-remplissage, messages reçus en retour de HelloAsso) sont tracées dans la console du navigateur (touche F12 → onglet "Console"), préfixées par "[HelloAsso]" — utile pour identifier précisément où un paiement bloque avant de contacter le support HelloAsso.</p>
       <p><strong>Cookies tiers bloqués (symptôme fréquent)</strong> : certains navigateurs modernes (Safari, Firefox, et de plus en plus Chrome par défaut) bloquent les cookies tiers, empêchant le widget HelloAsso — chargé depuis un autre domaine — d'accéder à ses propres cookies de session pour reconnaître un compte HelloAsso déjà connecté. Repérable dans la console par une erreur <code>401</code> sur <code>api.helloasso.com/v5/agg/user</code> et le message "User is not filled, cannot auto-fill payer information" — propre au widget HelloAsso, sans lien avec le pré-remplissage du site (qui continue de fonctionner normalement). L'attribut <code>allow="storage-access"</code> a été ajouté à l'iframe pour permettre au widget de demander l'accès à ses cookies si son code le prévoit.</p>
-      <p><strong>Confirmation automatique</strong> : dès que le paiement est terminé sur HelloAsso, la commande boutique concernée passe automatiquement au statut "Payée", ou la cotisation au champ "Payée" — sans que le bureau ait quoi que ce soit à faire. Pour la boutique, le statut est la source unique de vérité pour le paiement, qu'il ait eu lieu en ligne ou par chèque/espèces (choix manuel de "Payée" dans le détail des demandes — voir 11.4). Cette confirmation repose sur un message envoyé par HelloAsso au navigateur de la personne (son origine est vérifiée par le site), et non sur une notification serveur-à-serveur classique (solution volontairement simple, sans serveur intermédiaire) : une vérification ponctuelle depuis le back-office HelloAsso reste recommandée pour le bureau, en complément, en particulier au début de la mise en service.</p>
+      <p><strong>Confirmation automatique</strong> : dès que le paiement est terminé sur HelloAsso, la commande boutique concernée passe automatiquement au statut "Payée", ou la cotisation au champ "Payée" — sans que le bureau ait quoi que ce soit à faire. Pour la boutique, le statut est la source unique de vérité pour le paiement, qu'il ait eu lieu en ligne ou par chèque/espèces (choix manuel de "Payée" dans le détail des demandes — voir 11.4). La confirmation est double : immédiate, par un message envoyé par le widget HelloAsso au navigateur de la personne (origine vérifiée par le site) ; puis serveur à serveur, par la notification que HelloAsso envoie au site à chaque paiement — qui applique aussi le paiement si la personne a fermé la fenêtre avant la fin (voir 7.5). Le suivi et le contrôle des paiements se font depuis la page Paiements HelloAsso (voir 7.4), sans avoir à ouvrir le back-office HelloAsso.</p>
       <p><strong>Sécurité</strong> : seule la personne connectée peut marquer ses <em>propres</em> commandes ou <em>sa propre</em> cotisation comme payées (vérifié côté base de données) — jamais celles/celle de quelqu'un d'autre, et aucun autre champ n'est modifiable par ce mécanisme.</p>
     
       <h3 class="admin-subheading">7.4 Paiements HelloAsso (helloasso.html)</h3>
@@ -527,7 +534,7 @@
     <!-- ===== 11. BOUTIQUE ===== -->
     <section class="admin-section" id="boutique">
       <h2>11. Boutique (boutique.html)</h2>
-      <p>Vente d'articles en lien avec le club (textile, accessoires…) aux membres. Le paiement est suivi manuellement par le bureau — comme pour les cotisations saison — il n'y a pas de paiement en ligne sur le site.</p>
+      <p>Vente d'articles en lien avec le club (textile, accessoires…) aux membres. Le paiement se fait en ligne via HelloAsso (bouton "💳 Payer toutes mes commandes en ligne", confirmation automatique — voir 7.3 et 7.5), ou hors ligne (chèque, espèces), le bureau choisissant alors manuellement le statut "Payée" dans le détail des demandes.</p>
 
       <h3 class="admin-subheading">11.1 Droits de page</h3>
       <ul>
@@ -622,6 +629,7 @@
             <tr><td>tournois</td><td>Nom, cotisation, terrains, date du tournoi, statut (en_cours / cloture), réglages de planning.</td></tr>
             <tr><td>tournoi_competitions</td><td>Compétitions incluses dans un tournoi, avec leur configuration de poules.</td></tr>
             <tr><td>equipes</td><td>Équipes inscrites : joueurs, club, poule, tête de poule, présence/paiement par joueur, statut de la demande (en_attente / validee / refusee), niveau et affiliation fédérale par joueur, email et téléphone de la personne ayant fait la demande.</td></tr>
+            <tr><td>equipes_contacts</td><td>Coordonnées (email, téléphone) des demandeurs d'inscription au tournoi, séparées de la table equipes pour ne jamais être lisibles publiquement : consultables uniquement par les profils ayant un droit Tournois (administration, gestion, inscriptions). Un déclencheur y déplace automatiquement les coordonnées saisies dans le formulaire public ; les colonnes demandeur_email / demandeur_telephone de equipes restent toujours vides.</td></tr>
             <tr><td>matchs</td><td>Tous les matchs (poule, principale, consolante) : scores, terrain, horodatage, chaînage vers le tour suivant, numéro de rotation persisté (stable une fois attribué).</td></tr>
             <tr><td>benevoles_postes</td><td>Postes de bénévoles définis pour un tournoi (nom, horaire, description, places).</td></tr>
             <tr><td>benevoles_inscriptions</td><td>Inscriptions des bénévoles sur les postes (avec ou sans compte utilisateur).</td></tr>
@@ -676,6 +684,9 @@
             <tr><td>Phase Consolante</td><td>Tableau à élimination directe réunissant les 3es et 4es de chaque poule.</td></tr>
             <tr><td>Émargement</td><td>Enregistrement de la présence et du paiement le jour du tournoi.</td></tr>
             <tr><td>RLS</td><td>Row Level Security — filtre les lignes visibles/modifiables selon l'utilisateur connecté.</td></tr>
+            <tr><td>Edge Function</td><td>Petit programme exécuté côté serveur par Supabase, utilisé quand une clé secrète ne doit pas apparaître dans le site (ex. clé API HelloAsso).</td></tr>
+            <tr><td>Notification (webhook)</td><td>Message envoyé automatiquement par HelloAsso au site à chaque paiement, pour le confirmer serveur à serveur.</td></tr>
+            <tr><td>Rapprochement</td><td>Comparaison entre les paiements enregistrés sur le site et ceux réellement reçus sur HelloAsso, pour détecter les écarts.</td></tr>
           </tbody>
         </table>
       </div>
@@ -692,6 +703,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js"></script>
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/main.js"></script>

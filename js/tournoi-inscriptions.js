@@ -104,9 +104,36 @@ async function loadEquipes() {
   }
 
   equipesCache = data || [];
+  await fusionnerContactsEquipes(equipesCache);
   renderKpis();
   renderCompletStatus();
   renderEquipesTable();
+}
+
+/**
+ * Coordonnées des demandeurs (email, téléphone) : stockées dans la table
+ * protégée equipes_contacts, non lisible publiquement. Fusionnées ici dans
+ * chaque équipe, sous les mêmes noms qu'avant (demandeur_email,
+ * demandeur_telephone), pour que l'affichage et les emails de
+ * confirmation fonctionnent à l'identique. En cas d'échec (migration non
+ * exécutée), les valeurs éventuellement présentes dans l'équipe restent
+ * utilisées.
+ */
+async function fusionnerContactsEquipes(equipes) {
+  const ids = equipes.map(e => e.id);
+  if (!ids.length) return;
+  const { data, error } = await sbClient
+    .from('equipes_contacts')
+    .select('equipe_id, demandeur_email, demandeur_telephone')
+    .in('equipe_id', ids);
+  if (error) { console.warn('[Contacts équipes]', error.message); return; }
+  const parEquipe = new Map((data || []).map(c => [c.equipe_id, c]));
+  equipes.forEach(e => {
+    const c = parEquipe.get(e.id);
+    if (!c) return;
+    e.demandeur_email = c.demandeur_email || e.demandeur_email || null;
+    e.demandeur_telephone = c.demandeur_telephone || e.demandeur_telephone || null;
+  });
 }
 
 function renderCompletStatus() {

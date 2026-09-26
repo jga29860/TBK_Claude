@@ -73,13 +73,17 @@ async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, ema
   // HelloAsso) — best-effort : n'empêche jamais d'ouvrir le paiement.
   let intentionId = null;
   if (intention && intention.type && intention.references && intention.references.length) {
-    const { data: creee, error: errIntention } = await sbClient.rpc('creer_intention_paiement', {
-      p_type: intention.type, p_montant: Number(montant), p_references: intention.references,
-    });
-    if (errIntention) console.warn('[HelloAsso] intention non enregistrée :', errIntention.message);
-    intentionId = (creee && creee.id) || null;
-    // Même email que l'intention : permet à la notification HelloAsso de la retrouver
-    if (!email && creee && creee.payeur_email) email = creee.payeur_email;
+    try {
+      const { data: creee, error: errIntention } = await sbClient.rpc('creer_intention_paiement', {
+        p_type: intention.type, p_montant: Number(montant), p_references: intention.references,
+      });
+      if (errIntention) console.warn('[HelloAsso] intention non enregistrée :', errIntention.message);
+      intentionId = (creee && creee.id) || null;
+      // Même email que l'intention : permet à la notification HelloAsso de la retrouver
+      if (!email && creee && creee.payeur_email) email = creee.payeur_email;
+    } catch (err) {
+      console.warn('[HelloAsso] intention non enregistrée (exception) :', err && err.message);
+    }
     console.log('[HelloAsso] Intention de paiement :', intentionId || '(aucune)');
   }
 
@@ -137,8 +141,13 @@ async function ouvrirPaiementHelloAsso({ cleParametre, montant, prenom, nom, ema
       console.log('[HelloAsso] ✅ Paiement confirmé (payment_completed reçu).');
       fermer();
       if (intentionId) {
-        sbClient.rpc('declarer_paiement_en_ligne', { p_intention_id: intentionId })
-          .then(({ error }) => { if (error) console.warn('[HelloAsso] déclaration :', error.message); });
+        try {
+          sbClient.rpc('declarer_paiement_en_ligne', { p_intention_id: intentionId })
+            .then(({ error }) => { if (error) console.warn('[HelloAsso] déclaration :', error.message); })
+            .catch(err => console.warn('[HelloAsso] déclaration (exception) :', err && err.message));
+        } catch (err) {
+          console.warn('[HelloAsso] déclaration (exception) :', err && err.message);
+        }
       }
       if (onSuccess) onSuccess();
     }

@@ -12,6 +12,7 @@ const TABLES = [
   { key: 'tournois', label: 'Tournois', description: 'Tournois créés (en cours ou clôturés).' },
   { key: 'tournoi_competitions', label: 'Compétitions de tournoi', description: 'Compétitions incluses dans chaque tournoi.' },
   { key: 'equipes', label: 'Équipes', description: 'Équipes inscrites aux compétitions des tournois (statut de la demande, niveau et affiliation fédérale par joueur si soumise via le formulaire public).' },
+  { key: 'equipes_contacts', label: 'Coordonnées des équipes', description: 'Email et téléphone des demandeurs d\'inscription au tournoi (table protégée, non publique).' },
   { key: 'matchs', label: 'Matchs', description: 'Tous les matchs (poule, principale, consolante).' },
   { key: 'benevoles_postes', label: 'Postes de bénévoles', description: 'Postes de bénévoles définis pour un tournoi.' },
   { key: 'benevoles_inscriptions', label: 'Inscriptions bénévoles', description: 'Inscriptions des bénévoles sur les postes.' },

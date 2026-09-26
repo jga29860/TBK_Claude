@@ -1392,3 +1392,44 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   border-radius:8px; border:1px solid #a9d18e; background: var(--white); color: var(--ink);
 }
 .ha-etat--erreur{ background:#fde2e2; color:#a00000; }
+
+/* ============================================================
+   Audit mobile — lot 1
+   ============================================================ */
+
+/* Tous les types de champ ont le même style que les champs texte
+   (mot de passe, URL, nombre, date… étaient restés au style navigateur) */
+.inline-form input[type="password"], .inline-form input[type="url"], .inline-form input[type="number"],
+.inline-form input[type="date"], .inline-form input[type="time"], .inline-form input[type="tel"],
+.inline-form input[type="search"], .inline-form input[type="datetime-local"], .inline-form textarea{
+  font-family: var(--font-body); font-size:0.95rem; padding: 10px 12px;
+  border-radius:8px; border:1px solid #a9d18e; background: var(--white); color: var(--ink);
+}
+.inline-form input[type="url"]{ width:100%; }
+
+
+@media (max-width: 760px){
+  /* iPhone zoome automatiquement sur tout champ en dessous de 16 px */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select, textarea{ font-size:16px !important; }
+
+  /* Formulaires en ligne : un champ par ligne, sans largeur minimale
+     imposée (certaines pages fixent 200 à 320 px, qui débordaient) */
+  .inline-form label:not(.checkbox-item){ flex:1 1 100% !important; min-width:0 !important; max-width:100%; }
+  .inline-form label:not(.checkbox-item) input:not([type="checkbox"]):not([type="radio"]),
+  .inline-form label:not(.checkbox-item) select,
+  .inline-form label:not(.checkbox-item) textarea{ width:100%; max-width:100%; box-sizing:border-box; }
+}
+
+
+@media (max-width: 760px){
+  /* Mots ou adresses très longs : coupés plutôt que de faire déborder la page */
+  main p, main li, main td{ overflow-wrap:break-word; }
+  /* Codes longs dans le texte (documentation) : coupés plutôt que débordement.
+     Limité aux paragraphes et listes : jamais dans les tableaux. */
+  main p code, main li code{ overflow-wrap:anywhere; }
+  /* Administration → cartes "Le club" : boutons sous le texte */
+  .club-carte-admin-item{ flex-direction:column; }
+  .club-carte-admin-actions{ flex-shrink:1; }
+  .cotisation-row input{ min-width:0; }
+}

@@ -1076,6 +1076,18 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Audit — lot 1 : menu mobile, protection des coordonnées, champs de saisie
+
+Exécutez `supabase/migration_protection_contacts_equipes.sql`.
+
+**1. Menu mobile réparé sur toutes les pages** — nouveau `js/menu-mobile.js`, chargé par les 23 pages (le script de `main.js` ne ciblait que l'accueil ; `admin.html`, `membres.html` et 4 pages publiques n'avaient pas de bouton ☰). Délégation d'événements : couvre le menu Organisation ajouté après connexion. Fermeture au choix d'un lien, au second appui, au toucher hors du bandeau, au passage en affichage large.
+
+**2. Coordonnées des demandeurs de tournoi protégées (RGPD)** — la table `equipes`, publique pour les pages QR code, exposait `demandeur_email` / `demandeur_telephone`. Nouvelle table `equipes_contacts` (RLS : droits Tournois uniquement), reprise des données existantes, déclencheur qui y déplace toute coordonnée écrite dans `equipes` (formulaire public inchangé). `tournoi-inscriptions.js` fusionne les coordonnées au chargement (mêmes noms de champs, affichage et emails identiques). Table ajoutée à la Sauvegarde.
+
+**3. Champs de saisie** — style commun à tous les types de champ (mot de passe, URL, nombre, date… restaient au style navigateur). Sur mobile : police 16 px (fin du zoom automatique iPhone), un champ par ligne sans largeur minimale imposée (les URL HelloAsso débordaient dans Administration), cartes "Le club" de l'admin et champ Cotisation sans débordement, mots/codes longs coupés.
+
+**Non-régression vérifiée** : rendu des 23 pages en PC (1366 px) et mobile (390 px) avant / après, comparaison pixel à pixel en PC (seules différences : champs désormais stylés), 0 erreur JavaScript, 0 débordement horizontal sur mobile (3 pages auparavant), ouverture/fermeture du menu testée sur chaque page.
+
 ## Confirmation automatique des paiements par notification HelloAsso
 
 Exécutez `supabase/migration_helloasso_notification.sql` (après `migration_helloasso_suivi.sql`), ajoutez le secret `HELLOASSO_WEBHOOK_SECRET`, déployez `supabase/functions/helloasso-notification/index.ts` **avec "Verify JWT" désactivé**, puis déclarez l'URL `https://<projet>.supabase.co/functions/v1/helloasso-notification?cle=<secret>` dans HelloAsso (Intégrations et API → Notifications). Détails : documentation, section 7.5.
