@@ -131,7 +131,10 @@ async function messageErreurFonction(error) {
     if (error.context && typeof error.context.json === 'function') {
       const statut = error.context.status;
       const corps = await error.context.json().catch(() => null);
-      if (corps && corps.erreur) return corps.erreur;
+      if (corps && corps.erreur) {
+        if (corps.detail) console.warn('[HelloAsso page] détail serveur :', corps.detail);
+        return corps.erreur + (corps.detail ? ` (détail technique : ${corps.detail})` : '');
+      }
       if (statut === 404) return "L'Edge Function \"helloasso\" n'est pas déployée dans Supabase (voir documentation).";
       return `Erreur ${statut}`;
     }
