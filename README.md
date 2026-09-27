@@ -1076,6 +1076,12 @@ Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
 
 ⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
 
+## Contrôle du suivi des connexions et des visites
+
+Contrôle de bout en bout (navigateur réel, base simulée) : visites journalisées sur les 7 pages suivies, tentatives de connexion échouées et réussies journalisées (identifiant, succès, motif, compte), page Suivi des connexions affichant les deux journaux, règles d'accès conformes (écriture ouverte à tous, lecture et purge réservées au droit "administration").
+
+**Fiabilisation** (`auth.js`, `signIn`) : la journalisation d'une connexion est désormais attendue (1,5 s maximum) avant de rendre la main — après une connexion réussie, la redirection immédiate vers l'accueil pouvait interrompre l'envoi et faire manquer des connexions réussies dans le journal. Version des fichiers : `?v=20260927b`.
+
 ## Correctif : saisie manuelle "Hello Asso" + numéro de version des fichiers
 
 **1. "Hello Asso" proposé quelle que soit la configuration du champ** "Cotisation payée" : type Oui / Non (cas standard), type liste (option ajoutée si absente), ou champ recréé sous une autre clé (reconnu par son libellé — `estChampCotisationPayee` dans `auth.js`). Idem pour le filtre de colonne.

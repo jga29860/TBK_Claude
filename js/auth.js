@@ -221,7 +221,14 @@ async function signUp(identifiant, password) {
 
 async function signIn(identifiant, password) {
   const result = await sbClient.auth.signInWithPassword({ email: toAuthEmail(identifiant), password });
-  logConnexion(identifiant, result); // journalisation best-effort, ne bloque jamais la connexion
+  // Journalisation attendue (1,5 s maximum) : après une connexion réussie,
+  // la page redirige aussitôt, ce qui pouvait interrompre l'envoi et faire
+  // manquer des connexions réussies dans le journal. Ne bloque jamais la
+  // connexion au-delà de ce délai, et n'échoue jamais.
+  await Promise.race([
+    logConnexion(identifiant, result),
+    new Promise(resolve => setTimeout(resolve, 1500)),
+  ]);
   return result;
 }
 
