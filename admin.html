@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administration — TBK</title>
-<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
-<link rel="stylesheet" href="css/style.css?v=20260927b">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<link rel="stylesheet" href="css/style.css?v=20260927c">
 </head>
 <body>
 
 <header class="site-header">
   <div class="wrap header-inner">
     <a href="index.html" class="logo">
-      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
       TBK
     </a>
     <nav class="main-nav">
@@ -61,6 +61,9 @@
         <label>Email de contact du club
           <input type="email" name="email_contact" id="emailContactInput" required>
         </label>
+        <label>Saison en cours
+          <input type="text" name="saison_en_cours" id="saisonEnCoursInput" placeholder="2026-2027" pattern="\d{4}-\d{4}" title="Format AAAA-AAAA, ex. 2027-2028" required>
+        </label>
         <label style="flex:1; min-width:320px;">URL du widget de paiement HelloAsso (boutique)
           <input type="url" name="helloasso_url_paiement_boutique" id="helloassoUrlBoutiqueInput" placeholder="https://www.helloasso.com/associations/.../formulaires/.../widget">
         </label>
@@ -75,6 +78,7 @@
         <p class="form-hint" id="parametresHint"></p>
       </form>
       <p class="form-hint">Le paiement en ligne (boutique, cotisation) nécessite un formulaire HelloAsso "don" à montant libre par usage, dont vous copiez ici l'URL du widget (menu Partager → Bouton/Widget dans HelloAsso). Laissez un champ vide pour désactiver le paiement en ligne correspondant.</p>
+      <p class="form-hint">Saison en cours (format AAAA-AAAA) : utilisée par les inscriptions (bureau et formulaire public), l'espace membre et la boutique. À changer au lancement de la nouvelle saison : les inscriptions de la saison précédente restent en base, et la liste du bureau affiche alors la nouvelle saison (vide au départ).</p>
       <p class="form-hint">Anniversaires : quand la case est cochée, l'agenda affiche 🎂 le prénom et le nom des membres à la date de leur anniversaire (inscription validée de la saison en cours, date de naissance renseignée). L'année de naissance et l'âge ne sont jamais affichés, et rien n'est ajouté dans Google Agenda.</p>
     </section>
 
@@ -217,12 +221,13 @@
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927b"></script>
-<script src="js/tableaux-mobile.js?v=20260927b"></script>
-<script src="js/sections-repliables.js?v=20260927b"></script>
-<script src="js/supabase-config.js?v=20260927b"></script>
-<script src="js/auth.js?v=20260927b"></script>
-<script src="js/admin.js?v=20260927b"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20260927c"></script>
+<script src="js/tableaux-mobile.js?v=20260927c"></script>
+<script src="js/sections-repliables.js?v=20260927c"></script>
+<script src="js/supabase-config.js?v=20260927c"></script>
+<script src="js/auth.js?v=20260927c"></script>
+<script src="js/saison.js?v=20260927c"></script>
+<script src="js/admin.js?v=20260927c"></script>
 </body>
 </html>

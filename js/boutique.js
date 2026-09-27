@@ -5,7 +5,7 @@
 // saison) — pas de paiement en ligne.
 // ============================================================
 
-const SAISON = '2026-2027';
+// SAISON : voir js/saison.js (paramétrable)
 
 let currentUserId = null;
 let currentUserNom = null;
@@ -19,6 +19,7 @@ let editingArticleId = null;
 const signedUrlCache = new Map();
 
 async function initPage() {
+  await saisonPrete;
   const access = await getCurrentAccess();
   const deniedPanel = document.getElementById('deniedPanel');
   const content = document.getElementById('content');
@@ -649,10 +650,6 @@ function renderCommandesGestion() {
 // Utilitaires
 // ============================================================
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str === null || str === undefined ? '' : String(str);
-  return div.innerHTML;
-}
+// escapeHtml : fonction commune, définie dans auth.js
 
 document.addEventListener('DOMContentLoaded', initPage);

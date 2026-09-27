@@ -1,0 +1,1093 @@
+# Journal des évolutions — site TBK
+
+Historique détaillé de chaque évolution du site (anciennement dans le README), avec les migrations SQL associées, dans l'ordre où elles ont été ajoutées au fil du développement. Les entrées de la fin de fichier concernent la session la plus récente.
+
+La documentation fonctionnelle à jour est dans `documentation.html` (page Documentation du site).
+
+## Inscriptions saison (page `inscriptions.html`)
+
+Page réservée aux profils ayant accès à la page `inscriptions` (créez un profil "Bureau" depuis `admin.html` → Profils, et cochez "Inscriptions saison"). Elle permet d'enregistrer les adhérents de la saison 2026/2027 :
+
+- **Champs fixes** (Nom, Prénom, Catégorie, Bad/Ping, UFOLEP/FSGT, Membre Bureau, Cotisation) : nécessaires au calcul automatique de la cotisation, non supprimables.
+- **Champs personnalisés** (WhatsApp, Cotisation payée, Santé, Date certificat, Téléphone, Adresse, Email, Date de naissance, Commentaire, préconfigurés par défaut) : entièrement paramétrables depuis la section "Configuration" (visible uniquement par le profil admin) — ajout, suppression, changement de type (texte, nombre, date, oui/non, liste de choix) et de valeur par défaut. Techniquement, ces champs sont stockés de façon flexible (colonne `jsonb`) plutôt que par de vraies colonnes SQL ajoutées à la volée — cela évite de faire exécuter des modifications de schéma de base de données depuis le site, ce qui serait fragile et risqué depuis un navigateur.
+- **Cotisation** : calculée automatiquement à partir du barème (Catégorie, Bad+Ping, UFOLEP/FSGT, Membre Bureau) dès que l'un de ces champs change, mais reste modifiable à la main avant enregistrement (bouton "Recalculer" disponible pour revenir au calcul automatique).
+- **Barème des cotisations** (section Configuration, admin uniquement) : les 5 montants sont modifiables à tout moment ; ils ne s'appliquent qu'aux futurs calculs, pas rétroactivement aux inscriptions déjà enregistrées.
+- **Colonnes affichées dans le tableau des inscrits** (section Configuration, admin uniquement) : cases à cocher pour choisir, parmi les champs fixes et personnalisés, lesquels apparaissent comme colonnes du tableau (la colonne "Nom" est toujours affichée). Ce choix est commun à tous les utilisateurs ayant accès à la page.
+
+## Tournois (page `tournois.html`) — étape 1
+
+Première étape de la gestion des tournois : deux nouveaux profils à créer depuis `admin.html` → Profils :
+- **Tournois - Administration** (page `tournois_admin`) : gère le catalogue des types de compétition, crée/modifie/supprime les tournois.
+- **Tournois - Gestion** (page `tournois_gestion`) : peut créer/modifier un tournoi (nom, cotisation, terrains, compétitions incluses, poules), mais ne peut pas gérer les types de compétition ni supprimer un tournoi.
+
+Pour chaque tournoi, on choisit les compétitions incluses (Simple Homme, Double Dame…) par case à cocher, avec pour chacune le nombre de poules et le nombre d'équipes/participants par poule.
+
+**À venir dans une prochaine étape** : les phases finales (Principale / Consolante) pourront faire l'objet d'une étape ultérieure si besoin.
+
+## Inscriptions tournoi (page `tournoi-inscriptions.html`) — étape 2
+
+Une fois un tournoi créé, cette page permet de sélectionner un tournoi puis une compétition, et de collecter les inscriptions :
+- **Simple** : Nom + Club du joueur.
+- **Double** : Nom + Club de chacun des deux joueurs (le champ "format" du type de compétition détermine automatiquement le nombre de joueurs demandés).
+- **Affectation aux poules** : menu déroulant par équipe (Poule 1, Poule 2…), modifiable à tout moment. Un bouton "Répartir automatiquement en poules" distribue toutes les équipes de façon équilibrée en un clic (répartition simple, dans l'ordre d'inscription — à ajuster manuellement ensuite si besoin, par exemple pour équilibrer les niveaux).
+- Deux compteurs rappellent le nombre d'équipes inscrites et le nombre de places prévues (poules × taille de poule).
+
+## Émargement (page `emargement.html`) — étape 3
+
+Troisième profil : **Tournois - Émargement** (page `tournois_emargement`), pensé pour être utilisé à l'accueil du tournoi le jour J. Les profils Administration et Gestion y ont aussi accès.
+
+- **Bandeau du haut** (reste visible en défilant) : rappel de la cotisation du tournoi, recherche instantanée par nom ou club, compteur de présents / inscrits, montant total réglé — tous les trois recalculés en direct à chaque case cochée.
+- **Liste par compétition**, une équipe par ligne : nom et club éditables directement (utile en cas de changement de dernière minute), 3 cases à cocher — Présent, Absent (mutuellement exclusives : cocher l'une décoche l'autre), Cotisation payée.
+- Chaque case cochée est enregistrée immédiatement (pas de bouton "Enregistrer" séparé), pensé pour un usage rapide au fil des arrivées.
+- Les compteurs comptent les **participants** (2 personnes pour une équipe de double, 1 pour une équipe de simple), alors que les cases à cocher s'appliquent à l'équipe entière (les deux membres d'un double sont marqués présents/payés ensemble).
+
+## Poules & classement (page `poules.html`) — consultation uniquement
+
+Sélectionnez un tournoi, avec des filtres optionnels par compétition et par poule, pour afficher le classement en direct de chaque poule. Cette page est **strictement en lecture** : aucune saisie de score, terrain ou autre n'y est possible (la saisie se fait exclusivement depuis `planning.html`).
+
+- **Classement** : affiché en direct — Classement, Équipe, matchs joués, points (3 pour une victoire, 1 pour une défaite, uniquement si le match est décidé), différence de sets, différence de points. Le numéro de classement affiche au survol la valeur exacte (points×1000 + différence de sets×100 + différence de points) qui détermine l'ordre.
+- **Matchs de la poule** : masqués par défaut pour garder l'affichage compact — un bouton "Afficher les matchs" par poule les révèle (scores, terrain, en lecture seule).
+- **Filtres** : en plus du tournoi, deux menus déroulants permettent d'afficher une seule compétition et/ou une seule poule à la fois.
+
+## Planning (page `planning.html`)
+
+Sélectionnez un tournoi pour afficher son planning complet, toutes compétitions confondues (les terrains sont partagés entre toutes les compétitions du tournoi).
+
+- **Bandeau du haut**, sur une seule ligne : à gauche les réglages (heure de début, rotation, temps minimum entre 2 matchs, filtre par équipe, durée moyenne, boutons de filtre, génération des matchs de poule par compétition), au centre les terrains, à droite le Top 5 attente. Tout est enregistré automatiquement.
+- **Génération des matchs de poule** : choisissez une compétition dans le menu déroulant dédié puis cliquez sur "Générer / régénérer" — crée automatiquement tous les matchs en round-robin à partir des poules définies dans `tournoi-inscriptions.html`. Régénérer remplace les matchs existants (et leurs scores) après confirmation.
+- **Terrains** : un bouton par terrain, vert si libre, saumon si occupé. Cliquer sur un terrain filtre la liste des matchs sur ce terrain.
+- **Top 5 attente par compétition** : les équipes qui attendent depuis le plus longtemps depuis la fin de leur dernier match, par compétition. Cliquer sur une équipe filtre la liste des matchs sur cette équipe.
+- **Matchs regroupés par rotation** (pleine largeur de page) : une rotation contient jusqu'à autant de matchs que de terrains disponibles. L'algorithme garantit qu'**aucune équipe ne joue deux fois dans une même rotation**, et sert en priorité les poules les moins avancées — à nombre de terrains suffisant, chaque poule obtient un match dès la première rotation, puis les rotations suivantes progressent équitablement poule par poule plutôt que de vider une compétition avant de passer à la suivante.
+- **Un match n'est "lançable" que si les deux équipes sont libres ET présentes** (présence cochée en émargement — les deux joueurs pour une équipe de double). Le bouton "Lancer" est grisé sinon, avec une info-bulle indiquant la raison.
+- **Statut par match** : Non lancé / En cours / Terminé, affiché en colonne. Les lignes des matchs terminés sont grisées (les scores restent modifiables). Les lignes des matchs non jouables pour le moment (équipe absente, équipe déjà en cours de match, aucun terrain libre) sont également grisées, avec le motif au survol.
+- Le bouton **"Planning complet"** réinitialise aussi les filtres actifs (terrain, équipe) pour repartir sur une vue complètement dégagée.
+
+**Simplifications assumées** : le lancement se fait via le bouton "Lancer" sur la ligne du match (qui prend automatiquement le terrain libre le plus bas), plutôt que par un clic direct sur le bouton du terrain suivi du choix du match. L'algorithme de rotation est un ordonnancement glouton équitable, pas une optimisation mathématique exacte — il respecte les deux contraintes demandées (pas de doublon d'équipe, équité entre poules) sans garantir un plan globalement optimal au sens strict.
+
+## Blocage automatique des inscriptions complètes
+
+Dès qu'une compétition atteint sa capacité (nombre de poules × taille de poule), les nouvelles inscriptions sont refusées — directement en base de données (une nouvelle tentative d'inscription est bloquée même si deux personnes s'inscrivent en même temps), et la page `tournoi-inscriptions.html` masque le formulaire avec un message "Compétition complète" dès que ce seuil est atteint. Les inscriptions déjà enregistrées restent modifiables (changement de poule, correction de nom/club) : seules les *nouvelles* inscriptions sont bloquées.
+
+## Tête de poule, échange entre poules, affichage encadré
+
+- **Tête de poule** : case à cocher par équipe dans `tournoi-inscriptions.html`. Un garde-fou en base garantit qu'il n'y a jamais plus d'une tête de poule par poule (cocher une équipe décoche automatiquement l'ancienne tête de poule de cette poule).
+- **Assignation et échange de poule** : une équipe non encore affectée ne peut pas être assignée à une poule déjà complète (blocage avec message d'erreur, il faut choisir une poule avec de la place). Déplacer une équipe déjà affectée vers une autre poule : direct si la poule cible a de la place, ou échange obligatoire avec une équipe de la poule cible si celle-ci est déjà complète (le nombre d'équipes par poule reste ainsi toujours respecté). Aucune contrainte pour désassigner une équipe (case "—").
+- **Affichage encadré par poule** : dans `tournoi-inscriptions.html` et `emargement.html`, les équipes sont regroupées visuellement dans un encadré par poule (avec le compteur d'équipes), plus un encadré "Non assignées" pour les équipes en attente d'affectation.
+
+## Filtre "absents" en émargement
+
+Sur `emargement.html`, à côté de la recherche par nom/club, un bouton "Afficher uniquement les absents" filtre la liste sur les équipes cochées "Absent". Se combine avec la recherche texte ; les poules sans résultat correspondant sont masquées le temps du filtre pour rester lisible.
+
+## Un seul tournoi actif à la fois
+
+Le site ne gère qu'un tournoi "en cours" simultanément — garanti au niveau de la base de données (impossible de créer un deuxième tournoi actif, y compris en cas d'action concurrente).
+
+- **Création** : un nouveau tournoi est automatiquement "en cours". La création est bloquée (avec message clair) tant qu'un tournoi est déjà actif — il faut d'abord le clôturer.
+- **Clôture** : bouton "Clore" sur `tournois.html`, disponible pour les profils Administration et Gestion. Un tournoi clôturé n'est plus modifiable comme actif.
+- **Réactivation** : bouton "Réactiver" sur un tournoi clôturé, visible uniquement si aucun autre tournoi n'est actuellement en cours.
+- **Pages simplifiées** : `tournoi-inscriptions.html`, `emargement.html`, `poules.html` et `planning.html` n'ont plus de sélecteur de tournoi — elles chargent automatiquement le tournoi en cours. Un message clair s'affiche si aucun tournoi n'est actif.
+
+## Synthèse Phase finale (page `phase-finale.html`)
+
+Vue de consultation, complémentaire à `planning.html` : présente la phase finale sous forme de tableau à élimination directe classique, en colonnes par tour (1/8 de finale, 1/4, 1/2 finale, Finale…), par compétition puis par phase (Principale / Consolante).
+
+- **Lecture seule** : aucune saisie de score ni lancement de match — uniquement pour visualiser la progression.
+- **Mise à jour automatique** : rechargée toutes les 20 secondes, elle reflète les scores saisis et les vainqueurs propagés depuis `planning.html`, sans avoir besoin de rafraîchir la page.
+- **Équipe gagnante en surbrillance verte**, score résumé (ex. "21-15, 21-12") et statut (À venir / En cours / Terminé / En attente d'une équipe) sur chaque carte de match.
+- Un tour affiche "À déterminer" pour les équipes pas encore connues (matchs futurs dépendant d'un résultat pas encore joué).
+
+## Phases finales (Principale / Consolante)
+
+**Génération automatique** : dès que tous les matchs de poule d'une compétition sont terminés, sa phase finale (Principale + Consolante) est générée automatiquement — au moment où le dernier score est saisi, ou à l'ouverture de la page si les poules étaient déjà terminées. Il n'y a plus de bouton de génération manuelle ; une génération n'a lieu qu'une seule fois par compétition (elle n'écrase pas une phase finale déjà générée).
+
+- **Qualification** : 1er et 2e de chaque poule → Phase Principale ; 3e et 4e → Phase Consolante. Ce découpage (top 2 / reste) n'est pas paramétrable.
+- **Appariement du 1er tour** : un 1er de poule affronte un 2e d'une **autre** poule (jamais celui de sa propre poule) ; même principe pour le 3e vs 4e en Consolante.
+- **Élimination directe ensuite** : les tours suivants sont créés à l'avance sous forme de cases vides, reliées entre elles ; dès qu'un score complet (2 sets gagnants) est saisi sur un match, le vainqueur est **automatiquement inséré** dans le match du tour suivant qui lui correspond.
+- **Présentation par rotation équitable** : les matchs de phase finale (dont les 2 équipes sont déjà connues) sont regroupés en rotations selon le même principe que les matchs de poule — jusqu'à autant de matchs que de terrains, aucune équipe deux fois dans la même rotation, et répartition équitable entre compétitions et phases (Principale/Consolante) plutôt que de vider un tableau avant de passer au suivant. Une colonne "Compétition" précise, sur chaque ligne, la compétition, la phase (Principale/Consolante) et le tour concernés — nommé selon le nombre d'équipes encore en lice (1/8 de finale pour 16, 1/4 de finale pour 8, 1/2 finale pour 4, Finale pour 2).
+- **Matchs de poule repliables** : l'en-tête "Matchs par rotation" propose un bouton "Plier / déplier". Une fois tous les matchs de poule terminés, la section se replie automatiquement par défaut (peut être rouverte manuellement à tout moment).
+
+**Limite assumée** : l'algorithme construit un tableau à élimination directe propre quand le nombre de poules est une puissance de 2 (2, 4, 8, 16…), ce qui couvre le cas type (8 poules → 16 qualifiés en Principale, tableau parfait jusqu'à la finale). Avec un nombre de poules qui n'est pas une puissance de 2, certaines cases du tableau peuvent rester vides faute de gestion automatique des "exemptions" (byes) — à vérifier manuellement dans ce cas de figure.
+
+## Saisie des scores au clavier (Planning)
+
+- **Clic unique** sur une case de score : le contenu existant est automatiquement sélectionné, prêt à être remplacé sans avoir à l'effacer.
+- **Tab** pour passer à la case suivante fonctionne normalement, y compris juste après une saisie : le focus est désormais préservé lors du rechargement automatique de la page qui suit chaque score enregistré (recalcul du classement, des vainqueurs, etc.) — auparavant, ce rechargement pouvait faire perdre la case en cours d'édition.
+
+## Bandeau de navigation simplifié
+
+Le bandeau du haut accumulait trop de liens au fil des ajouts (chaque page outil affichait ses propres liens statiques, plus les liens injectés dynamiquement pour chaque profil). Simplification :
+
+- Chaque page outil n'affiche plus qu'un seul lien statique ("Le club", retour à l'accueil).
+- Un menu déroulant unique **"Organisation ▾"** apparaît dans le bandeau dès qu'un profil connecté a accès à au moins une page outil, regroupant tout par catégorie : **Club** (Inscriptions saison), **Tournoi** (Tournois, Inscriptions tournoi, Émargement, Poules, Phase finale, Planning), **Administration**. Seules les pages auxquelles le profil a réellement accès apparaissent.
+- Sur mobile, le menu s'affiche directement déplié dans la navigation (pas de double clic nécessaire).
+- Le lien "Connexion" en double dans certaines pages a été retiré (déjà géré par l'indicateur d'état de connexion), et deux liens morts vers d'anciennes sections supprimées (Créneaux, Contact) ont été corrigés sur `membres.html`.
+
+## Validation des inscriptions saison par le bureau + demande publique
+
+Exécutez `supabase/migration_inscriptions_validation.sql` pour activer cette évolution.
+
+- **Statut de chaque inscription** : "En attente" ou "Validée", affiché en badge sur `inscriptions.html`.
+- **Saisie directe par un membre connecté** : automatiquement marquée "Validée" (il vous engage directement), avec votre nom et la date enregistrés.
+- **Bouton "Valider"** : réservé au profil dont la clé est exactement `bureau` (à créer depuis `admin.html` → Profils si besoin), ou à un profil ayant accès à l'administration. Valider enregistre qui (nom) et quand (date/heure) — consultable au survol du badge "Validée".
+- **Formulaire public** (`inscription-publique.html`) : accessible à n'importe qui, sans connexion. Une personne extérieure y remplit son nom, prénom, catégorie, Bad/Ping, UFOLEP/FSGT et tous les champs personnalisés configurés (hors "Membre Bureau", réservé à un usage interne). La cotisation affichée est une estimation indicative ; le bureau la confirme à la validation. Toute demande soumise ainsi arrive avec le statut "En attente".
+- **QR code** sur `index.html` (section "Envie de nous rejoindre ?") pointant vers `inscription-publique.html` — généré via le service gratuit [api.qrserver.com](https://api.qrserver.com), calculé automatiquement à partir de l'URL réelle du site (fonctionne quel que soit le nom de domaine/dépôt).
+
+## Logo du club
+
+Le logo (mascotte) fourni est intégré sur toutes les pages : version recadrée en rond dans l'en-tête (`images/logo-tbk-rond.png`, généré automatiquement à partir de l'image d'origine, fond transparent en dehors du cercle) et en favicon d'onglet. La version complète (`images/logo-tbk.png`) est affichée en plus grand format en haut de la page de demande d'inscription publique.
+
+## Champs masqués sur le formulaire public d'inscription
+
+Sur `inscription-publique.html`, les champs **WhatsApp**, **Cotisation payée**, **Santé** et **Date certificat** ne sont plus proposés — ils seront renseignés par le bureau au moment de la validation de la demande, pas par la personne qui la soumet. Un bandeau d'information rappelle explicitement que la demande sera validée une fois la cotisation réglée et un certificat médical ou un QS Sport fourni.
+
+## Connexion par nom d'utilisateur (sans email)
+
+Sur `membres.html`, les champs "Email" acceptent désormais aussi un simple nom d'utilisateur (ex. "jgael"). Techniquement, Supabase n'authentifie qu'avec un email : un email technique invisible est généré automatiquement (`jgael@tbk-club.interne`), la personne ne le voit jamais et ne saisit que son nom d'utilisateur. Une vraie adresse email reste utilisable normalement, au choix.
+
+**Prérequis indispensable** : dans Supabase → Authentication → Providers → Email, désactivez **"Confirm email"**. Un email technique ne peut jamais recevoir de vraie confirmation ; sans cette désactivation, un compte créé par nom d'utilisateur resterait bloqué indéfiniment.
+
+**Limites à connaître pour un compte "nom d'utilisateur"** :
+- Pas de "mot de passe oublié" par email (impossible d'envoyer un email à une adresse qui n'existe pas). Le changement de mot de passe de quelqu'un d'autre passe alors uniquement par Supabase → Authentication → Users → cet utilisateur → "Reset password" (l'action reste réservée au titulaire du projet Supabase, pas à l'admin du site).
+- Le tableau des utilisateurs sur `admin.html` affiche "(nom d'utilisateur)" à côté de ces comptes, et masque le bouton de réinitialisation par email pour eux (remplacé par cette indication).
+- Le nom affiché partout sur le site (bandeau, validations d'inscription…) reste le nom d'utilisateur choisi — aucune différence visible pour la personne connectée.
+
+## Suppression d'utilisateurs par l'administrateur
+
+Exécutez `supabase/migration_suppression_profils.sql` pour activer cette fonctionnalité.
+
+Sur `admin.html` → Utilisateurs, un bouton **"Supprimer"** apparaît en bout de ligne pour chaque utilisateur (sauf sur votre propre compte, pour éviter de vous verrouiller vous-même hors du site).
+
+**Ce que ça fait réellement** : cela supprime le *profil* (rôle, droits d'accès) de la personne — elle perd immédiatement tout accès au site, comme si son compte n'existait plus pour l'application. **Cela ne supprime pas son compte de connexion Supabase sous-jacent** (ses identifiants email/mot de passe), ce qui nécessiterait une clé secrète jamais exposée dans le code du site. Si vous voulez aussi supprimer complètement ce compte de connexion, faites-le depuis Supabase → Authentication → Users → cet utilisateur → Delete.
+
+## Agenda du club (page `agenda.html`)
+
+Exécutez `supabase/migration_agenda.sql` pour accorder l'accès au profil admin existant.
+
+Affiche l'agenda Google du club en vue mensuelle, avec ajout/modification/suppression d'événements directement depuis le site, via l'API Google Calendar.
+
+- **Réservé au profil administrateur** pour l'instant (nouveau droit de page `agenda`, extensible à d'autres profils comme les autres pages).
+- **Calendrier utilisé** : celui de l'adresse email de contact du club, paramétrée dans Admin → Paramètres du site (pas de configuration séparée à maintenir).
+- **Connexion Google** : le site tente automatiquement une reconnexion silencieuse (sans fenêtre ni clic) à chaque ouverture de la page, tant que votre session Google est active et que l'autorisation n'a pas expiré. Le bouton "Se connecter à Google Agenda" ne s'affiche que si cette tentative échoue (première utilisation, ou autorisation expirée après 7 jours en mode Test Google — limite imposée par Google pour les applications non validées, pas par le site).
+- **Ajout d'événement** : bouton "+" sur n'importe quel jour de la grille.
+- **Modifier/supprimer** : cliquez sur un événement existant. Pour un événement qui fait partie d'une série récurrente, deux boutons distincts apparaissent : "Supprimer cette occurrence" (uniquement cette date) et "Supprimer toute la série" (toutes les occurrences, passées et futures).
+- Champs disponibles : titre, journée entière ou horaires précis, lieu, description, **périodicité** (aucune, tous les jours, toutes les semaines, toutes les 2 semaines, tous les mois, tous les ans — avec une date de fin facultative). La périodicité ne se règle qu'à la création : pour modifier la récurrence d'une série déjà existante, faites-le directement dans Google Agenda (édition d'une série récurrente = cas particulier volontairement non géré ici, pour rester simple et fiable).
+
+**Prérequis technique (déjà fait pour vous)** : un identifiant client OAuth Google a été configuré dans `js/google-config.js`. Si vous changez un jour de projet Google Cloud, il faudra régénérer cet identifiant et l'y remplacer.
+
+## Email de contact paramétrable
+
+Exécutez `supabase/migration_parametres_site.sql` pour activer cette évolution.
+
+- Nouvelle section **"Paramètres du site"** sur `admin.html`, réservée au profil administrateur : un champ "Email de contact du club", modifiable et enregistré immédiatement.
+- Le bouton "S'inscrire au tournoi" de `index.html` utilise désormais cette adresse dynamiquement (récupérée depuis la base à chaque chargement de la page) au lieu d'une adresse codée en dur.
+- Cette table `parametres_site` (clé/valeur) peut accueillir d'autres réglages du même type à l'avenir (même modèle que `bareme_cotisations`).
+
+## Notification des demandes d'inscription en attente
+
+Pour les profils dont la clé est exactement `bureau` ou `admin`, un badge rouge **"X demande(s) en attente"** apparaît automatiquement dans le bandeau, sur **toutes les pages du site** dès qu'au moins une inscription saison a le statut "En attente". Cliquer dessus mène directement à `inscriptions.html`. Le badge disparaît de lui-même dès qu'il n'y a plus de demande en attente.
+
+## Gestion des annonces du club depuis le site (Admin + Bureau)
+
+Exécutez `supabase/migration_gestion_annonces.sql` pour activer cette évolution.
+
+Sur `membres.html`, un panneau **"Gérer les annonces"** apparaît désormais pour tout profil ayant le nouveau droit de page **"Annonces du club"** — pré-accordé automatiquement aux profils `admin` et `bureau` s'ils existent déjà, modifiable ensuite comme n'importe quel autre droit depuis Admin → Profils. Permet de publier, modifier et supprimer des annonces directement depuis le site, sans passer par Supabase.
+
+## Documentation fonctionnelle en ligne (page `documentation.html`)
+
+Exécutez `supabase/migration_documentation_droit.sql` pour activer le nouveau droit de page.
+
+Accès désormais **paramétrable par profil** (nouveau droit "Documentation" dans le catalogue des pages, Admin → Profils), pré-accordé au profil admin par défaut. Reprend le contenu du document Word de documentation fonctionnelle, mis en forme dans le style du site, avec sommaire à ancres pour naviguer rapidement dans les 12 sections (vue d'ensemble, comptes/profils, pages publiques, espace membres, inscriptions saison, gestion des tournois en détail, administration, agenda, sauvegarde, jeu de cartes, base de données, glossaire).
+
+**Mise à jour** : cette page est un contenu statique, tenu à jour manuellement à chaque nouvelle fonctionnalité construite — comme le README technique, mais formulé pour un public non-développeur. Pas de mise à jour automatique possible sur un site statique.
+
+## Menu Organisation — indentation visuelle
+
+Les liens du menu "Organisation" sont désormais indentés sous leur libellé de groupe (Club, Tournoi, Administration), avec un petit repère vertical au survol, pour mieux montrer la hiérarchie quand la liste s'allonge.
+
+## Connexion Google Agenda — moins de clics
+
+Le bouton "Se connecter à Google Agenda" ne repasse plus systématiquement par l'écran complet de sélection de compte et de validation des droits : une fois l'autorisation déjà accordée une première fois, un clic suffit généralement pour revenir directement sur l'agenda (l'écran complet ne réapparaît que lors de la toute première connexion, ou après expiration de l'autorisation).
+
+## Contrôle sur la validation des inscriptions saison
+
+Le bouton "Valider" n'est activable que si les 3 conditions sont réunies : cotisation payée, santé différente de "En Attente", et date de certificat renseignée. Sinon, le bouton reste visible mais grisé, avec le motif précis au survol (ex. "Validation impossible : cotisation non payée, santé en attente"). La confirmation avant suppression d'une inscription existait déjà (vérifié, aucune modification nécessaire sur ce point).
+
+## Sauvegarde manuelle des données (page `sauvegarde.html`)
+
+Exécutez `supabase/migration_lecture_admin_sauvegarde.sql` pour garantir un export toujours complet.
+
+Réservée au profil administrateur. Liste toutes les tables du modèle avec leur nombre de lignes actuel, permet d'en sélectionner une ou plusieurs, puis génère et télécharge un fichier `.sql` contenant les instructions `insert` nécessaires pour réinjecter les données sélectionnées.
+
+- **Ordre des tables toujours respecté** (indépendamment de l'ordre de sélection) pour éviter les problèmes de contraintes entre tables liées (ex. profils avant utilisateurs, tournois avant équipes).
+- Le fichier généré neutralise temporairement les contraintes pendant la réinjection (`session_replication_role`), en filet de sécurité supplémentaire.
+- **Important** : le plan gratuit de Supabase n'inclut aucune sauvegarde automatique native. Cette page comble ce manque via un export à la demande — pensez à l'utiliser régulièrement (par exemple avant/après la période d'inscriptions ou un tournoi), et à conserver les fichiers générés dans un endroit sûr (ils contiennent des données personnelles de membres).
+- Pour restaurer : ouvrez Supabase → SQL Editor, collez ou importez le contenu du fichier, exécutez.
+
+## Jeu de cartes (page `jeu-de-cartes.html`) — v2 : tirage plein écran
+
+Exécutez `supabase/migration_jeu_cartes_droit.sql` pour activer le nouveau droit de page.
+
+Accès désormais **paramétrable par profil** (nouveau droit "Jeu de cartes" dans le catalogue des pages, Admin → Profils), pré-accordé au profil admin par défaut. Peut donc être ouvert à d'autres profils (ex. Bureau, Gestion tournoi) sans leur donner accès à toute l'administration.
+
+- **Terrains minimisés** : les rangs utilisés pour les quadruples sont toujours les premiers dans l'ordre (1, 2, 3…), jamais choisis au hasard parmi les 10 — pour 16 joueurs, seuls les terrains 1 à 4 sont mobilisés, jamais un terrain 7 ou 9 par exemple. Seul l'ordre de tirage (qui reçoit quelle carte) reste aléatoire.
+
+- **En-tête compact** : titre + nombre de joueurs + bouton "Créer la session" sur une seule ligne.
+- **Cartes numérotées de 1 à 10** — le chiffre correspond directement au numéro de terrain (plus pratique qu'un jeu de cartes classique à 13 rangs). Toujours 4 couleurs par chiffre (♠♥♦♣) pour former les équipes Rouge/Noir dans les quadruples.
+- **Tirage séquentiel plein écran** : un gros bouton "Carte" fixé en bas de l'écran révèle, à chaque appui, la carte du joueur suivant en grand, avec une petite animation. Le joueur regarde son terrain et sa couleur, passe le téléphone au suivant.
+- **Message contextuel sous la carte** selon le nombre de joueurs partageant ce chiffre : "Rouge contre Noir" pour un quadruple (4), "match en simple" pour un duo (2), "2 matchs à 11 points à organiser" pour un trio (3).
+- **Joker** : la personne qui, seule, ne peut pas être casée dans un quadruple (reste = 1) reçoit une carte Joker distincte ("Tu passes ton tour ce round").
+- **Plus de tableau récapitulatif** : chaque personne découvre uniquement sa propre carte ; le regroupement se fait naturellement en comparant les chiffres entre joueurs, dans l'esprit d'un vrai tirage au sort en direct.
+- Jusqu'à 41 joueurs (10 terrains × 4 + 1 Joker).
+
+## Photo du certificat médical + actions optimisées mobile (inscriptions.html)
+
+Exécutez `supabase/migration_certificat_medical.sql` pour créer le stockage sécurisé.
+
+- **Bouton "📷 Certificat"** sur chaque demande d'inscription : ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur), envoie la photo dans un espace de stockage **privé** dédié, et la lie automatiquement à cette inscription. Une fois envoyée, un bouton "Voir le certificat" apparaît (lien temporaire valable 2 minutes, généré à la demande — le fichier n'est jamais rendu public).
+- **Accès conservé indéfiniment** : la photo elle-même n'est jamais supprimée automatiquement ; seul le lien de visualisation expire après 2 minutes (sécurité), un nouveau lien se génère à chaque clic sur "Voir le certificat", à tout moment (admin et bureau peuvent y accéder autant de fois que nécessaire, y compris après plusieurs mois). La date d'envoi s'affiche à côté du bouton, avec un avertissement "⚠️ à renouveler bientôt" quand le certificat approche de sa fin de validité d'1 an.
+- **Suppression manuelle** : un bouton "Supprimer le certificat" retire définitivement la photo du stockage et la déchaîne de l'inscription (avec confirmation).
+- **Affichage optimisé PC + mobile** : sur grand écran, les boutons d'action s'agencent en ligne compacte (plusieurs par rangée) pour ne pas allonger inutilement le tableau ; sur mobile, ils repassent en pile verticale pleine largeur, plus faciles à toucher.
+- **Fiches dépliables sur mobile** : sur petit écran, le tableau des inscriptions devient une liste de fiches compactes (juste le nom visible). Un tap sur un nom déplie la fiche complète — toutes les colonnes affichées verticalement avec leur libellé, suivies des boutons d'action — bien plus lisible qu'un tableau large à faire défiler horizontalement.
+- **Accès au stockage réservé** aux mêmes personnes qui ont déjà accès à la page Inscriptions (même droit de page, aucune configuration supplémentaire à faire).
+- **Actions en colonne verticale** sur toutes les tailles d'écran (Valider, 📷 Certificat, Voir le certificat, Modifier, Supprimer) au lieu d'une rangée compressée horizontalement — boutons plus grands et plus faciles à toucher sur mobile.
+
+## Connexion — redirection directe vers l'accueil
+
+Une fois identifiants et mot de passe validés avec succès sur membres.html, la page redirige désormais automatiquement vers l'accueil (index.html) au lieu de simplement se recharger sur place.
+
+## Mot de passe oublié — auto-service pour les utilisateurs
+
+Sur membres.html, un lien "Mot de passe oublié ?" sous le formulaire de connexion permet à n'importe quel utilisateur (pas seulement l'admin) de demander lui-même un email de réinitialisation, sans intervention du bureau. Fonctionne uniquement pour les comptes créés avec une vraie adresse email (les comptes par nom d'utilisateur restent à réinitialiser par un administrateur, faute d'adresse email réelle à laquelle envoyer le lien).
+
+## Harmonisation vers le nom d'utilisateur comme identifiant principal
+
+- **Libellés des formulaires** : "Nom d'utilisateur (ou email)" au lieu de "Email ou nom d'utilisateur" sur membres.html (connexion et création de compte), pour refléter l'usage réel du site.
+- **Colonne "Identifiant"** (au lieu de "Email") dans le tableau des utilisateurs sur admin.html — reste juste que le compte soit basé sur un email ou un simple nom d'utilisateur.
+- **Message d'erreur clair** à l'inscription si l'identifiant existe déjà ("Ce nom d'utilisateur (ou cet email) existe déjà...") au lieu du message technique brut de Supabase. L'unicité elle-même était déjà garantie nativement par Supabase (aucune migration nécessaire) : cette amélioration ne concerne que la clarté du message affiché.
+- **"Mon compte" accessible à tout utilisateur connecté** (pas seulement l'admin) : nouvelle section sur membres.html permettant à n'importe qui de changer son propre mot de passe, quel que soit son profil (même un simple visiteur). Auparavant, seul un compte avec accès à l'administration pouvait changer son propre mot de passe.
+
+## Bandeau simplifié une fois connecté + réinitialisation de mot de passe repensée
+
+- **Bandeau une fois connecté** : le lien "Connexion" a disparu (inutile une fois connecté), ne reste que "Se déconnecter". Cliquer sur son propre nom/profil dans le bandeau mène directement à "Mon compte" (membres.html), pour ne rien perdre en accessibilité.
+- **Mot de passe oublié** : le formulaire accepte maintenant nom d'utilisateur ou email. Avec une vraie adresse email : lien de réinitialisation envoyé automatiquement, comme avant. Avec un simple nom d'utilisateur (pas d'email associé) : la messagerie de la personne s'ouvre avec un email pré-rempli adressé au contact du club (paramétré dans Admin → Paramètres du site), prêt à envoyer — le bureau reçoit la demande et réinitialise manuellement depuis Supabase.
+- **Réinitialisation depuis admin.html pour les comptes techniques** : le message texte a été remplacé par un bouton "Réinitialiser via Supabase →", qui ouvre directement la fiche du bon utilisateur dans Supabase (recherche pré-remplie), en un clic depuis la page Utilisateurs. La modification effective du mot de passe reste une action Supabase (bouton "Reset password" une fois sur place) : aucune clé secrète n'est ni ne sera exposée dans le navigateur pour des raisons de sécurité — voir la documentation (section 2.5) pour le mode opératoire complet.
+
+## Agenda du club — vue liste sur mobile
+
+Sur téléphone, la grille mensuelle (7 colonnes trop étroites pour rester lisible) est remplacée par une **liste verticale** : seuls les jours ayant des événements sont affichés, chacun avec son titre en taille normale, ses horaires, et son lieu si renseigné. La grille classique reste inchangée sur PC, où l'espace disponible la rend parfaitement lisible. Le formulaire d'ajout/modification et le bouton "+" par jour fonctionnent identiquement dans les deux vues.
+
+## Agenda du club — connexion directe au bon compte Google
+
+Correction : la connexion à Google Agenda passait systématiquement par l'écran de sélection de compte (quand plusieurs comptes Google sont connectés dans le même navigateur), même en cliquant sur "Se connecter". Le compte de l'agenda du club étant déjà connu du site (email de contact paramétré), il est maintenant transmis directement à Google via le paramètre "hint" — la connexion se fait droit sur ce compte, sans repasser par l'étape de sélection à chaque fois (tant que ce compte est déjà connecté sur l'appareil).
+
+## Agenda du club — correction du blocage sur mobile
+
+Correction d'un vrai bug : sur mobile, cliquer sur "Se connecter à Google Agenda" ouvrait un nouvel onglet qui restait parfois bloqué sans jamais revenir sur le site (le mécanisme de Google censé refermer automatiquement cet onglet est peu fiable sur les navigateurs mobiles). **Sur mobile uniquement**, la connexion manuelle passe désormais par une redirection de page classique (Google s'affiche sur la même page, puis revient directement sur l'agenda) au lieu d'ouvrir un second onglet. **Sur PC, le comportement reste inchangé** (fenêtre de connexion classique, qui fonctionnait déjà bien). La reconnexion automatique et silencieuse au chargement de la page reste également inchangée, sur les deux.
+
+**Réglage Google Cloud requis** (uniquement pour que la connexion manuelle fonctionne sur mobile) : ajoutez l'URL exacte de la page agenda (ex. `https://jga29860.github.io/TBK_Claude/agenda.html`, sans slash final) dans Google Auth Platform → Clients → votre client OAuth → "URI de redirection autorisés".
+
+## Correction d'un bug d'affichage global (attribut "hidden" ignoré)
+
+Bug identifié sur membres.html : la section Connexion/Créer un compte restait visible même une fois connecté, alors que le code JavaScript la masquait correctement. Cause réelle : certaines classes CSS du site (ex. `.auth-panels{ display:grid; }`) prenaient le pas sur la règle par défaut du navigateur pour l'attribut `hidden`, qui n'a normalement pas priorité sur les styles définis par le site. Une règle globale (`[hidden]{ display:none !important; }`) garantit désormais que `hidden` fonctionne partout sur le site, quelle que soit la classe présente sur l'élément — corrige ce problème sur membres.html et prévient qu'il se reproduise ailleurs.
+
+## Inscriptions saison — optimisation de l'affichage PC
+
+- La 1ère colonne du tableau (déjà "Nom Prénom" combinés) est désormais intitulée "Nom Prénom" au lieu de "Nom".
+- La colonne "Prénom" séparée a été retirée (devenue redondante depuis qu'elle apparaît déjà combinée en 1ère colonne).
+- La colonne "Whatsapp" ne s'affiche plus par défaut (reste sélectionnable à nouveau depuis Configuration si besoin).
+- Nécessite `supabase/migration_retrait_colonnes_inscriptions.sql` pour que le changement s'applique sans repasser par l'écran Configuration.
+
+## Agenda du club — filet de sécurité si la connexion automatique reste bloquée
+
+Correction d'un cas où la reconnexion automatique restait bloquée indéfiniment sur "Connexion automatique en cours…" sans jamais rien afficher d'autre (Google ne répondant parfois jamais, par exemple si les cookies tiers sont bloqués par le navigateur). Un délai de 6 secondes force désormais la réapparition du bouton de connexion manuelle si Google ne répond pas à temps, avec un message explicite.
+
+## Refonte complète des annonces du club — fil d'actualité
+
+Exécutez `supabase/migration_annonces_v2.sql` pour créer les nouvelles tables et le stockage.
+
+Les annonces deviennent un vrai fil d'actualité, dans le style des réseaux sociaux :
+
+- **Auteur et date** sur chaque annonce (et chaque commentaire), avec avatar (initiales).
+- **Commentaires en fil de discussion indenté** : tout membre peut réagir à une annonce par un commentaire, et répondre à un commentaire existant (réponses imbriquées, indentation visuelle progressive).
+- **Suppression individuelle** : chaque personne peut retirer ses propres annonces/commentaires (le bureau/admin peut aussi tout retirer, pour la modération).
+- **Réactions** : 👍 like, 👎 dislike, ❤️ coup de cœur, sur une annonce ou un commentaire — une seule réaction active par personne et par élément (recliquer la retire, cliquer une autre la remplace). Compteur affiché à côté de chaque réaction.
+- **Pièces jointes** : image ou fichier joignable à une annonce comme à un commentaire, stockées dans un espace privé réservé aux membres (accès temporaire généré à la demande, jamais d'URL publique).
+- **Plier/déplier les commentaires** : chaque annonce affiche un bouton "💬 X commentaires ▼/▲" pour révéler ou masquer le fil, en gardant l'affichage compact par défaut.
+- **Tri du plus récent au plus ancien**, en haut de la liste.
+
+L'écran de gestion séparé ("Gérer les annonces") a été fusionné avec l'affichage principal : les personnes autorisées (droit "annonces") voient le formulaire de publication/modification directement au-dessus du fil, sans double affichage.
+
+## Optimisation mobile — Tournois, Inscriptions tournoi, Émargement
+
+- **tournois.html** : le tableau "Tournois existants" devient une liste de fiches sur mobile (Nom + Statut visibles directement) ; un tap sur le nom déplie la fiche pour voir cotisation, terrains, compétitions, date et actions. Comportement identique à celui déjà en place sur inscriptions.html.
+- **tournoi-inscriptions.html** : le tableau des équipes (Équipes inscrites + Non assignées) suit le même principe — les deux joueurs d'une équipe apparaissent combinés en identité de ligne, le reste (clubs, tête de poule, poule, actions) se déplie au tap. Beaucoup plus lisible sur petit écran qu'un tableau à 7 colonnes.
+- **emargement.html** : les champs et cases à cocher de chaque joueur sont désormais regroupés dans un seul bloc compact (au lieu de 5 colonnes séparées par joueur), avec Présent/Absent/Payée sous forme de grands boutons "pilule" à toucher directement — plus besoin de viser une petite case à cocher. Les deux joueurs d'une équipe s'empilent verticalement sur mobile, ce qui supprime le défilement horizontal. La recherche couvrait déjà les deux joueurs et les deux clubs d'une équipe (vérifié, aucune modification nécessaire sur ce point précis).
+
+## Bénévoles du tournoi (page `tournoi-benevoles.html`)
+
+Exécutez `supabase/migration_benevoles.sql` pour créer les tables et étendre les droits nécessaires.
+
+Nouvelle page dédiée au tournoi actif, avec un nouveau droit de page **"Bénévoles tournoi"** paramétrable comme les autres (Admin → Profils).
+
+- **Postes configurables** : les organisateurs (droits "Tournois - Administration" ou "Tournois - Gestion") peuvent ajouter, modifier, supprimer des postes (nom, horaire facultatif, description facultative, nombre de places nécessaires) — ex. "Mise en place de la salle", "Buvette", "Gérer les arrivées".
+- **Inscription libre** : toute personne ayant accès à la page peut s'inscrire ou se désinscrire d'un poste tant qu'il reste des places ; la liste des inscrits est visible par tous. Au moment de s'inscrire, un petit champ de saisie (pré-rempli avec le nom du compte connecté, modifiable) permet d'indiquer le nom et prénom réels à afficher — pratique pour les comptes créés par simple nom d'utilisateur.
+- **Fil de discussion identique aux annonces du club** : messages avec auteur et date, réponses indentées en fil de discussion, réactions (👍 like, 👎 dislike, ❤️ coup de cœur) avec compteurs, pièces jointes (image/fichier), suppression par l'auteur ou un organisateur. Réutilise directement le mécanisme de réactions déjà construit pour les annonces (même table, juste un type de cible supplémentaire), pour éviter toute duplication.
+
+## Corrections — Bénévoles et Sauvegarde
+
+Exécutez `supabase/migration_correction_droits_benevoles.sql` et `supabase/migration_lecture_admin_sauvegarde_v2.sql`.
+
+- **Correction d'un bug bloquant l'inscription à un poste de bénévoles** : les droits de lecture et d'inscription n'étaient pas cohérents (un organisateur sans le droit "Bénévoles tournoi" explicitement coché ne pouvait pas s'inscrire lui-même, alors qu'il pouvait voir la page). Alignés désormais sur la même règle.
+- **Sauvegarde mise à jour** : la page `sauvegarde.html` couvre maintenant aussi les tables ajoutées depuis sa création (commentaires et réactions des annonces, postes/inscriptions bénévoles, discussion des tournois), avec la garantie de lecture complète pour l'admin étendue à ces nouvelles tables.
+
+## Bénévoles — accès public sans connexion + gestion complète
+
+Exécutez `supabase/migration_benevoles_public_et_gestion.sql`.
+
+- **La page `tournoi-benevoles.html` est désormais accessible sans authentification** — c'est la seule page du site conçue pour être ouverte à des visiteurs sans compte (utile pour recruter des bénévoles au-delà des seuls membres inscrits sur le site). Un lien "Devenir bénévole" a été ajouté sur la page d'accueil, section Tournoi.
+- **Inscription et fil de discussion accessibles à tous**, avec ou sans compte : un simple champ "Nom et prénom" (ou "Votre nom" pour un message de discussion) suffit pour un visiteur non connecté.
+- **Limite assumée** : les réactions (👍👎❤️) restent réservées aux comptes connectés, une identité stable étant nécessaire pour appliquer la règle "une seule réaction par personne" — un visiteur anonyme voit les réactions existantes mais ne peut pas cliquer dessus.
+- **Désinscription** : une personne connectée peut se désinscrire elle-même à tout moment ; une inscription anonyme ne peut être retirée que par un organisateur (aucune identité stable à vérifier côté serveur pour un visiteur sans compte).
+- **Gestion complète par les organisateurs** (droits "Tournois - Administration" ou "Tournois - Gestion") sur chaque poste : ajout manuel d'un bénévole (même sans compte, ex. quelqu'un recruté par téléphone), modification du nom affiché d'une inscription existante, suppression de n'importe quelle inscription.
+- Sécurité : les pièces jointes du chat tournoi partagent le même espace de stockage privé que les annonces du club, mais avec un accès public strictement limité aux fichiers du tournoi (préfixe technique dédié) — les pièces jointes des annonces du club restent, elles, réservées aux membres.
+
+## Correction — le profil admin doit avoir les droits d'organisateur sur les bénévoles
+
+Exécutez `supabase/migration_admin_organisateur_benevoles.sql`.
+
+Le profil admin (droit "administration") n'avait pas les mêmes capacités que "Tournois - Administration"/"Tournois - Gestion" sur la page Bénévoles (gérer les postes, modifier/supprimer une inscription, ajouter un bénévole manuellement) — ces deux catégories de droits étaient vérifiées séparément par erreur. Corrigé : un admin a maintenant systématiquement les mêmes capacités d'organisateur sur cette page, sans avoir besoin de cocher en plus les droits tournoi spécifiques.
+
+## Correction — accès au tournoi actif depuis la page Bénévoles
+
+Exécutez `supabase/migration_tournois_lecture_publique.sql`.
+
+La table `tournois` était restreinte aux profils ayant des droits tournoi spécifiques (tournois_admin/gestion/émargement), ce qui empêchait la page Bénévoles (accessible sans connexion) de savoir quel tournoi est actif pour un visiteur non connecté ou un membre sans ces droits précis — la page affichait "Aucun tournoi en cours" à tort. La lecture de cette table (nom, statut, nombre de terrains — rien de sensible) est désormais ouverte à tous.
+
+## Correction — droit UPDATE manquant sur les inscriptions bénévoles
+
+Exécutez `supabase/migration_droit_update_inscriptions_benevoles.sql`.
+
+La migration initiale des bénévoles accordait select/insert/delete sur `benevoles_inscriptions`, mais oubliait le droit update — nécessaire pour modifier le nom d'une personne déjà inscrite. La règle de sécurité (RLS) elle-même était correcte, mais sans ce droit de base, Postgres bloquait l'opération avant même de la vérifier ("permission denied", différent d'un refus de règle de sécurité).
+
+## Suivi des connexions (page `suivi-connexions.html`)
+
+Exécutez `supabase/migration_suivi_connexions.sql`.
+
+Réservée au profil administrateur. Journalise automatiquement chaque tentative de connexion (réussie ou échouée) : identifiant utilisé, date/heure, appareil/navigateur, motif en cas d'échec — utile pour repérer une activité suspecte ou vérifier qui utilise le site.
+
+- **KPI en un coup d'œil** : total, réussies, échouées.
+- **Recherche par identifiant**, filtres Réussies/Échouées.
+- **Purge en un clic** des entrées de plus de 90 jours, pour ne pas conserver ces données indéfiniment.
+- **Non collecté volontairement** : l'adresse IP (nécessiterait un service tiers externe, pour un intérêt limité face à la sensibilité de cette donnée sur un site de club).
+
+## Suivi des visites sur les pages sans connexion requise
+
+Exécutez `supabase/migration_suivi_visites_publiques.sql`.
+
+Complète le suivi des connexions : journalise aussi automatiquement les visites sur les pages accessibles sans compte (accueil, demande d'inscription publique, bénévoles, connexion/inscription, réinitialisation de mot de passe, politique de confidentialité). Visible sur la même page `suivi-connexions.html`, avec une répartition par page en un coup d'œil, un journal détaillé (date, provenance, appareil), et une purge en un clic des entrées de plus de 90 jours.
+
+Technique : un petit script autonome (`js/visite-log.js`), indépendant de `auth.js`/`main.js`, ajouté sur ces 6 pages spécifiquement (certaines d'entre elles ne chargent pas ces fichiers).
+
+## Nouveau droit de page : Tournois - Inscriptions
+
+Nouveau droit de page dédié à `tournoi-inscriptions.html` (Admin → Profils), qui reposait jusqu'ici uniquement sur "Tournois - Administration"/"Tournois - Gestion". Permet de déléguer uniquement la gestion des équipes inscrites et des poules à quelqu'un, sans lui donner accès à la création de tournois, la planification ou l'émargement.
+
+## Audit de la procédure de sauvegarde
+
+Vérification complète : les 21 tables du modèle de données sont confirmées toutes couvertes par `sauvegarde.html`, dans un ordre respectant toutes les dépendances entre tables (clés étrangères) — aucune table manquante, aucune correction nécessaire. La documentation (page et Word) a été mise à jour avec le nouveau droit de page.
+
+## Correction — le droit "Tournois - Inscriptions" ne donnait pas accès aux données
+
+Exécutez `supabase/migration_droit_tournois_inscriptions_rls.sql`.
+
+Le nouveau droit de page avait été ajouté côté affichage (menu, accès à la page) mais pas dans les règles de sécurité protégeant les données elles-mêmes (types de compétition, compétitions du tournoi, équipes) — un profil n'ayant que ce droit voyait la page mais aucune donnée. Corrigé : ces 3 tables reconnaissent désormais aussi ce droit.
+
+## Rattachement automatique de l'espace membre à la validation d'une inscription
+
+Exécutez `supabase/migration_espace_membre_auto.sql`.
+
+**Contrainte technique importante** : il est impossible de créer un vrai compte de connexion pour quelqu'un depuis le navigateur (nécessiterait la clé secrète serveur, mise de côté à deux reprises pour la suppression de compte et la réinitialisation de mot de passe) — et ce n'est de toute façon pas souhaitable, la personne doit toujours choisir elle-même son mot de passe. La solution retenue : relier automatiquement l'inscription au compte existant de la personne.
+
+- **Au moment de la validation** : si la personne a déjà un compte sur le site (même email), rattachement immédiat et élévation au profil "membre" (jamais de rétrogradation si elle est déjà bureau/admin).
+- **Rattachement différé** : si elle n'a pas encore de compte, le rattachement se fait automatiquement le jour où elle en crée un avec la même adresse email — aucune action supplémentaire nécessaire.
+- **Rattrapage** : bouton "Relier automatiquement les comptes existants" sur inscriptions.html, pour traiter en une fois les inscriptions déjà validées avant cette fonctionnalité.
+- **Nouvelle section "Mes informations"** sur membres.html, entre "Mon compte" et les annonces : affiche la saison, le statut de l'inscription, la catégorie, la pratique, la cotisation, et la validité du certificat médical de la personne connectée (si une inscription lui est reliée).
+- Une personne peut désormais lire sa propre inscription (nouvelle règle de sécurité dédiée), sans accès aux inscriptions des autres.
+
+Documentation mise à jour (page + Word), avec au passage la correction d'un oubli : la section "Espace membres" n'avait jamais été actualisée depuis la refonte du fil d'actualité des annonces (commentaires, réactions, pièces jointes).
+
+## Rattachement manuel d'une inscription à un compte existant
+
+Exécutez `supabase/migration_rattachement_manuel_inscription.sql`.
+
+Mode plus simple que le rattachement automatique par email : sur chaque demande d'inscription (page inscriptions.html), le bureau/admin peut désormais choisir un compte existant dans une liste déroulante et cliquer "Rattacher" — l'inscription est reliée à ce compte, et son profil est élevé à "membre" (jamais de rétrogradation si déjà bureau/admin). Un bouton "Délier" permet d'annuler un rattachement fait par erreur. La section "Mes informations" sur membres.html (déjà en place) fonctionne automatiquement dès qu'un rattachement — manuel ou automatique — est effectué.
+
+## Corrections — colonne manquante + validation trop stricte
+
+Exécutez `supabase/migration_correction_colonne_user_id_manquante.sql`.
+
+- **Colonne `user_id` manquante** : la migration qui la créait avait été mise de côté lors du passage au rattachement manuel, alors qu'elle reste indispensable dans les deux approches — d'où l'erreur "column user_id does not exist" lors du rattachement.
+- **Validation d'inscription trop stricte** : le contrôle sur "Cotisation payée" attendait une valeur précise ("Oui"/true), alors que ce champ peut être un choix parmi plusieurs valeurs (ex. mode de paiement), où "Non" signifie non payé et n'importe quelle autre valeur signifie payé. La règle est désormais : payé si la valeur est renseignée et différente de "Non" (peu importe la casse).
+
+## Correction — "Relié à : compte inconnu" au chargement de la page
+
+Bug d'ordre de chargement : la liste des comptes existants se chargeait après le tableau des inscriptions, donc au premier affichage de la page, toute inscription déjà reliée à un compte affichait "compte inconnu" (la correspondance n'avait pas encore les données pour s'afficher correctement). Corrigé en inversant l'ordre de chargement.
+
+## Correction — incohérence "Cotisation payée" entre inscriptions.html et membres.html
+
+- **Cause du bug** : `membres.html` affichait "✅ Payée" dès que le champ était non vide — y compris pour la valeur littérale "Non", qui est une chaîne de texte non vide donc considérée "vraie" par un simple test JavaScript. `inscriptions.html`, elle, appliquait déjà la bonne règle. Résultat : une même fiche pouvait afficher "payée" sur une page et "non payée" sur l'autre.
+- **Correction** : la règle ("payé" = renseigné et différent de "Non", peu importe la casse) est désormais centralisée dans `auth.js` (chargé par les deux pages), pour garantir qu'inscriptions.html et membres.html appliquent toujours exactement la même logique.
+
+## Émargement — bandeau du haut compacté sur mobile
+
+Le bandeau du haut de emargement.html (cotisation/présents/réglé + recherche + filtre absents) prenait beaucoup trop de place sur mobile, en restant fixé en haut d'écran en permanence. Condensé en 2 lignes compactes au lieu de 5+ : les 3 indicateurs tiennent maintenant sur une seule ligne (libellés courts), et la recherche + le bouton "Absents" sont côte à côte au lieu d'être empilés. Le bandeau reste "collé" en haut pendant le défilement (pratique pour rechercher un joueur en pleine liste), mais occupe une fraction de l'espace qu'avant, laissant beaucoup plus de place aux données en dessous.
+
+## Émargement — boutons Présent/Absent/Payée sans défilement horizontal sur mobile
+
+Les 3 boutons de bascule par joueur (Présent/Absent/Payée) pouvaient forcer un défilement horizontal sur mobile malgré le passage à la ligne prévu. Corrigé en profondeur : sur mobile, ces 3 boutons deviennent des carrés icône-seule (✓ / ✗ / 💰) de largeur égale, garantis de tenir sur une seule ligne quelle que soit la largeur d'écran — plus de texte à faire tenir, plus de risque de débordement. Le texte complet (Présent/Absent/Payée) reste affiché normalement sur PC. Une sécurité supplémentaire (largeur de tableau figée) empêche aussi le tableau HTML sous-jacent d'imposer une largeur minimale qui forcerait un défilement.
+
+## Audit fonctionnel et technique du site + corrections
+
+Exécutez `supabase/migration_nettoyage_reactions_orphelines.sql`.
+
+Aucune faille de sécurité détectée. Corrections apportées suite à l'audit :
+
+- **Requête sans limite corrigée** : le fil d'actualité des annonces (membres.html) chargeait toutes les annonces depuis la création du club, sans limite — plafonné à 100 désormais.
+- **Fonctions dupliquées centralisées** : `formatDate` et `estImage` existaient en double dans membres.js et tournoi-benevoles.js (même risque de divergence que le bug "cotisation payée" précédent) — centralisées dans auth.js.
+- **Nettoyage automatique des réactions orphelines** : supprimer une annonce, un commentaire ou un message de tournoi supprime désormais aussi les réactions (👍👎❤️) qui lui étaient liées, via des déclencheurs SQL. Un nettoyage ponctuel retire aussi les réactions déjà orphelines accumulées avant cette migration.
+- **Documentation** : date de mise à jour actualisée, nouvelle sous-section sur ce mécanisme de nettoyage.
+
+**Pistes identifiées mais non traitées** (améliorations, pas des bugs) : optimisation mobile de planning.html/poules.html/phase-finale.html/admin.html (non encore revues dans cette conversation) ; purge des journaux de connexion/visites toujours manuelle (l'automatiser nécessiterait la même infrastructure serveur que la fonction Edge déjà évoquée et mise de côté).
+
+## Optimisation mobile globale du site
+
+Suite à l'audit précédent, revue mobile des pages restantes.
+
+- **planning.html** (la page la plus dense du site, 13 colonnes avec saisie de score en direct) : colonnes regroupées en 6 blocs compacts (Match, Équipes, Terrain/Statut, Scores, Horaires, Action), affichés en carte empilée sur mobile — tout reste directement modifiable. Au passage, factorisation d'une grosse duplication de code entre les vues Poule et Phase finale (logique de calcul d'état d'un match).
+- **poules.html** : classement et détail des matchs par poule passent au même motif "fiche dépliable au tap" déjà utilisé sur les autres tableaux du site (nom cliquable, reste replié par défaut).
+- **phase-finale.html** : déjà correctement pensée pour mobile (affichage en colonnes par tour avec défilement horizontal volontaire — comportement standard pour un tableau à élimination directe, aucune correction nécessaire).
+- **admin.html** (Profils et Utilisateurs) : les deux tableaux passent en cartes empilées sur mobile (contenu trop varié — cases à cocher multiples, champs, actions — pour le motif "nom cliquable" ; tout reste visible directement sans avoir à déplier).
+- **documentation.html, sauvegarde.html, suivi-connexions.html** : tableaux principalement composés de texte descriptif, qui s'enroule naturellement dans les cellules — laissés tels quels (déjà fonctionnels, filet de sécurité de défilement en place si besoin).
+
+## Planning — correction : chaque match sur une seule ligne en PC
+
+Correction d'une régression introduite par le regroupement de colonnes précédent : le contenu de chaque bloc (équipes, scores, horaires...) s'empilait verticalement même sur grand écran, ce qui allongeait chaque ligne au lieu de la compacter. Désormais : sur PC, tout le contenu d'un match tient sur une seule ligne horizontale compacte (padding réduit), pour afficher le maximum de matchs possible sans défilement. L'empilement vertical reste réservé au mobile, où il reste nécessaire.
+
+## Planning — refonte du tableau des matchs et bandeau du haut compacté
+
+Retour à un tableau à colonnes classiques (dense, une ligne par match sur PC — comme les tableaux historiques du site), après que l'approche par blocs regroupés se soit montrée peu fiable. Sur mobile, la 1ère colonne (identité du match) se déplie au tap pour révéler le reste, motif déjà éprouvé sur inscriptions.html/tournois.html/tournoi-inscriptions.html — appliqué ici aussi à poules.html au passage.
+
+- **Bandeau du haut compacté** : le bouton "Générer / régénérer" (avec le choix de compétition) est désormais sur la même ligne que les 3 filtres (Planning complet / Matchs en cours / Matchs possibles), aligné à droite, au lieu d'une sous-section séparée avec son propre titre et paragraphe.
+- **Bandeau toujours visible** : ce bandeau (réglages, terrains, top 5, filtres) reste collé en haut de l'écran pendant le défilement de la liste des matchs, comme sur emargement.html.
+- **Un maximum de matchs visibles** : le tableau à colonnes classiques est naturellement dense sur PC — plus besoin d'astuce de mise en page pour ça, c'est le comportement par défaut d'un tableau HTML.
+
+## Planning — rotations stables + bandeau plein largeur + textes sur une ligne
+
+Exécutez `supabase/migration_rotation_stable.sql`.
+
+- **Rotations enfin stables** : le numéro de rotation d'un match était recalculé à chaque affichage de la page, ce qui pouvait le faire "changer de rotation" au fil du tournoi (à chaque match lancé, l'algorithme d'équité se relançait sur l'ensemble des matchs restants). Désormais, ce numéro est calculé une bonne fois et enregistré en base (colonne `rotation`) : à la génération des matchs de poule, à la génération de la phase finale, et dès qu'un match de phase finale devient planifiable (ses deux équipes connues après propagation d'un vainqueur). Un rattrapage automatique s'applique aux tournois déjà en cours au premier chargement suivant le déploiement.
+- **Bandeau du haut sur une seule ligne, pleine largeur** : indicateurs (Terrains prévus, Durée moyenne), les 3 filtres (Planning complet/Matchs en cours/Matchs possibles) et le bloc génération (compétition + bouton) sont réunis sur une seule bande occupant toute la largeur de la page, avec réduction de police automatique si l'espace manque sur un écran plus étroit.
+- **Textes garantis sur une ligne** : "Poule X", les noms d'équipe et le statut ne passent plus à la ligne sur PC (retour à la normale uniquement sur les fiches dépliées en mobile, pour ne pas faire déborder un nom très long).
+- **Scores par set garantis sur une ligne** : chaque set (2 cases + tiret) est désormais dans un conteneur qui ne peut jamais se couper en deux lignes.
+
+## Planning — génération du planning pour tout le tournoi, au prorata des équipes
+
+- **Un seul bouton pour tout le tournoi** : "Générer / régénérer tout le planning" remplace la sélection d'une compétition à la fois — régénère désormais les matchs de poule de toutes les compétitions en une seule opération (confirmation demandée, scores déjà saisis inclus dans le remplacement).
+- **Progression au prorata du nombre d'équipes** : l'algorithme de répartition en rotations donne désormais plus de poids aux compétitions ayant plus d'équipes (une compétition à 32 équipes reçoit proportionnellement plus de terrains par rotation qu'une compétition à 8 équipes), pour que toutes les compétitions terminent à peu près en même temps plutôt qu'au même rythme absolu, poule par poule, indépendamment de leur taille.
+
+## Planning — optimisation de l'affichage du bandeau du haut
+
+- **Champs de réglages plus étroits** : Heure de début, Rotation, Temps min. entre 2 matchs, Filtre équipe occupent moins de place, sans toucher aux formulaires similaires des autres pages du site.
+- **Terrains sur 3 colonnes fixes** (au lieu d'un empilement dépendant de la largeur d'écran).
+- **Top 5 attente sur 2 colonnes** : une colonne par compétition (ex. Double Mixte à gauche, Double Homme à droite) au lieu d'un empilement vertical.
+
+## Planning — enchaînement progressif au sein d'une poule + saisie des scores agrandie
+
+- **Calendrier round-robin par poule** : les matchs de poule sont désormais générés selon un calendrier "round-robin" (méthode du cercle, classique dans tous les sports pour ce besoin) au lieu d'un simple ordre 1-2, 1-3, 1-4... Chaque équipe joue une fois par "journée" avant de rejouer — sur une poule de 4, les 3 journées opposent chacune 2 paires différentes sans qu'une équipe ne rejoue avant que toutes les autres aient joué une fois. Fonctionne aussi avec un nombre impair d'équipes (une équipe au repos par journée). Vérifié : 6 paires uniques exactement pour une poule de 4, comme attendu.
+- **Cases de score agrandies** : largeur des champs de saisie des points augmentée, pour bien afficher les valeurs à 2 chiffres.
+
+## Phase finale — Principale et Consolante avancent réellement à parts égales
+
+Corrige un déséquilibre observé : Principale ou Consolante pouvait avancer beaucoup plus vite que l'autre en nombre de matchs joués. Cause identifiée : le poids utilisé pour équilibrer les rotations (introduit précédemment) se basait sur le nombre total d'équipes de la compétition — une mesure correcte pour les poules, mais imprécise pour les phases finales, dont les deux tableaux (Principale/Consolante) ne sont pas toujours rigoureusement de la même taille (cas limite déjà documenté : nombre de poules qualificatives pas une puissance de 2). Le poids utilisé pour la phase finale est désormais le nombre total de matchs du tableau précis (Principale ou Consolante) plutôt que le nombre d'équipes de toute la compétition — une mesure exacte de charge de travail propre à chaque tableau, garantissant qu'ils progressent au même rythme relatif et terminent à peu près en même temps.
+
+## Planning — régénération complète, accès public aux pages de consultation, QR codes
+
+Exécutez `supabase/migration_lecture_publique_poules_finale.sql`.
+
+- **Générer/régénérer efface aussi la phase finale** : le bouton supprime désormais définitivement tous les matchs de poule ET de phase finale du tournoi (avant, seuls les matchs de poule étaient effacés, laissant d'éventuels matchs de phase finale obsolètes).
+- **Bouton réservé à l'administrateur** : "Générer / régénérer tout le planning" n'est visible que pour le profil ayant le droit "administration" — les autres profils autorisés sur la page (tournois_admin, tournois_gestion) ne le voient plus.
+- **Phase Poule et Phase finale accessibles sans connexion** : `poules.html` et `phase-finale.html` sont désormais consultables par n'importe qui, sans compte — en lecture seule (aucune saisie possible pour un visiteur anonyme).
+- **QR codes d'accès public** : sous "Heure de début" dans planning.html, deux QR codes pointent directement vers Phase Poule et Phase finale — pratiques à afficher sur place (écran, affiche) pour que les participants suivent l'avancement depuis leur téléphone.
+- **Page "Poules" renommée "Phase Poule"** : titre, en-tête, et lien du menu Organisation mis à jour.
+
+## Planning — correction algorithmique majeure : remplissage optimal des rotations
+
+Cause identifiée précisément (simulation vérifiée avec exactement le scénario signalé : 2 compétitions, 32+16 équipes, 9 terrains) : la pondération proportionnelle par compétition fonctionnait bien poule par poule, mais ne plafonnait jamais le nombre de créneaux qu'une compétition pouvait prendre **au sein d'une même rotation**. Une compétition ayant plus de poules (donc plus de "sources" de matchs disponibles simultanément) pouvait ainsi dépasser sa part proportionnelle sur certaines rotations, s'épuisant plus vite en valeur absolue et laissant l'autre compétition traîner seule en fin de phase de poules — d'où les rotations creuses observées (7 rotations de 9, puis 1 de 7, puis 1 de 2, au lieu de 8 rotations pleines de 9).
+
+Corrigé : chaque rotation répartit désormais ses créneaux entre compétitions selon un quota strict proportionnel (ex. 6/9 et 3/9 pour un ratio 32:16), avec redistribution des créneaux non utilisés si une compétition ne peut pas atteindre son quota (faute de matchs disponibles sans conflit d'équipe). Vérifié par simulation : le scénario exact rapporté produit maintenant 8 rotations pleines de 9 (6 pour la grande compétition, 3 pour la petite, à chaque rotation), sans aucun reliquat.
+
+Confirmé au passage : "Top 5 attente" se réinitialise déjà naturellement après régénération (c'est une valeur calculée à partir des matchs terminés, qui sont tous supprimés lors d'une régénération complète) — aucun code supplémentaire nécessaire sur ce point.
+
+## Nouvelle fonctionnalité — Boutique du club
+
+Exécutez `supabase/migration_boutique.sql`.
+
+Nouvelle page `boutique.html` permettant au bureau de proposer des articles à la vente aux membres. Cohérent avec le reste du site : paiement suivi manuellement par le bureau (comme les cotisations saison), pas de paiement en ligne.
+
+**2 nouveaux droits de page** (à attribuer manuellement aux profils souhaités depuis Administration → Profils — aucun profil n'y a accès par défaut) :
+- `boutique` : consultation du catalogue et passage de commandes.
+- `boutique_gestion` : en plus, gestion des articles (ajout/modification/suppression) et synthèse des demandes. Le profil admin y a toujours accès.
+
+**Un article** : nom, description, prix, photo, une ou plusieurs tailles disponibles (ex. "S, M, L, XL", ou "Unique" par défaut), dates de début/fin facultatives. N'apparaît dans le catalogue public que dans sa période de disponibilité ; le bureau voit tous les articles (y compris inactifs) dans son panneau de gestion.
+
+**Commande d'un membre** : choix de l'article + de la taille, en un clic. Nom, prix et taille sont figés au moment de la commande (restent cohérents même si l'article est modifié ensuite). Chaque membre retrouve l'historique de ses commandes dans "Mes commandes", avec possibilité d'annuler tant que la demande est "En attente".
+
+**Synthèse pour le bureau** :
+- Tableau agrégé quantités par article et taille (pratique pour commander en gros).
+- Détail des demandes avec recherche par demandeur, changement de statut (En attente/Confirmée/Récupérée/Annulée), et case "Payée".
+
+**Nouvelles tables** : `boutique_articles`, `boutique_commandes`. **Nouveau bucket de stockage** : `boutique-photos` (privé, lecture réservée aux comptes ayant accès à la boutique). Ajouté à la page Sauvegarde et à la documentation (nouvelle section 11).
+
+## Suivi des connexions — purge complète (en plus de la purge à 90 jours)
+
+Ajout d'un bouton "Purger tout l'historique" sur les deux journaux de la page (connexions ET visites publiques), en plus du bouton existant limité aux entrées de plus de 90 jours. Confirmation renforcée (texte explicite sur le caractère définitif et irréversible) pour éviter tout clic accidentel. Aucun changement de base de données nécessaire — les règles de sécurité existantes autorisaient déjà la suppression sans restriction de date, seule l'interface manquait ce bouton.
+
+## Nouvelle fonctionnalité — Anti-pause Supabase (keepalive), fréquence configurable
+
+Exécutez `supabase/migration_keepalive.sql`.
+
+Le plan gratuit Supabase met le site en pause après 7 jours sans activité (erreur "Failed to fetch"). Comme un site statique GitHub Pages ne peut rien exécuter seul en arrière-plan, la solution repose sur un **GitHub Actions programmé** (nouveau fichier `.github/workflows/keepalive.yml`), qui s'exécute chaque jour sur les serveurs de GitHub et "touche" la base Supabase selon une fréquence réglable — sans jamais avoir à modifier ce fichier pour ajuster la fréquence.
+
+- **Nouveau réglage dans Administration** : section "Anti-pause Supabase", fréquence en jours (doit rester < 7), avec affichage de la date du dernier ping reçu.
+- **⚠️ Mise en place technique requise une seule fois** : le fichier `.github/workflows/keepalive.yml` contient des espaces réservés (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) à remplacer par les vraies valeurs du projet (identiques à `js/supabase-config.js`), puis à enregistrer sur la branche principale du dépôt. Sans cette étape, le workflow ne pourra pas contacter la bonne base.
+- Fonctionne via une fonction SQL dédiée et très restreinte (`enregistrer_keepalive_ping`), appelable sans connexion, qui ne fait qu'horodater un paramètre — aucun accès élargi accordé aux visiteurs anonymes.
+- Documentation mise à jour (nouvelle section 7.3 + 13.7).
+
+## Correction — bug de génération de la phase finale Consolante
+
+Bug confirmé et reproduit par simulation : la Consolante était construite à partir des "3èmes" contre les "4èmes" de chaque poule. Si aucune poule n'avait exactement 4 équipes (ex. poules de 3), la liste des "4èmes" restait vide alors que celle des "3èmes" ne l'était pas — la génération s'arrêtait alors silencieusement sans produire aucun match de Consolante, tout en générant normalement la Principale.
+
+Corrigé : la Consolante est désormais composée de **toutes** les équipes non qualifiées pour la Principale (3e, 4e, 5e... quelle que soit la taille de la poule), réparties en 2 moitiés pour former le tableau — fonctionne quel que soit le nombre d'équipes par poule.
+
+**Auto-réparation** : la vérification "phase déjà générée ?" est désormais indépendante par tableau (Principale / Consolante) au lieu d'être globale — un tournoi déjà touché par ce bug (Principale générée, Consolante vide) se corrige tout seul au prochain chargement de planning.html, sans jamais toucher à la Principale existante ni à ses scores.
+
+**Limite connue résiduelle** : si le nombre total d'équipes non qualifiées pour la Principale est impair, la dernière équipe de la moitié la plus nombreuse n'est pas appariée (comportement cohérent avec la limite déjà documentée sur les tableaux ne correspondant pas à une puissance de 2).
+
+## Trois corrections ciblées
+
+Exécutez `supabase/migration_droit_emargement_rls.sql`.
+
+- **Émargement bloqué en écriture** : le profil "tournois_emargement" pouvait voir la page emargement.html, mais toute tentative d'enregistrer présence/paiement était rejetée par la base (règle de sécurité `equipes_acces` ne le reconnaissait pas — seuls tournois_admin/tournois_gestion/tournois_inscriptions y figuraient). Corrigé, avec une portée précise : lecture des compétitions autorisée, mais pas leur modification (qui reste réservée à l'admin/gestion).
+- **Ordre des équipes avant le tournoi** : sur poules.html, tant qu'aucun match n'est joué (tout le monde à 0 point), l'ordre d'affichage était arbitraire faute de critère de départage. La tête de poule s'affiche désormais en premier dans ce cas ; dès les premiers résultats, le classement réel prend le relais normalement.
+- **Photo boutique sur mobile** : le champ photo du formulaire d'article propose désormais le choix natif "Prendre une photo / Choisir dans la galerie" sur mobile (ajout de `capture="environment"`, même mécanisme déjà en place pour le certificat médical).
+
+**Note technique** : le script de génération du document Word (`generate.js`) a été perdu suite à une réinitialisation de l'environnement de travail. Le Word a été mis à jour par une édition XML ciblée cette fois-ci (validée sans erreur), mais une reconstruction complète du script serait nécessaire pour garder ce mode de mise à jour pratique sur la durée — à signaler si des évolutions plus conséquentes de la documentation sont prévues prochainement.
+
+## Trois nouveautés — têtes de poule, validité du certificat, page Courses
+
+Exécutez `supabase/migration_tournoi_courses.sql`.
+
+- **Têtes de poule en premier (inscription tournoi)** : sur tournoi-inscriptions.html, chaque poule affiche désormais sa tête de poule en tête de liste, plutôt qu'un ordre arbitraire.
+- **Certificat médical valable selon la catégorie** : nouvelle règle centralisée (auth.js) — 3 ans de validité pour la catégorie Adulte, 1 an pour la catégorie Jeune (renouvellement annuel), calculée à partir de la vraie date du certificat (et non plus de la date d'envoi de la photo, comme c'était le cas par le passé). La validation d'une inscription (bouton "Valider") vérifie maintenant que le certificat est réellement **valable**, pas seulement renseigné. Le statut affiché sur inscriptions.html et sur membres.html ("Mes informations") suit désormais exactement la même règle.
+- **Nouvelle page "Courses du tournoi"** (`courses.html`) : suivi des achats effectués pour le tournoi (libellé, quantité, prix), avec ajout/modification/suppression et total automatique. Nouveau droit de page "tournois_courses" (à attribuer manuellement, ou déjà accessible aux profils tournois_admin/tournois_gestion).
+
+**Note technique** : le Word a de nouveau été mis à jour par édition XML ciblée (script `generate.js` toujours non reconstruit) — validé sans erreur, vérifié visuellement page par page.
+
+## Correction — inscription auto-validée sans vérification des conditions
+
+Bug confirmé : une inscription saisie directement par le bureau (formulaire principal, pas le formulaire public) était **automatiquement** marquée "validée" à la création, sans jamais vérifier si la cotisation était payée ou le certificat valable — un comportement pré-existant devenu incohérent avec la règle de validation qu'on vient de renforcer (cotisation payée + certificat valable).
+
+Corrigé : ce cas suit désormais exactement la même règle que le bouton "Valider" — une inscription saisie par le bureau n'est automatiquement validée que si les conditions sont réellement réunies au moment de la saisie ; sinon elle reste "En attente" comme une demande publique.
+
+**Nouveau bouton "Annuler la validation"** sur toute inscription déjà validée, pour la repasser "En attente" en cas d'erreur — utile pour corriger une fiche déjà touchée par ce bug, ou toute validation faite par erreur à l'avenir.
+
+## Trois ajustements — certificat 37 mois, menu défilant, planning ultra-compact
+
+- **Certificat médical Adulte : 3 ans → 3 ans et 1 mois (37 mois)** : nouvelle durée appliquée partout (règle centralisée dans auth.js), catégorie Jeune inchangée (1 an). Vérifié par calcul : un certificat du 15/08/2023 devient valable jusqu'au 15/09/2026.
+- **Menu "Organisation" défilant** : le menu déroulant (desktop) accumule de plus en plus d'entrées au fil des évolutions du site et pouvait dépasser la hauteur de l'écran, rendant les derniers éléments inaccessibles. Il défile désormais lui-même si nécessaire (`overflow-y:auto`), garantissant l'accès à tous les sous-menus quelle que soit la hauteur d'écran. Aucun changement côté mobile (déjà intégré au défilement normal de la page).
+- **Planning — bandeau du haut réduit au maximum** : nouvelle passe de compaction agressive (padding, espacements et polices réduits partout : réglages, QR codes, terrains, top 5, bandeau filtres/génération) pour libérer un maximum d'espace vertical pour la liste des matchs juste en dessous.
+
+## Trois nouveautés — contact email, planning mobile compact, une ligne garantie
+
+- **Bouton contact email dans l'en-tête** (icône ✉️, présente sur les 21 pages du site) : ouvre le client email du visiteur avec l'adresse "Email de contact du club" (Administration → Paramètres du site) déjà en destinataire. Aucun envoi automatique — la personne valide elle-même depuis son client email. Les 3 pages sans en-tête complet (inscription-publique, politique-confidentialité, reset-password) ont reçu un petit script dédié pour fonctionner de façon autonome.
+- **Planning mobile — pliage de la partie haute** : nouveau bouton "⚙️ Réglages, terrains, top 5", visible uniquement sur mobile, repliant/dépliant cette zone (repliée par défaut) pour libérer un maximum d'espace pour la liste des matchs. Aucun changement sur PC — le bouton n'y apparaît même pas.
+- **Zone "Match" garantie sur une ligne** : la classe partagée par toutes les fiches dépliables du site (inscriptions, tournois, équipes, poules, planning) tronque désormais le texte avec "…" plutôt que de le faire passer à la ligne — bénéfice appliqué partout, pas seulement sur Planning.
+
+## Correction — troncature "une ligne" enfin effective + colonnes redimensionnables
+
+Cause du bug identifiée : le correctif précédent (troncature avec "…") ne pouvait pas fonctionner sur PC car le tableau utilisait une largeur de colonne libre (`table-layout: auto`) — sans largeur fixe, une colonne s'élargit simplement pour accueillir tout le texte au lieu de le tronquer. La cellule "Match" n'avait de plus aucune mise en forme adaptée sur PC (seulement sur mobile).
+
+Corrigé en profondeur, avec une vraie fonctionnalité en prime :
+- **Largeurs de colonnes fixes par défaut** sur le tableau des matchs (planning.html, PC uniquement) — la troncature "…" fonctionne enfin réellement dès qu'un texte dépasse.
+- **Redimensionnement à la main** : une poignée sur le bord droit de chaque en-tête de colonne permet de faire glisser pour l'élargir ou la rétrécir. Double-clic pour revenir à la largeur par défaut.
+- **Mémorisation** des largeurs choisies dans le navigateur (persistantes d'une session à l'autre, propres à chaque appareil).
+- Mobile non affecté (comportement en fiches dépliables inchangé, poignées de redimensionnement masquées).
+
+## Nouvelle fonctionnalité — filtres par colonne + emails de relance configurables
+
+Exécutez `supabase/migration_email_templates_inscriptions.sql`.
+
+**Point de sécurité clarifié en amont** : il est techniquement impossible de "rappeler" un mot de passe (jamais stocké en clair, par personne, sur aucun système bien conçu). Le modèle d'email "Inscription validée" invite donc la personne à créer son compte ou à utiliser "Mot de passe oublié", plutôt que de prétendre lui redonner un mot de passe.
+
+**Filtres par colonne** (inscriptions.html, PC uniquement) : une ligne de filtres texte sous les en-têtes du tableau, filtrage instantané et combinable, sans recharger la page. Limite connue : indisponible sur mobile, où l'en-tête est masqué par le motif de fiches dépliables.
+
+**Bouton d'envoi d'email par ligne** : menu déroulant + bouton "Envoyer" sur chaque inscription ayant un email renseigné. Pré-sélectionne le modèle le plus pertinent selon l'état de la demande (cotisation manquante / certificat attendu / validée), modifiable avant envoi. Utilise un lien `mailto:` classique (comme le bouton de contact du bandeau) — rien n'est envoyé automatiquement, la personne connectée valide depuis son propre client email.
+
+**4 modèles configurables en base**, éditables depuis Administration → section Configuration de la page Inscriptions : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Inscription validée (bienvenue). Variables disponibles : `{prenom}`, `{nom}`, `{montant}`, `{email}`, `{url_site}`.
+
+**Petit oubli corrigé au passage** : la table `tournoi_courses` (fonctionnalité d'un tour précédent) n'avait jamais été ajoutée au tableau de référence de la base de données dans le document Word — corrigé en même temps que l'ajout de `inscriptions_email_templates`.
+
+## Emails de relance — 5ème modèle : cotisation + document santé manquants
+
+Exécutez `supabase/migration_email_template_combine.sql` (en plus de la migration du tour précédent si pas déjà fait).
+
+Nouveau modèle "Cotisation + document santé manquants", pré-sélectionné automatiquement quand la cotisation ET le certificat médical/QS Sport manquent tous les deux en même temps — plutôt que de forcer l'envoi de deux emails séparés. Testé sur les 4 combinaisons possibles (rien fourni, cotisation seule, santé seule, validée) : la recommandation se comporte correctement dans tous les cas.
+
+## Inscriptions — règle de document santé précise + couleurs de ligne
+
+Exécutez `supabase/migration_precision_message_sante.sql`.
+
+**Règle de document santé précisée** (testée sur 4 scénarios, comportement conforme) :
+- Catégorie **Jeune** : toujours un certificat médical neuf exigé chaque année (jamais de QS Sport pour un mineur).
+- Catégorie **Adulte** : certificat neuf exigé si aucun certificat n'a jamais été renseigné, ou si le certificat existant a plus de 37 mois (expiré) ; dans les autres cas (certificat encore dans sa fenêtre de validité), un simple QS Sport suffit pour la saison — cohérent avec la règle fédérale réelle (certificat valable 3 ans, questionnaire de santé les années intermédiaires).
+- Le modèle d'email combiné ("Cotisation + document santé manquants") utilise désormais une nouvelle variable `{document_sante}`, qui précise automatiquement lequel des deux documents est concerné, plutôt que de mentionner vaguement "un certificat médical ou le questionnaire de santé".
+
+**Couleurs de ligne dans le tableau des inscrits** : bleu clair pour la catégorie Jeune, orange clair pour Adulte, vert dès que l'inscription est validée (prioritaire sur la couleur de catégorie). Légende ajoutée au-dessus du tableau.
+
+## Inscriptions — actions regroupées dans un panneau + email du club en copie
+
+- **Ligne simplifiée à Modifier/Supprimer** : toutes les autres actions (Valider/Annuler la validation, Certificat, Rattachement du compte, Envoyer un email) sont désormais regroupées dans un nouveau panneau "Actions pour cette inscription", qui apparaît sous le formulaire dès qu'on clique sur "Modifier" une personne — la ligne du tableau reste épurée.
+- **Email du club en copie (Cc)** : l'adresse "Email de contact du club" (Administration → Paramètres du site) est désormais automatiquement mise en copie de chaque email de relance envoyé, pour que le bureau garde une trace de l'échange. Correction technique au passage : encodage manuel du lien mailto (plutôt que `URLSearchParams`, qui encode les espaces en "+", mal interprété par certains clients email).
+
+## Ajustement — champs de saisie des modèles d'emails agrandis
+
+Les champs "Sujet" et "Corps du message" des modèles d'emails de relance (Administration → Configuration, page Inscriptions) n'avaient aucune largeur définie et prenaient la taille minuscule par défaut du navigateur. Corrigé : ces champs occupent maintenant toute la largeur disponible du panneau, avec une hauteur de départ plus généreuse pour le corps du message (9 lignes au lieu de 6). Les libellés ("Sujet", "Corps du message") sont aussi correctement mis en forme au-dessus de leur champ, plutôt qu'en ligne par défaut du navigateur.
+
+## Audit du site et du code — correction d'une requête sans limite
+
+Audit complet mené sur toutes les fonctionnalités ajoutées depuis le dernier contrôle (boutique, courses, emails de relance, keepalive) : sécurité (RLS) et documentation confirmées à jour, aucune faille détectée.
+
+**Un point corrigé immédiatement** : la liste des commandes boutique (vue bureau) se chargeait sans aucune limite ni tri par période — même schéma de problème déjà rencontré et corrigé sur le fil d'actualité des annonces. Limité aux 300 commandes les plus récentes pour éviter un ralentissement progressif au fil des saisons.
+
+**Points identifiés mais non traités pour l'instant** (à la demande de l'utilisateur, améliorations de confort) :
+- Page Courses du tournoi pas encore optimisée pour mobile (motif "fiches dépliables" pas encore appliqué à son tableau).
+- Script de génération du Word (`generate.js`) toujours perdu depuis une réinitialisation technique — le Word reste à jour via des éditions XML ciblées à chaque tour, fonctionnel mais plus fragile qu'un vrai script.
+- Quelques fichiers obsolètes accumulés dans les téléchargements (fonction Edge annulée, scripts de diagnostic/simulation ponctuels) — sans risque, juste de l'encombrement.
+
+## Page Inscriptions — panneau en direct, badge temps réel, statut "Éléments demandés"
+
+Exécutez `supabase/migration_statut_elements_demandes.sql` puis `supabase/migration_realtime_badge_inscriptions.sql`.
+
+**1. Panneau d'actions en direct** : dans le panneau "Actions pour cette inscription" (après clic sur "Modifier"), le bouton "Valider" apparaît/disparaît désormais immédiatement à chaque saisie (cotisation, santé, certificat) — plus besoin d'enregistrer d'abord pour voir si la validation est possible.
+
+**2. Badge "demandes en attente" en temps réel** — nouveauté technique : première utilisation de Supabase Realtime sur ce site. Le badge du bandeau (visible sur toutes les pages, profils bureau/admin) se met à jour automatiquement dès qu'une inscription est ajoutée, modifiée ou supprimée par n'importe qui, sans rechargement de page. ⚠️ **Nécessite que la réplication logique soit activée sur votre projet Supabase** — standard sur les projets récents, mais si le badge ne se met pas à jour en direct après déploiement, vérifiez dans Supabase → Database → Replication que la table `inscriptions` apparaît bien cochée pour `supabase_realtime` (la migration l'active automatiquement, mais certains projets très anciens peuvent nécessiter une activation manuelle de la fonctionnalité elle-même).
+
+**3. Nouveau statut "Éléments demandés"** : positionné automatiquement dès qu'un email de relance (hors modèle "Bienvenue") est envoyé pour une inscription "En attente". Le bouton "Valider" reste disponible sur ce statut. Comptabilisé dans le badge de demandes en attente, avec son propre badge visuel orange dans le tableau.
+
+## Inscriptions — suivi de modification, envoi groupé, filtres en liste déroulante
+
+Exécutez `supabase/migration_suivi_modification_inscriptions.sql`.
+
+**1. Suivi de dernière modification** : nouveau déclencheur SQL (`trg_inscriptions_modification`) qui enregistre automatiquement qui a modifié une inscription et à quelle date, quelle que soit l'origine du changement (formulaire, validation, envoi d'email qui change le statut...). Visible en haut du panneau d'actions, disponible aussi comme colonne optionnelle du tableau.
+
+**2. Envoi groupé par critères** (admin uniquement) : nouvelle section au-dessus du tableau, filtrant sur sport (Bad/Ping/les deux — attention à la logique : "Bad" et "Ping" incluent aussi ceux qui pratiquent "Bad et Ping", seul le choix "Les deux uniquement" les isole spécifiquement) + catégorie + statut cotisation + validité du certificat. Affiche la liste correspondante avec un bouton "Envoyer" par ligne (le modèle choisi globalement s'applique à chaque envoi individuel — reste des liens mailto un par un, pas un vrai envoi groupé automatique, cette limite technique étant inhérente à mailto).
+
+**3. Filtres par colonne en liste déroulante** : Statut, Catégorie, Bad/Ping, UFOLEP/FSGT, Membre Bureau et tout champ personnalisé de type Liste ou Oui/Non proposent désormais un menu déroulant avec les valeurs réellement possibles, plutôt qu'un champ texte libre.
+
+⚠️ **Point à tester particulièrement soigneusement** : la logique du filtre sport dans l'envoi groupé (Bad/Ping/les deux), qui est la partie la plus sujette à interprétation de ce tour.
+
+## Envoi groupé — liste récapitulative par email
+
+- **Accès admin confirmé** : vérifié des deux côtés (affichage de la section + branchement des actions), aucun changement nécessaire, déjà correctement restreint.
+- **Nouveau bouton "✉️ Envoyer la liste par email"** : en plus de l'envoi individuel ligne par ligne déjà en place, un seul clic génère un email récapitulatif listant toutes les inscriptions du dernier filtrage (nom, catégorie, sport, cotisation, statut, email), avec les critères de filtrage rappelés en objet. Destinataire pré-rempli avec l'adresse de contact du club, modifiable avant envoi. Avertissement affiché au-delà de 30 résultats (risque de troncature côté client email).
+
+## Correctif — bouton "Envoyer la liste par email" peu visible sur mobile
+
+Le bouton utilisait un style discret ("ghost" : fond blanc, fine bordure verte) qui pouvait se fondre dans la page sur un écran étroit, surtout combiné avec le paragraphe d'explication juste en dessous. Corrigé : style plein (vert, comme les autres actions principales) + empilement pleine largeur garanti sur mobile (plus de risque de compression dans une ligne flex trop courte).
+
+**Point d'incertitude à confirmer** : n'ayant pas pu reproduire directement sur un vrai appareil mobile, ce correctif cible la cause la plus probable (contraste/discrétion du style, pas une règle qui le masquait complètement). À confirmer après déploiement — si le bouton reste invisible, une capture d'écran aiderait à cibler précisément.
+
+## Résumé sport/catégorie + email de liste mieux structuré
+
+- **Résumé sport/catégorie** : à droite du titre "Inscrits — [saison]", un petit texte en police réduite affiche désormais "X Bad · X Ping · X Jeune · X Adulte" (les personnes pratiquant les deux sports comptent dans Bad ET Ping), mis à jour à chaque chargement de la liste.
+- **Email de liste mieux structuré** : les liens mailto ne pouvant contenir que du texte brut (pas de HTML), la mise en forme passe par une meilleure structuration du texte — bandeau de titre, filtres et date d'extraction rappelés, regroupement par catégorie (Adultes/Jeunes) avec sous-total par groupe, icône de statut (✅/🟠/⏳) par personne, email sur sa propre ligne. Testé et vérifié avec un jeu de données d'exemple.
+
+## Courses (réductions) + Planning (terrain/annulation, saisie des scores)
+
+**1. Courses du tournoi — réductions** : le prix unitaire accepte désormais une valeur négative (contrainte `min="0"` retirée), avec indication au libellé et affichage en rouge du sous-total négatif. Total général géré nativement (simple addition), aucun changement de logique nécessaire.
+
+**2. Planning — changer de terrain / annuler un lancement** : un match "En cours" affiche une liste déroulante dans la colonne Terrain (réaffectation à un autre terrain libre en un clic, sans annuler puis relancer), et un nouveau bouton "Annuler le lancement" qui remet le match "Non lancé" en libérant son terrain, sans toucher aux scores déjà saisis.
+
+**3. Planning — saisie des scores optimisée** : diagnostic posé — l'ordre de tabulation gauche-à-droite était déjà correct (aucun `tabindex` perturbateur), le vrai problème était qu'une case sauvegardée déclenchait aussitôt un rechargement complet du tableau, pouvant "voler" le focus en cas de saisie rapide (Tab plus vite que l'aller-retour réseau). Corrigé par un regroupement des rechargements (différé de 700 ms) : plusieurs cases saisies à la suite ne provoquent qu'un seul rechargement, une fois la saisie posée.
+
+⚠️ **Point à tester particulièrement soigneusement** : la saisie rapide de plusieurs scores à la suite (Tabulation entre les cases), qui est le point le plus délicat de ce tour.
+
+## Phase finale — traits de connexion entre les matchs
+
+Après une proposition validée avec l'utilisateur (traits appliqués aux deux phases Principale/Consolante, conservés même sur mobile), implémentation d'un tracé SVG en "coude" (horizontal/vertical/horizontal) entre chaque match et le match suivant qui accueillera son vainqueur.
+
+**Choix technique** : calcul basé sur le vrai lien `match_suivant_id` en base (pas une simple règle d'appariement par position), donc fiable même si le tableau n'est pas une puissance de 2 parfaite. Le SVG est positionné à l'intérieur du conteneur qui défile horizontalement (et non au-dessus), pour que les traits suivent correctement les cartes pendant le défilement sur mobile — point de vigilance identifié et corrigé avant livraison. Recalcul automatique au redimensionnement de fenêtre (rotation d'écran, etc.), en plus du rechargement périodique déjà en place (20 secondes).
+
+L'espacement vertical des tours resserrés (demi-finale, finale) a aussi été ajusté (répartition égale sur la hauteur du tour le plus fourni) pour éviter des traits trop obliques.
+
+## Correction — "Voir le certificat" bloqué chez certains utilisateurs
+
+**Diagnostic** : le lien signé s'ouvrait via `window.open()` APRÈS l'appel réseau de génération du lien (un `await`) — beaucoup de navigateurs, notamment sur mobile, traitent une ouverture d'onglet intervenant après une opération asynchrone comme un pop-up non sollicité et la bloquent silencieusement, sans aucune erreur visible. Explique un comportement incohérent d'un appareil/navigateur à l'autre (fonctionne pour certains, pas pour d'autres), exactement le symptôme signalé.
+
+**Corrigé** : l'onglet s'ouvre désormais immédiatement au clic (dans le geste utilisateur, avant tout appel réseau), puis le lien signé y est injecté une fois récupéré — préserve la confiance du navigateur envers l'ouverture.
+
+**Point à vérifier en complément si le problème persiste pour une personne précise** : dans Administration → Profils, confirmer que son rôle dispose bien du droit de page "Inscriptions" — cette configuration vit dans votre base de données, pas dans le code, donc je n'ai pas pu la vérifier moi-même à distance.
+
+## Correction — photos HEIC (iPhone) illisibles pour les autres
+
+**Diagnostic confirmé** : un iPhone avec les réglages caméra par défaut enregistre ses photos au format HEIC. Ce format ne s'affiche correctement que dans Safari — dans tous les autres navigateurs (Chrome, Firefox, la plupart des navigateurs Android), l'image apparaît cassée. Le code traitait pourtant `.heic` comme un format d'image normal (`estImage()`), sans jamais le convertir — d'où le symptôme signalé : ça fonctionne pour la personne qui prend la photo (souvent sur Safari), mais casse pour tous les autres qui essaient de la consulter.
+
+**Corrigé** : ajout de la bibliothèque `heic2any` (conversion HEIC → JPEG directement dans le navigateur, avant l'envoi), appliquée aux deux endroits concernés du site : le certificat médical (inscriptions.js) et les photos d'articles boutique (boutique.js). La conversion échoue silencieusement vers l'envoi du fichier original en cas de problème (jamais de blocage complet de la personne).
+
+⚠️ **Limite à connaître** : cette correction ne s'applique qu'aux nouveaux envois. Une photo déjà envoyée au format HEIC avant cette mise à jour reste cassée pour les autres et devra être renvoyée pour être corrigée.
+
+## Audit boutique + clôture de tournoi — bug corrigé, consultation ajoutée
+
+**1. Zoom boutique** : clic sur une photo d'article → plein écran, fermeture au clic ou sur "✕".
+
+**2. Achat de plusieurs articles** : vérifié, déjà pleinement fonctionnel — aucune contrainte ne limite à un seul article ou une seule commande. Rien à corriger.
+
+**3. Clôture de tournoi — audit complet :**
+- 🔴 **Bug confirmé et corrigé** : le bouton "Modifier" (nom, cotisation, terrains, liste des compétitions) restait accessible sur un tournoi **clôturé**, en violation de la règle "toujours uniquement visualisable". Ne s'affiche désormais que pour le tournoi en cours.
+- 🔴 **Gap confirmé et corrigé** : un tournoi clôturé devenait **totalement invisible** (aucune page ne chargeait autre chose que le tournoi actif). Nouvelle fonction `getTournoiCible()` (paramètre `?tournoi=<id>`) appliquée à poules.html et phase-finale.html — déjà 100% lecture seule par conception — avec de nouveaux liens "Consulter les poules" / "Consulter la finale" sur chaque tournoi clôturé (tournois.html). Titre de page précisé "(tournoi clôturé)". Aucune migration SQL nécessaire : la lecture publique de ces données était déjà ouverte en base, indépendamment du statut.
+- ✅ **Vérifié et déjà correct** : créer un nouveau tournoi n'efface jamais les données des précédents (insertion pure). "Réactiver" fonctionne déjà correctement pour repasser un tournoi clôturé en mode modifiable.
+- ⚠️ **Portée assumée** : la consultation en lecture seule ne couvre que les résultats (Poules + Phase finale). Les autres données d'un tournoi clôturé (équipes, émargement, courses, bénévoles) restent non modifiables (donc sans risque), mais restent aussi non consultables depuis le site une fois clôturé — extension possible sur demande.
+
+## Flocage boutique + audit documentation
+
+Exécutez `supabase/migration_boutique_flocage.sql`.
+
+**1. Option flocage** (activable par article, +3€ par défaut) : case à cocher au formulaire admin, choix Oui/Non au catalogue avec champ "Nom à floquer" obligatoire si Oui. Affiché dans "Mes commandes", la vue de gestion bureau, et une nouvelle colonne "Dont floqués" dans la synthèse. Activée automatiquement sur "Maillot Club Sublimé" si cet article existe déjà dans votre catalogue — sinon activable manuellement sur n'importe quel article.
+
+**2. Audit de la documentation** : vérification systématique des 21 pages + d'une vingtaine de fonctionnalités récentes (temps réel, statut "Éléments demandés", suivi de modification, clôture de tournoi, HEIC, filtres colonnes...) — tout était déjà à jour, seul le flocage manquait (normal, ajouté dans ce même tour). Documentation HTML et Word tous les deux complétés.
+
+## Inscription publique au tournoi — nouvelle fonctionnalité majeure
+
+Exécutez `supabase/migration_tournoi_inscription_publique.sql`.
+
+**1. Date du tournoi** : nouveau champ à côté du nombre de terrains (création/modification), colonne dédiée dans la liste des tournois.
+
+**2. Page d'accueil dynamique** : la section "02 — Rendez-vous" (nom, date, compte à rebours, bouton d'inscription, QR code) se met à jour automatiquement à partir du tournoi en cours — plus aucune date codée en dur dans le code. Message de repli si aucun tournoi n'est actif. Le bouton "S'inscrire au tournoi" (auparavant un simple mailto) pointe désormais vers la nouvelle page ci-dessous.
+
+**3. Nouvelle page publique** `tournoi-inscription-publique.html` : accessible à tous sans compte, une équipe se déclare elle-même — choix de la compétition (le formulaire s'adapte automatiquement simple/double), puis pour chaque joueur : nom, prénom, club, niveau (Débutant/Intermédiaire/Confirmé), affiliation fédérale (Oui/Non). Chaque demande démarre au statut "En attente".
+
+**4. Workflow de validation** (`tournoi-inscriptions.html`) : nouvelles sections "🟠 Demandes en attente" et "⛔ Demandes refusées" avec boutons Valider/Refuser/Remettre en attente. Les équipes saisies directement par le bureau restent automatiquement validées comme avant. Le calcul de "compétition complète" ne compte désormais que les équipes validées (les demandes en attente ne bloquent plus artificiellement les inscriptions).
+
+⚠️ **Parcours à tester en priorité** : inscription publique → validation admin → apparition dans le tableau des équipes normal (avec assignation de poule possible ensuite).
+
+## Coordonnées demandeur + confirmation email + description boutique
+
+Exécutez `supabase/migration_equipes_contact_demandeur.sql`.
+
+**1. Email et téléphone du demandeur** : nouveaux champs obligatoires sur le formulaire public d'inscription au tournoi, stockés sur la table `equipes` (`demandeur_email`, `demandeur_telephone`). Visibles dans une colonne "Contact" des sections "Demandes en attente"/"Refusées" côté admin.
+
+**2. Email de confirmation à la validation** : cliquer "Valider" propose désormais l'envoi d'une confirmation ("Envoyer un email de confirmation à [adresse] ?"), ouvrant un lien mailto pré-rempli (rien n'est envoyé automatiquement, la personne connectée valide depuis son propre client email). Bouton "Renvoyer confirmation" disponible en permanence ensuite, sur l'équipe validée dans le tableau normal.
+
+**3. Description dans la synthèse boutique** : nouvelle colonne "Description" à côté du nom de l'article dans le tableau de synthèse des demandes — pratique pour distinguer deux articles au nom proche.
+
+## Bouton hero dynamique + lien Facebook + description détail boutique
+
+- **Bouton "Voir le tournoi du…"** (bandeau tout en haut de la page d'accueil) : affiche désormais automatiquement la date du tournoi en cours, réutilisant la même logique déjà en place pour la section "Tournoi" plus bas sur la page. Masqué si aucun tournoi n'est actif.
+- **Lien Facebook** : nouveau bouton "Notre groupe Facebook" (https://www.facebook.com/groups/3826450300980984), à côté du bouton tournoi, ouvre le groupe dans un nouvel onglet.
+- **Description dans le détail des demandes boutique** : la vue "Détail des demandes" (liste individuelle par commande, distincte de la synthèse déjà mise à jour au tour précédent) affiche désormais elle aussi la description de l'article, dans sa propre colonne.
+
+## Marqueur "Validée_" — inscription pleinement finalisée
+
+Exécutez `supabase/migration_email_bienvenue_envoye.sql`.
+
+Nouveau marqueur visuel dans le badge de statut : une inscription affiche désormais "Validée_" (avec un tiret bas) au lieu de "Validée" dès que **les 3 conditions sont réunies** : statut validé, mail "Inscription validée (bienvenue)" envoyé, et inscription reliée à un compte. Permet de repérer en un coup d'œil les dossiers réellement clos, par opposition à une simple validation pas encore suivie d'effet. Testé sur les 4 combinaisons possibles — comportement conforme dans tous les cas. "Annuler la validation" réinitialise ce marqueur pour éviter un affichage trompeur en cas de re-validation ultérieure.
+
+## Tri alphabétique admin + blocage doublons + enrichissement Mes informations
+
+Exécutez `supabase/migration_verification_doublon_inscription.sql` puis `supabase/migration_champs_mes_informations.sql`.
+
+**1. Liste des utilisateurs triée par ordre alphabétique** (identifiant), au lieu de la date de création.
+
+**2. Doublon nom + prénom bloqué** : impossible de créer une nouvelle inscription déjà existante pour la même saison — vérifié via une fonction SQL dédiée (sûre à appeler depuis le formulaire public, sans exposer aucune donnée), appliquée aux deux points d'entrée (formulaire public et saisie bureau). Ne s'applique qu'à la création, jamais à la modification d'une inscription existante.
+
+**3. "Mes informations" enrichie** : téléphone, adresse, email et date de naissance s'affichent désormais dans l'espace membre — ces champs existaient déjà dans le formulaire d'inscription (schéma de base), la migration garantit simplement leur présence si votre installation est antérieure à leur ajout.
+
+## Section "Le club" (accueil) — entièrement paramétrable
+
+Exécutez `supabase/migration_club_parametrable.sql`.
+
+**Nouvelle section admin "Page d'accueil — Section Le club"** : le petit texte au-dessus du titre, le titre lui-même, et les cartes (tag + texte) de la première section de la page d'accueil sont désormais entièrement modifiables depuis Administration — plus rien de codé en dur dans le HTML. Ajout, modification, suppression et réordonnancement (flèches monter/descendre) d'un nombre illimité de cartes.
+
+**Point technique traité au passage** : l'animation d'apparition au défilement (déjà utilisée ailleurs sur la page) a été rendue réutilisable pour s'appliquer correctement aux cartes chargées dynamiquement depuis la base — sans ce correctif, elles seraient restées invisibles (n'ayant jamais été détectées par l'animation, configurée uniquement au chargement initial de la page).
+
+Le contenu actuel du site (3 cartes : Badminton, Tennis de table, Vie associative) est automatiquement repris comme point de départ par la migration, rien n'est perdu au passage.
+
+## Icône de liaison — inscription non reliée à un compte
+
+Une icône 🔗 grisée apparaît désormais en bout de ligne du tableau des inscrits (nouvelle colonne "Compte"), uniquement pour les personnes qui ne sont pas encore reliées à un compte site — rien ne s'affiche pour une inscription déjà reliée. Repérage rapide au survol ("Non relié à un compte"), sans avoir à ouvrir chaque fiche.
+
+## Boutique — choix de la quantité à commander
+
+Nouveau champ "Quantité" (1 par défaut, jusqu'à 20) à côté du choix de la taille : un seul clic sur "Commander" enregistre autant de commandes individuelles identiques que la quantité choisie, sans avoir à répéter la manipulation. Point à connaître : si un flocage est demandé avec une quantité supérieure à 1, le même nom s'applique à tous les exemplaires — pour des noms différents, il faut commander séparément chaque exemplaire avec une quantité de 1.
+
+## Envoi d'une annonce par email à tous les membres
+
+Nouvelle icône ✉️ sur chaque annonce (visible uniquement pour le profil administrateur), à côté de Modifier/Supprimer. Ouvre un mailto pré-rempli — destinataires en BCC (adresses des membres validés de la saison en cours, récupérées depuis leur inscription), sujet "TBK — [titre]", corps reprenant le texte intégral de l'annonce suivi d'un lien direct vers celle-ci sur le site. Confirmation demandée si plus de 30 destinataires. Testé et vérifié : génération du lien mailto conforme (destinataires, sujet, corps, lien).
+
+## Réactions — afficher qui a réagi, par nom
+
+Exécutez `supabase/migration_reactions_nom.sql`.
+
+Sur les annonces et leurs commentaires, cliquer sur le nombre à côté d'un emoji de réaction (👍/👎/❤️) affiche désormais la liste des personnes ayant réagi, par leur nom — en plus de l'infobulle au survol pour PC. Fonctionne aussi bien sur mobile (clic) que sur PC (survol ou clic).
+
+**Régression évitée en cours de route** : `tournoi-benevoles.js` utilise une implémentation indépendante mais partage la même table `annonces_reactions` et certaines classes CSS (`.reaction-btn`, `.reaction-btn--active`) — repéré et corrigé avant livraison en isolant les nouvelles classes (`.reaction-emoji-btn`, `.reaction-groupe`) pour ne rien casser sur cette page tierce. Testé et vérifié : les deux implémentations restent fonctionnelles.
+
+## Réactions — infobulle uniformisée sur les noms
+
+Correctif de suivi : l'infobulle du bouton emoji (👍/👎/❤️) affichait encore juste le libellé générique ("Like") au survol, au lieu des noms — seul le bouton du nombre les affichait. Uniformisé : survoler n'importe quelle partie de la réaction (emoji ou nombre) affiche désormais les noms des personnes ayant réagi, dès qu'il y en a au moins une. Testé et vérifié avec des données d'exemple.
+
+## Liens cliquables dans les annonces et commentaires
+
+Toute adresse http(s) tapée dans le texte d'une annonce ou d'un commentaire est désormais automatiquement transformée en vrai lien cliquable (ouvert dans un nouvel onglet), sans aucune manipulation particulière à la saisie. Ponctuation de fin de phrase collée à l'URL (point, virgule, parenthèse) correctement détachée du lien. Testé et vérifié sur plusieurs cas, dont un test de sécurité XSS explicite (le texte reste échappé avant conversion — aucune injection possible via une URL malveillante).
+
+Point corrigé au passage : le style global du site neutralise la couleur des liens (`color: inherit`) — ajout d'un style dédié pour que ces liens restent visuellement distincts (couleur verte, soulignés) dans le contenu des annonces/commentaires.
+
+## Certificat médical (40 mois) + QS Sport en complément — refonte majeure
+
+Exécutez `supabase/migration_qs_sport_date.sql`.
+
+**Nouvelle règle** : certificat médical valable 40 mois pour un adulte (au lieu de 37), inchangé à 12 mois pour un jeune. Pour un adulte, tant que le certificat reste valable mais date de plus d'un an, un QS Sport à jour (renouvelé chaque année, moins de 12 mois) est désormais enregistré **avec sa propre date** en complément — remplace l'ancien choix manuel unique "Santé" (Certificat/QS Sport/En Attente), désormais dérivé automatiquement des deux vraies dates.
+
+**Logique centralisée** dans `js/auth.js` (`dossierSanteComplet`, `certificatEstRecent`, `qsSportEstValide`), réutilisée partout : conditions de validation, email de relance recommandé, filtre groupé, affichage du panneau d'actions et de "Mes informations". Testée sur 8 scénarios représentatifs (jeune/adulte, certificat récent/ancien/expiré, QS Sport présent/absent/expiré) — tous conformes.
+
+⚠️ **Point à traiter par vos soins** : l'ancien champ "Santé" reste en base par prudence (aucune donnée supprimée) mais n'est plus utilisé par aucune logique — vous pouvez le retirer depuis Administration → Champs personnalisés si vous ne souhaitez plus le renseigner.
+
+## Photo du QS Sport, en complément de la photo du certificat
+
+Exécutez `supabase/migration_qs_sport_photo.sql`.
+
+Nouveau bouton "📷 QS Sport" dans le panneau d'actions (visible uniquement pour la catégorie Adulte, jamais pour un Jeune), sur le même modèle que le certificat médical : stockage privé dédié (bucket `qs-sport`), lien de consultation temporaire, suppression possible. Complète le statut texte du QS Sport déjà en place depuis le tour précédent — la photo est une pièce justificative indépendante de la date, qui reste seule à piloter la logique de validité.
+
+**Incident traité en cours de route** : une première tentative de mise à jour du Word a introduit une structure XML invalide (texte mal imbriqué suite à une découpe imprécise d'un paragraphe existant). Repris proprement depuis le fichier source intact, avec une découpe méthodique du paragraphe en 3 parties distinctes — validation XML immédiate après chaque étape, puis validation complète et vérification visuelle (page rendue en image) avant livraison.
+
+## 🔴 Correctif de sécurité majeur — accès bloqué pour les membres connectés
+
+Exécutez `supabase/migration_correctif_lecture_poules_finale_membres.sql` puis `supabase/migration_correctif_acces_public_authenticated.sql`.
+
+**Bug confirmé** : signalé par l'utilisateur sur Phase Poule/Phase finale (données invisibles pour un membre connecté, mais visibles pour un visiteur non connecté — symptôme contre-intuitif qui a permis de cibler précisément la cause). Plusieurs règles de sécurité "ouvertes au public" ciblaient explicitement le rôle technique `anon` (visiteur non connecté) au lieu de s'appliquer à tout le monde. Une personne connectée sans droit tournoi/bureau spécifique retombait alors sur l'ancienne règle plus restrictive, et se retrouvait **plus bloquée qu'un simple visiteur non connecté** — l'inverse de l'intention.
+
+**Portée** : le même schéma de bug touchait, au-delà de Phase Poule/Phase finale, les pages Bénévoles, messages de tournoi (+ pièces jointes), et les 2 formulaires publics (inscription saison, inscription tournoi). Audit systématique mené sur toutes les règles scopées "to anon" du site pour ne rien manquer.
+
+**Vigilance apportée** : une régression de sécurité a été évitée en cours de route (une correction automatique aurait par erreur ouvert l'insertion des inscriptions bénévoles à n'importe qui pour n'importe qui — repérée et corrigée avant livraison, une règle dédiée correcte existant déjà pour ce cas précis).
+
+Fichiers originaux également corrigés (`migration_lecture_publique_poules_finale.sql`, `migration_benevoles_public_et_gestion.sql`, `migration_inscriptions_validation.sql`, `migration_tournoi_inscription_publique.sql`) pour qu'une future installation neuve ne reproduise pas ces mêmes bugs.
+
+## Boutique — détail des demandes enrichi, factorisé et filtrable
+
+**1. Demandeur enrichi** : affiché avec nom + prénom tels que renseignés sur son inscription saison en cours (plus fiable que le nom librement choisi sur son compte), avec repli automatique sur ce dernier si aucune inscription n'est reliée — silencieux en cas d'échec (droit "inscriptions" manquant), rien de bloqué.
+
+**2. Lignes factorisées avec quantité** : les demandes strictement identiques (même demandeur, article, taille, flocage, statut et paiement) sont regroupées en une seule ligne avec une quantité, au lieu d'être répétées — testé et vérifié avec des données d'exemple, y compris la séparation naturelle dès qu'un statut diffère. Statut, paiement et suppression s'appliquent désormais à tout le groupe en une fois.
+
+**3. Filtres par colonne** : remplace l'ancienne recherche unique par demandeur — chaque colonne (Demandeur, Article, Description, Taille, Statut, Payée) a désormais son propre filtre, sur le même modèle que les filtres déjà en place sur la page Inscriptions.
+
+## Paiement en ligne HelloAsso — boutique
+
+Exécutez `supabase/migration_paiement_helloasso_boutique.sql`.
+
+Solution "simple" (pas de backend, pas de serveur) : un bouton "💳 Payer toutes mes commandes en ligne" ouvre le widget HelloAsso (formulaire "don" à montant libre) dans une fenêtre, montant total/prénom/nom pré-remplis automatiquement par `postMessage`. Dès la confirmation du paiement, toutes les commandes concernées sont marquées comme payées automatiquement — un seul paiement, quel que soit le nombre d'articles en attente.
+
+**Sécurité** : une fonction SQL dédiée (`marquer_commande_payee_en_ligne`) garantit qu'une personne ne peut marquer comme payée que *sa propre* commande — jamais celle de quelqu'un d'autre. L'origine du message de confirmation est aussi vérifiée (doit provenir du domaine HelloAsso).
+
+⚠️ **Limite à connaître** : la confirmation est déclarative (basée sur un message reçu du navigateur), pas sur un webhook serveur-à-serveur — une vérification ponctuelle depuis le back-office HelloAsso reste recommandée pour le bureau, surtout au début de la mise en service.
+
+**Mise en place restante côté HelloAsso (avant de pouvoir tester)** : créer un formulaire "don" à montant libre dans votre compte HelloAsso, puis coller l'URL de son widget dans Administration → Paramètres du site → "URL du widget de paiement HelloAsso (boutique)".
+
+## Paiement boutique — pré-remplissage enrichi + limites HelloAsso clarifiées
+
+**Amélioration** : adresse et pays (France) désormais aussi pré-remplis automatiquement dans le widget HelloAsso (en plus du montant, prénom, nom), depuis l'inscription saison de la personne — réduit le nombre de champs à compléter manuellement. Un second envoi de rattrapage (800ms après le chargement) sécurise le pré-remplissage si le widget n'était pas encore prêt au premier essai.
+
+⚠️ **Limites qui viennent de HelloAsso lui-même, pas du site** :
+- Le formulaire utilisé est un formulaire **"don"** à montant libre — seul type HelloAsso permettant ce pré-remplissage dynamique. Son vocabulaire ("faire un don") ne peut pas être renommé "paiement" depuis le site : ce contenu est à l'intérieur de l'iframe HelloAsso, sur leur domaine, hors de portée du code.
+- L'adresse complète est exigée par HelloAsso (probablement pour un éventuel reçu fiscal, propre aux dons) — impossible de la rendre facultative depuis le site.
+- **À vérifier côté back-office HelloAsso** : l'option "don sur-mesure" doit être activée sur le formulaire, sinon le pré-remplissage est silencieusement ignoré par HelloAsso.
+
+## Diagnostic paiement HelloAsso — logs de débogage ajoutés
+
+Toutes les étapes clés du paiement en ligne (URL du widget, données envoyées au pré-remplissage, messages reçus en retour) sont désormais tracées dans la console du navigateur, préfixées "[HelloAsso]" — permet d'identifier précisément où un paiement bloque, sans deviner. Ajout aussi d'une vérification automatique du montant (bloque avec message clair si invalide/nul) et d'un avertissement si l'URL configurée ne se termine pas par "/widget" (erreur de configuration fréquente).
+
+## Diagnostic paiement — cause probable identifiée (cookies tiers)
+
+Analyse des logs de la console fournis par l'utilisateur : la vraie cause probable est le **blocage des cookies tiers** par le navigateur, empêchant le widget HelloAsso (chargé depuis un autre domaine) d'accéder à ses propres cookies de session — repérable par une erreur `401` sur `api.helloasso.com/v5/agg/user` et le message HelloAsso "User is not filled, cannot auto-fill payer information". **Confirmé sans lien avec notre intégration** : le pré-remplissage du site (montant, prénom, adresse) part correctement et HelloAsso répond bien (visible dans les logs). Ajout de `allow="storage-access"` sur l'iframe pour permettre au widget de demander l'accès à ses cookies si son code le prévoit. Les nombreuses requêtes bloquées vers Facebook/LinkedIn/Criteo/Datadog dans les logs sont de simples pixels publicitaires HelloAsso, sans rapport avec le paiement — à ignorer.
+
+## Boutique — statut "Payée" remplace "Confirmée"
+
+Exécutez `supabase/migration_boutique_statut_payee.sql`.
+
+**1. Statut renommé** : "Confirmée" devient "Payée" dans la liste des statuts possibles — migration des données existantes incluse (toute commande déjà "Confirmée" passe à "Payée" automatiquement).
+
+**2. Statut = source unique de vérité pour le paiement** : le paiement en ligne HelloAsso fait désormais passer directement le statut à "Payée" (plus seulement la case à cocher). Côté bureau, choisir "Payée" dans le détail des demandes coche automatiquement la case payée ; les autres statuts (dont "Récupérée") ne la décochent pas — une commande payée puis récupérée reste payée. Testé et vérifié sur 4 scénarios (statut/case combinés).
+
+**3. Colonne "Payées" retirée de la synthèse** ("Quantités par article et taille") — devenue redondante avec le statut, désormais visible dans le détail des demandes uniquement. La synthèse reste centrée sur les quantités à commander.
+
+## Paiement en ligne HelloAsso — cotisation (en complément de la boutique)
+
+Exécutez `supabase/migration_paiement_helloasso_cotisation.sql`.
+
+**1. Bouton "Payer en ligne" pour la cotisation** — dans "Mes informations" (espace membre), visible uniquement quand la cotisation n'est pas payée. Une fois confirmé, le champ "Cotisation payée" passe automatiquement à "Oui".
+
+**2. Deux formulaires HelloAsso distincts, paramétrables séparément** — la clé existante (boutique) est renommée en `helloasso_url_paiement_boutique` (votre URL déjà configurée est conservée, rien à ressaisir), et une nouvelle clé `helloasso_url_paiement_cotisation` est ajoutée. Deux champs séparés dans Administration → Paramètres du site.
+
+**3. Pré-remplissage maximal** — prénom, nom, email, adresse et pays (France par défaut), repris exactement du même mécanisme déjà en place pour la boutique.
+
+**4. Boutons de paiement redessinés** — fond orange (`#e67e00`), largeur réduite (220px max), appliqué de façon cohérente aux deux boutons (boutique et cotisation), vérifié sans conflit avec les styles existants.
+
+⚠️ **Mise en place restante côté HelloAsso (avant de pouvoir tester la cotisation)** : créer un **second** formulaire "don" à montant libre dans votre compte HelloAsso (distinct de celui déjà utilisé pour la boutique), puis coller son URL de widget dans le nouveau champ "URL du widget de paiement HelloAsso (cotisation)".
+
+## Contrôle du suivi des connexions et des visites
+
+Contrôle de bout en bout (navigateur réel, base simulée) : visites journalisées sur les 7 pages suivies, tentatives de connexion échouées et réussies journalisées (identifiant, succès, motif, compte), page Suivi des connexions affichant les deux journaux, règles d'accès conformes (écriture ouverte à tous, lecture et purge réservées au droit "administration").
+
+**Fiabilisation** (`auth.js`, `signIn`) : la journalisation d'une connexion est désormais attendue (1,5 s maximum) avant de rendre la main — après une connexion réussie, la redirection immédiate vers l'accueil pouvait interrompre l'envoi et faire manquer des connexions réussies dans le journal. Version des fichiers : `?v=20260927b`.
+
+## Correctif : saisie manuelle "Hello Asso" + numéro de version des fichiers
+
+**1. "Hello Asso" proposé quelle que soit la configuration du champ** "Cotisation payée" : type Oui / Non (cas standard), type liste (option ajoutée si absente), ou champ recréé sous une autre clé (reconnu par son libellé — `estChampCotisationPayee` dans `auth.js`). Idem pour le filtre de colonne.
+
+**2. Numéro de version sur tous les fichiers du site** (`js/…?v=20260927a`, `css/style.css?v=…`, 23 pages) : force les navigateurs à recharger les fichiers à chaque déploiement, au lieu de mélanger d'anciennes et de nouvelles versions en cache (cause fréquente de "la correction ne marche pas"). **À chaque livraison, le numéro est incrémenté.**
+
+## Correctifs : période HelloAsso par défaut, cotisation payée "Hello Asso"
+
+Exécutez `supabase/migration_cotisation_payee_helloasso.sql`.
+
+**1. Page Paiements HelloAsso** — période posée dès l'ouverture, avant tout appel réseau : du 1er jour du mois M-2 à aujourd'hui. Nouveau raccourci "3 derniers mois".
+
+**2. Cotisation payée en ligne = "Hello Asso"** — `marquer_cotisation_payee_en_ligne` (widget) et `appliquer_notification_helloasso` (notification) écrivent `"Hello Asso"` au lieu de `"Oui"` ; reprise des cotisations déjà payées en ligne (journal des paiements, valeur `"Oui"` encore intacte). Côté site (`auth.js` : `VALEUR_PAYE_HELLOASSO`, `estPayeHelloAsso`, `libelleOuiNon`) : considérée comme payée partout (`estValeurAffirmative`), affichée "Hello Asso" dans le tableau et la fiche, filtre de colonne Oui / Non / Hello Asso, liste Non / Oui / Hello Asso dans la fiche avec conservation à l'enregistrement, "✅ Payée en ligne (Hello Asso)" dans Mes informations. Corrige au passage un défaut existant : une valeur texte "Oui" s'affichait "Non" dans la fiche et pouvait être écrasée à l'enregistrement.
+
+## Audit — lot 2 : ergonomie mobile
+
+Aucune migration SQL. Trois scripts communs, sans effet sur PC :
+
+**1. `js/tableaux-mobile.js` — tableaux en cartes** (23 pages). Tout `table.schedule` avec en-tête reçoit la classe `table-cartes` et un `data-label` par cellule (repris du `thead`, lignes ajoutées après coup suivies par `MutationObserver`). CSS mobile : une carte par ligne, libellé à gauche, valeur à droite ; champs de saisie sous leur libellé. Exclus (présentation mobile déjà spécifique) : `#inscriptionsTable`, `#tournoisTable`, `#rolesTable`, `#usersTable`, `.equipes-table`, `.poule-fiche-table`, `.match-table`, `.table-emargement`.
+
+**2. Largeur minimale de 480 px levée sur mobile** pour les tableaux déjà en cartes : corrige les boutons Absent / Payée coupés en Émargement (`emargement.js` : classe `table-emargement`) et les noms tronqués dans les poules et le planning.
+
+**3. `js/sections-repliables.js` — sections repliables** (attribut `data-repliable-mobile`) : Inscriptions (Nouvelle inscription, Envoi groupé, Configuration), Boutique (Gérer les articles, Synthèse), Tournois (Types, Créer), Administration (toutes), Connexion (Mon compte). Repliées par défaut sur mobile ; ouverture au toucher du titre, au focus d'un champ, et automatiquement avant tout `scrollIntoView` (boutons "Modifier" des pages).
+
+**4. Confort** : boutons 44 px min. sur mobile, en-tête connecté sur une ligne (80 px au lieu de 115), marges de page et de sections réduites.
+
+**Non-régression vérifiée** : 0 erreur JS (23 pages × PC / mobile), 0 débordement horizontal, PC identique pixel à pixel hors évolutions voulues, menu testé partout, parcours "Modifier" d'une inscription testé sur mobile (section ouverte, formulaire affiché). Mesures mobile : cibles tactiles < 32 px 248 → 72 ; hauteur Inscriptions 9 247 → 1 893 px, Administration 7 772 → 1 099 px, Boutique 5 583 → 2 700 px.
+
+## Audit — lot 1 : menu mobile, protection des coordonnées, champs de saisie
+
+Exécutez `supabase/migration_protection_contacts_equipes.sql`.
+
+**1. Menu mobile réparé sur toutes les pages** — nouveau `js/menu-mobile.js`, chargé par les 23 pages (le script de `main.js` ne ciblait que l'accueil ; `admin.html`, `membres.html` et 4 pages publiques n'avaient pas de bouton ☰). Délégation d'événements : couvre le menu Organisation ajouté après connexion. Fermeture au choix d'un lien, au second appui, au toucher hors du bandeau, au passage en affichage large.
+
+**2. Coordonnées des demandeurs de tournoi protégées (RGPD)** — la table `equipes`, publique pour les pages QR code, exposait `demandeur_email` / `demandeur_telephone`. Nouvelle table `equipes_contacts` (RLS : droits Tournois uniquement), reprise des données existantes, déclencheur qui y déplace toute coordonnée écrite dans `equipes` (formulaire public inchangé). `tournoi-inscriptions.js` fusionne les coordonnées au chargement (mêmes noms de champs, affichage et emails identiques). Table ajoutée à la Sauvegarde.
+
+**3. Champs de saisie** — style commun à tous les types de champ (mot de passe, URL, nombre, date… restaient au style navigateur). Sur mobile : police 16 px (fin du zoom automatique iPhone), un champ par ligne sans largeur minimale imposée (les URL HelloAsso débordaient dans Administration), cartes "Le club" de l'admin et champ Cotisation sans débordement, mots/codes longs coupés.
+
+**Non-régression vérifiée** : rendu des 23 pages en PC (1366 px) et mobile (390 px) avant / après, comparaison pixel à pixel en PC (seules différences : champs désormais stylés), 0 erreur JavaScript, 0 débordement horizontal sur mobile (3 pages auparavant), ouverture/fermeture du menu testée sur chaque page.
+
+## Confirmation automatique des paiements par notification HelloAsso
+
+Exécutez `supabase/migration_helloasso_notification.sql` (après `migration_helloasso_suivi.sql`), ajoutez le secret `HELLOASSO_WEBHOOK_SECRET`, déployez `supabase/functions/helloasso-notification/index.ts` **avec "Verify JWT" désactivé**, puis déclarez l'URL `https://<projet>.supabase.co/functions/v1/helloasso-notification?cle=<secret>` dans HelloAsso (Intégrations et API → Notifications). Détails : documentation, section 7.5.
+
+**1. Intention de paiement** — `paiement-helloasso.js` accepte `intention: { type, references }` : au clic, `creer_intention_paiement` enregistre la demande (statut `en_attente`) et renvoie l'email du membre, pré-rempli dans le widget. À la confirmation du widget, `declarer_paiement_en_ligne` (statut `declaree`). `boutique.js` et `membres.js` passent l'intention (l'ancien appel `journaliser_paiement_en_ligne` est retiré, la fonction reste en base pour compatibilité).
+
+**2. Edge Function publique `helloasso-notification`** — clé secrète dans l'URL (comparaison à temps constant), paiement relu via `GET /v5/payments/{id}` (le contenu de la notification n'est jamais utilisé tel quel), connexion directe à la base (`SUPABASE_DB_URL`, indépendante des clés d'API), appel de `appliquer_notification_helloasso` (non exécutable par anon / authenticated). Gère les événements `Payment` et `Order`, idempotente (même paiement notifié plusieurs fois).
+
+**3. Appariement prudent** — même type + même montant + intention créée dans les 24 h ; puis email unique, sinon nom unique (deux ordres, sans accents), sinon candidate unique déjà déclarée par le widget. Sinon : "non attribuée", rien appliqué. Remboursement : signalé, jamais d'annulation automatique du paiement.
+
+**4. Page Paiements HelloAsso** — nouvelle section "Notifications HelloAsso" (résultat + détail), statut "✅ Confirmé HelloAsso" et rattachement exact par identifiant de paiement dans le rapprochement. Table `notifications_helloasso` ajoutée à la page Sauvegarde.
+
+## Page Paiements HelloAsso (lecture directe de l'API + rapprochement)
+
+Exécutez `supabase/migration_helloasso_suivi.sql`, puis déployez l'Edge Function `supabase/functions/helloasso/index.ts` (première Edge Function du projet — procédure pas à pas dans la documentation, section 7.4).
+
+**1. Nouvelle page `helloasso.html`** (+ `js/helloasso.js`) — droit de page `helloasso`, paramétrable par profil dans Administration → Profils, pré-accordé à l'admin, entrée de menu Administration → Paiements HelloAsso. Période (saison en cours par défaut), totaux validés par catégorie (boutique / cotisation / autres), liste filtrable (formulaire, état, payeur), export CSV format Excel FR.
+
+**2. Edge Function `helloasso`** — détient la clé secrète HelloAsso (secrets Supabase `HELLOASSO_CLIENT_ID`, `HELLOASSO_CLIENT_SECRET`, facultatif `HELLOASSO_ORGANIZATION_SLUG`), vérifie le droit de page de l'appelant, jeton OAuth `client_credentials` mis en cache, lecture paginée de `GET /v5/organizations/{slug}/payments`, formulaires boutique / cotisation déduits des URL de widget. Rien n'est stocké.
+
+**3. Rapprochement** — nouvelle table `paiements_en_ligne_journal`, alimentée par la fonction `journaliser_paiement_en_ligne` appelée à chaque confirmation de paiement en ligne (`boutique.js`, `membres.js`, best-effort, n'interfère pas avec le marquage "Payée"). Appariement même type + même montant + 48 h, trois types d'écarts signalés. Démarre à la date d'exécution de la migration (`parametres_site.rapprochement_helloasso_depuis`). Table ajoutée à la page Sauvegarde.
+
+## Boîte mail du club (Gmail) sous l'agenda
+
+Aucune migration SQL. Nouveau fichier `js/boite-mail.js`, chargé par `agenda.html`.
+
+**1. Consultation** : dossiers Réception / Envoyés / Corbeille, 20 messages par page avec pagination, recherche (syntaxe Gmail), non lus en gras + compteur. Lecture complète : en-têtes, corps HTML dans une iframe `sandbox` sans scripts, images intégrées (`cid:`), pièces jointes téléchargeables. Ouvrir un message le marque comme lu.
+
+**2. Suppression** : mise à la corbeille Gmail (récupérable 30 jours, bouton "Restaurer"). Pas de suppression définitive depuis le site (volontaire).
+
+**3. Envoi** : nouveau message, répondre (dans le même fil Gmail : `threadId`, `In-Reply-To`, `References`), transférer (option pour reprendre les pièces jointes d'origine). Cc, pièces jointes (25 Mo max). Message MIME 100 % ASCII (en-têtes accentués encodés RFC 2047, corps en base64), envoyé en `uploadType=multipart`.
+
+**4. Connexion Google unique** : `js/google-config.js` définit `GOOGLE_GMAIL_SCOPE` (`gmail.modify`) et `GOOGLE_SCOPES` (agenda + Gmail), utilisé par `agenda.js`. Point d'entrée commun `demarrerApresConnexion()` ; expiration de session commune `sessionGoogleExpiree()` ; bouton de ré-autorisation si l'accès Gmail a été décoché.
+
+⚠️ **Mise en place côté Google Cloud (avant de tester)** : activer l'API Gmail dans le projet, ajouter le scope `https://www.googleapis.com/auth/gmail.modify` à l'écran de consentement OAuth, garder l'application en mode Test avec le compte du club en utilisateur test. Première ouverture : connexion manuelle pour accepter la nouvelle autorisation.
+
+## Agenda — anniversaires des membres (option Oui / Non)
+
+Exécutez `supabase/migration_agenda_anniversaires.sql`.
+
+**1. Case à cocher dans Administration → Paramètres du site** : "Afficher les anniversaires des membres dans l'agenda du club". Enregistrée dans `parametres_site` (clé `agenda_anniversaires`, `true` / `false`, désactivée par défaut).
+
+**2. Affichage dans `agenda.html`** : "🎂 Prénom Nom" à la date d'anniversaire, teinte orangée distincte, non cliquable, dans la grille (PC) et la vue liste (mobile). Membres concernés : inscription validée de la saison la plus récente, date de naissance renseignée. 29 février → 28 février les années non bissextiles.
+
+**3. Données minimales et sécurisées** : fonction `anniversaires_membres(p_annee, p_mois)` (security definer) — vérifie le droit de page `agenda` et l'état de l'option côté serveur, ne renvoie que prénom, nom et jour (jamais l'année ni l'âge). Une date de naissance mal saisie est ignorée sans bloquer la liste. Un échec éventuel n'empêche jamais l'affichage de l'agenda Google (log `[Anniversaires]` en console).
+
+**4. Rien n'est écrit dans Google Agenda** : les anniversaires sont superposés à l'affichage et suivent automatiquement les inscriptions.
+
+## Autres changements de ce tour
+
+- **"Espace membres" renommé en "Connexion"** partout sur le site (page, titre, liens de navigation).
+- **Sections retirées de la page d'accueil** : Créneaux, Rejoindre, Contact (et leurs liens de navigation). Le bouton "S'inscrire au tournoi" pointe désormais vers un email plutôt que vers la section Contact supprimée.
+- **Boutons rendus plus rectangulaires** : coins moins arrondis sur les boutons principaux et sur les pastilles de navigation (Administration, Inscriptions, etc.), pour un rendu plus net et cohérent.
+- **Titres dynamiques** : `tournoi-inscriptions.html`, `emargement.html`, `poules.html` et `planning.html` affichent désormais le nom du tournoi en cours dans leur titre de page.
+
+## Autres ajustements Planning / affichage des résultats
+
+- **Bouton "Lancer" visuellement grisé** quand un match n'est pas lançable (en plus d'être désactivé), pour que l'indisponibilité soit repérable au premier coup d'œil.
+- **Équipe gagnante mise en évidence** (fond vert clair) partout où un match terminé est affiché — `planning.html` et `poules.html`.
+- **Popup d'avertissement au lancement** : si l'une des deux équipes a terminé son match précédent depuis moins longtemps que le "Temps min. entre 2 matchs" configuré, une confirmation s'affiche avant de lancer, avec le détail de l'équipe concernée et le temps réellement écoulé — l'organisateur peut choisir de lancer quand même.
+
+## Émargement par joueur, filtres poules, matchs par rotation
+
+- **Par défaut à l'inscription** : chaque joueur est enregistré "absent" et "cotisation non payée" — l'émargement consiste ensuite à cocher présent/payé au fur et à mesure des arrivées.
+- **Émargement par joueur** : sur `emargement.html`, chaque joueur d'une équipe (les deux en double) a désormais ses propres cases Présent / Absent / Cotisation payée, au lieu d'un seul jeu de cases pour toute l'équipe. Les compteurs du bandeau du haut comptent les joueurs individuellement.
+- **Filtres compétition et poule** sur `poules.html` : en plus du tournoi, deux menus déroulants permettent d'afficher une seule compétition et/ou une seule poule à la fois.
+- **Matchs regroupés par rotation** sur `planning.html` : une rotation correspond à autant de matchs que de terrains disponibles. Les matchs déjà lancés sont regroupés selon leur ordre réel de lancement, les matchs à venir selon l'estimation proportionnelle déjà en place. Chaque rotation est présentée dans un encadré avec son heure estimée.
+- **Un match n'est "lançable" que si les deux équipes sont libres ET présentes** (présence cochée en émargement — les deux joueurs pour une équipe de double). Le bouton "Lancer" est grisé sinon, avec une info-bulle indiquant la raison (équipe déjà en jeu, équipe non présente, ou aucun terrain libre).
+
+## Scripts SQL utilitaires
+
+- `supabase/init_tournoi_dm_dh.sql` : crée un tournoi réel "Tournoi 2026-2027" avec Double Dame (8 poules de 4) et Double Homme (4 poules de 4), sans équipe fictive — prêt à recevoir les vraies inscriptions.
+- `supabase/test_tournoi_dm_dh.sql` : à exécuter après le précédent — remplit ce même tournoi avec 48 participants fictifs par défaut, déjà répartis en poules, pratique pour tester émargement/matchs/planning avant d'y insérer les vraies inscriptions. Rejouable sans risque (repart de zéro sur ces 2 compétitions à chaque exécution).
+
+## Tester en local avant publication
+
+Ouvrez simplement `index.html` dans un navigateur, ou lancez un petit serveur local :
+```bash
+python3 -m http.server 8000
+```
+puis ouvrez `http://localhost:8000`.
+
+
+## Lots 3 et 4 de l'audit — performance, maintenance, confort PC
+
+Exécutez `supabase/migration_saison_parametrable.sql` (sans effet sur le comportement : initialise le paramètre à la saison actuelle).
+
+**Performance** — images converties en WebP et redimensionnées à leur taille d'affichage : logo du bandeau 96 → 6 Ko (`logo-tbk-rond-128.webp`), favicon 9 Ko (`logo-tbk-rond-64.png`), mascotte 339 → 24 Ko (`logo-tbk-360.webp`), affiches 412 → 44 Ko et 75 → 28 Ko, chargées à l'approche de leur affichage (`loading="lazy"`). Les originaux PNG restent dans `images/`.
+
+**Bibliothèque Supabase figée** : `@supabase/supabase-js@2.117.2` (dernière version publiée, celle que le site chargeait déjà) dans les 23 pages.
+
+**Saison paramétrable** — nouveau `js/saison.js` (valeur par défaut 2026-2027, remplacée par `parametres_site.saison_en_cours` si présente et valide) ; `boutique.js`, `inscriptions.js`, `membres.js`, `inscription-publique.js` attendent `saisonPrete` au démarrage ; libellés `data-saison-libelle` et titres de pages mis à jour automatiquement ; champ "Saison en cours" dans Administration → Paramètres du site (contrôle AAAA-AAAA consécutives).
+
+**Anti-spam** — `js/anti-spam.js` : champ piège + délai minimal 2 s sur les formulaires publics d'inscription saison et tournoi, champ piège sur les messages des bénévoles.
+
+**Code commun** — `escapeHtml` unique dans `auth.js` (13 copies identiques supprimées ; conservée dans les 2 pages publiques qui ne chargent pas `auth.js`).
+
+**README recentré** (socle, livraison, nouvelle saison) ; historique déplacé dans ce fichier.
+
+**Confort PC** — Planning : largeurs par défaut recalculées pour tenir sans défilement à 1366 px, en-têtes entièrement lisibles ("Lancé à"), cases de score compactes (deux scores + tiret tiennent dans la colonne), nom complet des équipes au survol ; les largeurs réglées à la main restent prioritaires. Inscriptions : liste des inscrits en premier + bouton "+ Nouvelle inscription". Boutique : Catalogue et Mes commandes en premier, outils du bureau ensuite. Navigation : bandeau inchangé (choix antérieur délibéré : "Bandeau de navigation simplifié").
+
+**Non-régression vérifiée** : 0 erreur JS et 0 débordement (23 pages, PC et mobile), menu et sections repliables, saisie Hello Asso (3 configurations), journal des connexions et visites, images chargées, saison paramétrée testée à 2027-2028, anti-spam (robot bloqué, envoi trop rapide bloqué, personne réelle acceptée). Version des fichiers : `?v=20260927c`.

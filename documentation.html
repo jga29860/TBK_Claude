@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927b">
+<link rel="stylesheet" href="css/style.css?v=20260927c">
 </head>
 <body>
 
 <header class="site-header">
   <div class="wrap header-inner">
     <a href="index.html" class="logo">
-      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
       TBK
     </a>
     <nav class="main-nav">
@@ -102,6 +102,7 @@
       <ul>
         <li><strong>Tableaux en cartes</strong> : sur téléphone, chaque ligne d'un tableau devient une carte où chaque valeur est précédée du nom de sa colonne (commandes boutique, paiements HelloAsso, courses, suivi des connexions, sauvegarde, invitations, champs personnalisés, documentation…). Les tableaux ayant déjà leur présentation propre (inscrits et tournois à déplier, émargement, poules, planning, profils et utilisateurs) la conservent.</li>
         <li><strong>Sections repliables</strong> : les formulaires de gestion et réglages sont repliés par défaut sur téléphone, pour afficher d'abord les listes — Nouvelle inscription, Envoi groupé et Configuration (Inscriptions), Gérer les articles et Synthèse (Boutique), Types de compétition et Créer un tournoi (Tournois), toutes les sections d'Administration, Mon compte (Connexion). Toucher le titre ouvre ou referme la section ; elle s'ouvre aussi toute seule quand un bouton "Modifier" y envoie. Sur PC, tout reste affiché.</li>
+        <li><strong>Anti-spam</strong> : les formulaires publics (inscription à la saison, inscription au tournoi, messages des bénévoles) contiennent un champ piège invisible et, pour les deux formulaires d'inscription, un délai minimal de 2 secondes entre l'ouverture de la page et l'envoi. Un envoi jugé automatique n'est pas enregistré et un message invite à réessayer (une vraie personne réussit au second essai).</li>
         <li><strong>Boutons</strong> d'au moins 44 px de haut sur téléphone, et <strong>en-tête connecté</strong> ramené sur une seule ligne (nom, demandes en attente, déconnexion).</li>
       </ul>
     </section>
@@ -204,6 +205,8 @@
     <!-- ===== 5. INSCRIPTIONS SAISON ===== -->
     <section class="admin-section" id="inscriptions-saison">
       <h2>5. Inscriptions à la saison (inscriptions.html)</h2>
+
+      <p><strong>Organisation de la page</strong> : la liste des inscrits est affichée en premier ; le bouton "+ Nouvelle inscription" mène au formulaire de saisie, placé juste en dessous (sur téléphone, les formulaires sont repliés et s'ouvrent au toucher, ou automatiquement avec "Modifier").</p>
 
       <h3 class="admin-subheading">5.1 Principe général</h3>
       <p>Deux façons d'alimenter la liste : saisie directe par un membre du bureau connecté (automatiquement marquée "Validée"), ou demande soumise via le formulaire public (statut "En attente" jusqu'à validation).</p>
@@ -404,7 +407,7 @@
       <p>Réservée aux comptes ayant le droit "administration".</p>
       <ul>
         <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
-        <li><strong>Paramètres du site</strong> — email de contact du club, URL des deux widgets de paiement en ligne HelloAsso, boutique et cotisation (voir 7.3), utilisés automatiquement sur les pages publiques, et case Oui / Non d'affichage des anniversaires des membres dans l'agenda du club (voir 8).</li>
+        <li><strong>Paramètres du site</strong> — email de contact du club, <strong>saison en cours</strong> (format AAAA-AAAA, à changer au lancement de chaque nouvelle saison : utilisée par les inscriptions du bureau et le formulaire public, l'espace membre et la boutique, et reprise automatiquement dans les libellés "Saison … / …" ; les inscriptions des saisons précédentes restent en base), URL des deux widgets de paiement en ligne HelloAsso, boutique et cotisation (voir 7.3), utilisés automatiquement sur les pages publiques, et case Oui / Non d'affichage des anniversaires des membres dans l'agenda du club (voir 8).</li>
         <li><strong>Page d'accueil — Section "Le club"</strong> — voir 7.2 ci-dessous.</li>
         <li><strong>Anti-pause Supabase</strong> — voir 7.1 ci-dessous.</li>
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
@@ -707,12 +710,12 @@
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927b"></script>
-<script src="js/tableaux-mobile.js?v=20260927b"></script>
-<script src="js/supabase-config.js?v=20260927b"></script>
-<script src="js/auth.js?v=20260927b"></script>
-<script src="js/main.js?v=20260927b"></script>
-<script src="js/documentation.js?v=20260927b"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20260927c"></script>
+<script src="js/tableaux-mobile.js?v=20260927c"></script>
+<script src="js/supabase-config.js?v=20260927c"></script>
+<script src="js/auth.js?v=20260927c"></script>
+<script src="js/main.js?v=20260927c"></script>
+<script src="js/documentation.js?v=20260927c"></script>
 </body>
 </html>

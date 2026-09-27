@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Boutique — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927b">
+<link rel="stylesheet" href="css/style.css?v=20260927c">
 </head>
 <body>
 
 <header class="site-header">
   <div class="wrap header-inner">
     <a href="index.html" class="logo">
-      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
       TBK
     </a>
     <nav class="main-nav">
@@ -36,6 +36,39 @@
   </div>
 
   <div id="content" hidden>
+
+    <!-- ===== Catalogue : visible par tout membre ayant accès ===== -->
+    <section class="admin-section">
+      <h2>Catalogue</h2>
+      <div id="catalogueContainer" class="boutique-grid"></div>
+    </section>
+
+    <!-- ===== Mes commandes ===== -->
+    <section class="admin-section">
+      <h2>Mes commandes</h2>
+      <div id="mesCommandesContainer"></div>
+    </section>
+
+    <!-- ===== Synthèse des demandes : réservé au bureau ===== -->
+    <section class="admin-section" data-repliable-mobile id="syntheseSection" hidden>
+      <h2>Synthèse des demandes</h2>
+
+      <h3 class="admin-subheading">Quantités par article et taille</h3>
+      <div class="table-wrap">
+        <table class="schedule" id="syntheseTable">
+          <thead><tr><th>Article</th><th>Description</th><th>Taille</th><th>Quantité</th><th>Dont floqués</th></tr></thead>
+          <tbody id="syntheseTableBody"></tbody>
+        </table>
+      </div>
+
+      <h3 class="admin-subheading">Détail des demandes</h3>
+      <div class="table-wrap">
+        <table class="schedule" id="commandesTable">
+          <thead></thead>
+          <tbody id="commandesTableBody"></tbody>
+        </table>
+      </div>
+    </section>
 
     <!-- ===== Gestion des articles : réservé au bureau ===== -->
     <section class="admin-section" data-repliable-mobile id="gestionSection" hidden>
@@ -82,39 +115,6 @@
       <div id="articlesGestionListe" class="boutique-grid"></div>
     </section>
 
-    <!-- ===== Synthèse des demandes : réservé au bureau ===== -->
-    <section class="admin-section" data-repliable-mobile id="syntheseSection" hidden>
-      <h2>Synthèse des demandes</h2>
-
-      <h3 class="admin-subheading">Quantités par article et taille</h3>
-      <div class="table-wrap">
-        <table class="schedule" id="syntheseTable">
-          <thead><tr><th>Article</th><th>Description</th><th>Taille</th><th>Quantité</th><th>Dont floqués</th></tr></thead>
-          <tbody id="syntheseTableBody"></tbody>
-        </table>
-      </div>
-
-      <h3 class="admin-subheading">Détail des demandes</h3>
-      <div class="table-wrap">
-        <table class="schedule" id="commandesTable">
-          <thead></thead>
-          <tbody id="commandesTableBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ===== Catalogue : visible par tout membre ayant accès ===== -->
-    <section class="admin-section">
-      <h2>Catalogue</h2>
-      <div id="catalogueContainer" class="boutique-grid"></div>
-    </section>
-
-    <!-- ===== Mes commandes ===== -->
-    <section class="admin-section">
-      <h2>Mes commandes</h2>
-      <div id="mesCommandesContainer"></div>
-    </section>
-
   </div>
 </main>
 
@@ -131,15 +131,16 @@
   <img id="visionneuseArticleImg" src="" alt="">
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-<script src="js/menu-mobile.js?v=20260927b"></script>
-<script src="js/tableaux-mobile.js?v=20260927b"></script>
-<script src="js/sections-repliables.js?v=20260927b"></script>
-<script src="js/supabase-config.js?v=20260927b"></script>
-<script src="js/auth.js?v=20260927b"></script>
-<script src="js/paiement-helloasso.js?v=20260927b"></script>
-<script src="js/main.js?v=20260927b"></script>
-<script src="js/boutique.js?v=20260927b"></script>
+<script src="js/menu-mobile.js?v=20260927c"></script>
+<script src="js/tableaux-mobile.js?v=20260927c"></script>
+<script src="js/sections-repliables.js?v=20260927c"></script>
+<script src="js/supabase-config.js?v=20260927c"></script>
+<script src="js/auth.js?v=20260927c"></script>
+<script src="js/paiement-helloasso.js?v=20260927c"></script>
+<script src="js/main.js?v=20260927c"></script>
+<script src="js/saison.js?v=20260927c"></script>
+<script src="js/boutique.js?v=20260927c"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 // ============================================================
 
 const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const SAISON = '2026-2027';
+// SAISON : voir js/saison.js (paramétrable)
 
 // Ces champs seront renseignés par le bureau au moment de la validation,
 // pas par la personne qui soumet la demande.
@@ -13,6 +13,7 @@ let champsCache = [];
 let baremeCache = {};
 
 async function init() {
+  await saisonPrete;
   await loadBareme();
   await loadChamps();
   bindForm();
@@ -107,9 +108,11 @@ function bindForm() {
   });
 
   const form = document.getElementById('inscriptionPubliqueForm');
+  if (typeof antiSpam !== 'undefined') antiSpam.proteger(form);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const hint = document.getElementById('formHint');
+    if (typeof antiSpam !== 'undefined' && antiSpam.estSuspect(form)) { hint.textContent = antiSpam.MESSAGE; return; }
     const submitBtn = document.getElementById('submitBtn');
     const fd = new FormData(form);
 

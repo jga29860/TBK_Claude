@@ -2,7 +2,7 @@
 // TBK — Inscriptions saison 2026/2027
 // ============================================================
 
-const SAISON = '2026-2027';
+// SAISON : voir js/saison.js (paramétrable)
 
 // Colonnes "fixes" pouvant être affichées dans le tableau des inscrits
 // (Nom + Prénom sont toujours affichés ensemble en 1ère colonne, ils
@@ -32,6 +32,14 @@ let isBureau = false;
 let currentAccess = null;
 
 async function initInscriptionsPage() {
+  await saisonPrete;
+  // Liste affichée en premier : accès direct au formulaire de saisie
+  const allerNouvelle = document.getElementById('allerNouvelleInscriptionBtn');
+  if (allerNouvelle) allerNouvelle.addEventListener('click', () => {
+    const form = document.getElementById('inscriptionForm');
+    form.scrollIntoView({ behavior: 'smooth' });
+    if (form.nom) setTimeout(() => form.nom.focus({ preventScroll: true }), 400);
+  });
   const access = await getCurrentAccess();
   const deniedPanel = document.getElementById('deniedPanel');
   const mainPanel = document.getElementById('mainPanel');
@@ -1555,10 +1563,6 @@ function renderEmailTemplatesConfig() {
   });
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str === null || str === undefined ? '' : String(str);
-  return div.innerHTML;
-}
+// escapeHtml : fonction commune, définie dans auth.js
 
 document.addEventListener('DOMContentLoaded', initInscriptionsPage);

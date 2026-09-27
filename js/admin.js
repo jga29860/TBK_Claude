@@ -75,7 +75,7 @@ async function initAdminPage() {
 // ===== Paramètres du site =====
 
 async function loadParametres() {
-  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement_boutique', 'helloasso_url_paiement_cotisation', 'agenda_anniversaires']);
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur').in('cle', ['email_contact', 'helloasso_url_paiement_boutique', 'helloasso_url_paiement_cotisation', 'agenda_anniversaires', 'saison_en_cours']);
   if (error) { console.error(error.message); return; }
   const valeurParametre = (cle) => {
     const trouve = (data || []).find(p => p.cle === cle);
@@ -85,6 +85,8 @@ async function loadParametres() {
   document.getElementById('helloassoUrlBoutiqueInput').value = valeurParametre('helloasso_url_paiement_boutique');
   document.getElementById('helloassoUrlCotisationInput').value = valeurParametre('helloasso_url_paiement_cotisation');
   document.getElementById('agendaAnniversairesInput').checked = valeurParametre('agenda_anniversaires') === 'true';
+  // Saison : valeur en base, sinon saison utilisée actuellement par le site (js/saison.js)
+  document.getElementById('saisonEnCoursInput').value = valeurParametre('saison_en_cours') || (typeof SAISON !== 'undefined' ? SAISON : '');
 }
 
 function bindParametresForm() {
@@ -98,6 +100,12 @@ function bindParametresForm() {
     const urlBoutique = document.getElementById('helloassoUrlBoutiqueInput').value.trim();
     const urlCotisation = document.getElementById('helloassoUrlCotisationInput').value.trim();
     const anniversaires = document.getElementById('agendaAnniversairesInput').checked ? 'true' : 'false';
+    const saison = document.getElementById('saisonEnCoursInput').value.trim();
+    const m = saison.match(/^(\d{4})-(\d{4})$/);
+    if (!m || Number(m[2]) !== Number(m[1]) + 1) {
+      hint.textContent = 'Saison invalide : format AAAA-AAAA, sur deux années consécutives (ex. 2027-2028).';
+      return;
+    }
 
     hint.textContent = 'Enregistrement…';
     const maintenant = new Date().toISOString();
@@ -106,7 +114,8 @@ function bindParametresForm() {
     const { error: err3 } = await sbClient.from('parametres_site').update({ valeur: urlCotisation, updated_at: maintenant }).eq('cle', 'helloasso_url_paiement_cotisation');
     // upsert (et non update) : la ligne est créée si la migration n'a pas encore été exécutée
     const { error: err4 } = await sbClient.from('parametres_site').upsert({ cle: 'agenda_anniversaires', valeur: anniversaires, updated_at: maintenant }, { onConflict: 'cle' });
-    if (err1 || err2 || err3 || err4) { hint.textContent = 'Erreur : ' + ((err1 || err2 || err3 || err4).message); return; }
+    const { error: err5 } = await sbClient.from('parametres_site').upsert({ cle: 'saison_en_cours', valeur: saison, updated_at: maintenant }, { onConflict: 'cle' });
+    if (err1 || err2 || err3 || err4 || err5) { hint.textContent = 'Erreur : ' + ((err1 || err2 || err3 || err4 || err5).message); return; }
     hint.textContent = 'Paramètres mis à jour.';
   });
 }
@@ -619,10 +628,6 @@ function bindForms() {
   }
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+// escapeHtml : fonction commune, définie dans auth.js
 
 document.addEventListener('DOMContentLoaded', initAdminPage);

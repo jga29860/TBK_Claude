@@ -999,8 +999,8 @@ function renderLigneMatch(m, infoLabel, poule) {
         <span class="cell-nom-statut-mobile"><span class="statut-badge statut-cloture">${escapeHtml(statut)}</span></span>
       </td>
       ${poule !== undefined ? `<td data-label="Poule" class="planning-nowrap">Poule ${poule ?? '—'}</td>` : ''}
-      <td data-label="Équipe 1" class="planning-nowrap ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe1)}</td>
-      <td data-label="Équipe 2" class="planning-nowrap ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe2)}</td>
+      <td data-label="Équipe 1" title="${escapeHtml(nomEquipe1)}" class="planning-nowrap ${winnerId === m.equipe1_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe1)}</td>
+      <td data-label="Équipe 2" title="${escapeHtml(nomEquipe2)}" class="planning-nowrap ${winnerId === m.equipe2_id ? 'equipe-gagnante' : ''}">${escapeHtml(nomEquipe2)}</td>
       ${terrainCell}
       <td data-label="Statut" class="planning-nowrap">${escapeHtml(statut)}</td>
       ${setCells}
@@ -1028,13 +1028,15 @@ function renderSelectTerrain(m) {
 /** Largeurs de colonnes par défaut (px) — utilisées tant que la personne
  *  n'a pas fait glisser une poignée pour les ajuster elle-même. */
 const LARGEURS_COLONNES_DEFAUT = {
+  // Total ≈ 1 150 px : tient sans défilement sur un écran PC de 1366 px
+  // (les largeurs réglées à la main par chacun restent prioritaires).
   poule: {
-    match: 170, poule: 70, equipe1: 150, equipe2: 150, terrain: 70, statut: 90,
-    set1: 75, set2: 75, set3: 75, heure: 95, duree: 95, actions: 95,
+    match: 120, poule: 70, equipe1: 125, equipe2: 125, terrain: 80, statut: 90,
+    set1: 100, set2: 100, set3: 100, heure: 80, duree: 66, actions: 96,
   },
   finale: {
-    match: 220, equipe1: 150, equipe2: 150, terrain: 70, statut: 90,
-    set1: 75, set2: 75, set3: 75, heure: 95, duree: 95, actions: 95,
+    match: 190, equipe1: 125, equipe2: 125, terrain: 80, statut: 90,
+    set1: 100, set2: 100, set3: 100, heure: 80, duree: 66, actions: 96,
   },
 };
 
@@ -1067,12 +1069,12 @@ function renderEnTeteMatchTable(type) {
     ? [
         ['match', 'Match'], ['poule', 'Poule'], ['equipe1', 'Équipe 1'], ['equipe2', 'Équipe 2'],
         ['terrain', 'Terrain'], ['statut', 'Statut'], ['set1', 'Set 1'], ['set2', 'Set 2'], ['set3', 'Set 3'],
-        ['heure', 'Heure lancement'], ['duree', 'Durée'], ['actions', ''],
+        ['heure', 'Lancé à'], ['duree', 'Durée'], ['actions', ''],
       ]
     : [
         ['match', 'Match'], ['equipe1', 'Équipe 1'], ['equipe2', 'Équipe 2'],
         ['terrain', 'Terrain'], ['statut', 'Statut'], ['set1', 'Set 1'], ['set2', 'Set 2'], ['set3', 'Set 3'],
-        ['heure', 'Heure lancement'], ['duree', 'Durée'], ['actions', ''],
+        ['heure', 'Lancé à'], ['duree', 'Durée'], ['actions', ''],
       ];
 
   const colgroup = `<colgroup>${colonnes.map(([col]) => `<col data-col="${col}" style="width:${largeur(col)}px">`).join('')}</colgroup>`;
@@ -1403,10 +1405,6 @@ function toLocalInputValue(isoString) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str === null || str === undefined ? '' : String(str);
-  return div.innerHTML;
-}
+// escapeHtml : fonction commune, définie dans auth.js
 
 document.addEventListener('DOMContentLoaded', initPage);

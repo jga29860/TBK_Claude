@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inscriptions saison 2026/2027 — TBK</title>
-<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
-<link rel="stylesheet" href="css/style.css?v=20260927b">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<link rel="stylesheet" href="css/style.css?v=20260927c">
 </head>
 <body>
 
 <header class="site-header">
   <div class="wrap header-inner">
     <a href="index.html" class="logo">
-      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
       TBK
     </a>
     <nav class="main-nav">
@@ -28,7 +28,7 @@
 
 <main class="wrap page-section page-section--wide">
   <p class="section-eyebrow">Réservé au bureau</p>
-  <h1>Inscriptions — Saison 2026 / 2027</h1>
+  <h1>Inscriptions — Saison <span data-saison-libelle>2026 / 2027</span></h1>
 
   <div id="deniedPanel" class="status-panel" hidden>
     <h2>Accès refusé</h2>
@@ -36,6 +36,33 @@
   </div>
 
   <div id="mainPanel" hidden>
+
+    <!-- ===== Liste des inscriptions ===== -->
+    <section class="admin-section">
+      <h2>Inscrits — <span data-saison-libelle>2026 / 2027</span> <span id="inscriptionsCount" class="count-badge"></span> <span id="inscriptionsStats" class="inscriptions-stats"></span></h2>
+      <p><button type="button" class="btn btn-primary btn-small" id="allerNouvelleInscriptionBtn">+ Nouvelle inscription</button></p>
+      <div class="couleurs-legende">
+        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#e3f2fd;"></span>Jeune</span>
+        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#fff3e0;"></span>Adulte</span>
+        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#d9f2d9;"></span>Validée</span>
+      </div>
+      <div class="inline-form" style="margin-bottom:14px;">
+        <button type="button" class="btn btn-ghost btn-small" id="relierComptesBtn">Relier automatiquement les comptes existants</button>
+        <p class="form-hint" id="relierComptesHint" style="margin:0;">Utile une seule fois pour les inscriptions déjà validées avant cette fonctionnalité — les nouvelles se relient désormais automatiquement.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="schedule" id="inscriptionsTable">
+          <thead>
+            <tr><th>Nom</th><th></th></tr>
+          </thead>
+          <tbody id="inscriptionsTableBody">
+            <tr><td colspan="7">Chargement…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <input type="file" id="certificatFileInput" accept="image/*" capture="environment" style="display:none">
+      <input type="file" id="qsSportFileInput" accept="image/*" capture="environment" style="display:none">
+    </section>
 
     <!-- ===== Formulaire d'inscription ===== -->
     <section class="admin-section" data-repliable-mobile>
@@ -151,32 +178,6 @@
         </label>
       </div>
       <div id="resultatsGroupeContainer"></div>
-    </section>
-
-    <!-- ===== Liste des inscriptions ===== -->
-    <section class="admin-section">
-      <h2>Inscrits — 2026/2027 <span id="inscriptionsCount" class="count-badge"></span> <span id="inscriptionsStats" class="inscriptions-stats"></span></h2>
-      <div class="couleurs-legende">
-        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#e3f2fd;"></span>Jeune</span>
-        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#fff3e0;"></span>Adulte</span>
-        <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#d9f2d9;"></span>Validée</span>
-      </div>
-      <div class="inline-form" style="margin-bottom:14px;">
-        <button type="button" class="btn btn-ghost btn-small" id="relierComptesBtn">Relier automatiquement les comptes existants</button>
-        <p class="form-hint" id="relierComptesHint" style="margin:0;">Utile une seule fois pour les inscriptions déjà validées avant cette fonctionnalité — les nouvelles se relient désormais automatiquement.</p>
-      </div>
-      <div class="table-wrap">
-        <table class="schedule" id="inscriptionsTable">
-          <thead>
-            <tr><th>Nom</th><th></th></tr>
-          </thead>
-          <tbody id="inscriptionsTableBody">
-            <tr><td colspan="7">Chargement…</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <input type="file" id="certificatFileInput" accept="image/*" capture="environment" style="display:none">
-      <input type="file" id="qsSportFileInput" accept="image/*" capture="environment" style="display:none">
     </section>    <!-- ===== Configuration (admin uniquement) ===== -->
     <section class="admin-section" data-repliable-mobile id="configSection" hidden>
       <h2>Configuration</h2>
@@ -257,14 +258,15 @@
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-<script src="js/menu-mobile.js?v=20260927b"></script>
-<script src="js/tableaux-mobile.js?v=20260927b"></script>
-<script src="js/sections-repliables.js?v=20260927b"></script>
-<script src="js/supabase-config.js?v=20260927b"></script>
-<script src="js/auth.js?v=20260927b"></script>
-<script src="js/main.js?v=20260927b"></script>
-<script src="js/inscriptions.js?v=20260927b"></script>
+<script src="js/menu-mobile.js?v=20260927c"></script>
+<script src="js/tableaux-mobile.js?v=20260927c"></script>
+<script src="js/sections-repliables.js?v=20260927c"></script>
+<script src="js/supabase-config.js?v=20260927c"></script>
+<script src="js/auth.js?v=20260927c"></script>
+<script src="js/main.js?v=20260927c"></script>
+<script src="js/saison.js?v=20260927c"></script>
+<script src="js/inscriptions.js?v=20260927c"></script>
 </body>
 </html>

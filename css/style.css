@@ -948,6 +948,15 @@ table.schedule .emarg-check{ width:18px; height:18px; cursor:pointer; }
 .match-table th{
   position:relative; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:14px;
 }
+/* Planning sur PC : marges intérieures resserrées pour que les en-têtes
+   (Poule, Terrain, Set 1…) tiennent sans être tronqués */
+@media (min-width: 761px){
+  table.schedule.match-table th{ padding:10px 12px 10px 8px; letter-spacing:0.03em; }
+  table.schedule.match-table td{ padding-left:8px; padding-right:8px; }
+  /* Scores : deux cases de 2 chiffres tiennent dans la colonne d'un set */
+  .match-table .score-input{ width:34px; padding:4px 2px; text-align:center; }
+  table.schedule.match-table td:has(.score-input){ padding-left:4px; padding-right:4px; }
+}
 .match-table td.cell-nom{ display:flex; align-items:center; gap:6px; overflow:hidden; }
 .match-table td.planning-nowrap, .match-table td[data-label]{
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;

@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Demande d'inscription — TBK</title>
-<link rel="icon" type="image/png" href="images/logo-tbk-rond.png">
-<meta name="description" content="Demande d'inscription à la saison 2026/2027 du club TBK (badminton et tennis de table).">
-<link rel="stylesheet" href="css/style.css?v=20260927b">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<meta name="description" content="Demande d'inscription à la saison en cours du club TBK (badminton et tennis de table).">
+<link rel="stylesheet" href="css/style.css?v=20260927c">
 </head>
 <body>
 
 <header class="site-header">
   <div class="wrap header-inner">
     <a href="index.html" class="logo">
-      <img src="images/logo-tbk-rond.png" alt="" class="logo-mark-img">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
       TBK
     </a>
     <nav class="main-nav">
@@ -27,8 +27,8 @@
 </header>
 
 <main class="wrap page-section">
-  <img src="images/logo-tbk.png" alt="Mascotte du club TBK" style="display:block; max-width:180px; margin:0 auto 20px;">
-  <p class="section-eyebrow" style="text-align:center;">Saison 2026 / 2027</p>
+  <img src="images/logo-tbk-360.webp" alt="Mascotte du club TBK" style="display:block; max-width:180px; margin:0 auto 20px;">
+  <p class="section-eyebrow" style="text-align:center;">Saison <span data-saison-libelle>2026 / 2027</span></p>
   <h1 style="text-align:center;">Demande d'inscription au club</h1>
   <p class="section-lead">Remplissez ce formulaire pour demander votre inscription à TBK.</p>
 
@@ -95,12 +95,14 @@
   </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927b"></script>
-<script src="js/tableaux-mobile.js?v=20260927b"></script>
-<script src="js/supabase-config.js?v=20260927b"></script>
-<script src="js/inscription-publique.js?v=20260927b"></script>
-<script src="js/visite-log.js?v=20260927b"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20260927c"></script>
+<script src="js/tableaux-mobile.js?v=20260927c"></script>
+<script src="js/supabase-config.js?v=20260927c"></script>
+<script src="js/saison.js?v=20260927c"></script>
+<script src="js/anti-spam.js?v=20260927c"></script>
+<script src="js/inscription-publique.js?v=20260927c"></script>
+<script src="js/visite-log.js?v=20260927c"></script>
 <script>
   // Email de contact dans l'en-tête, paramétrable depuis admin.html
   (async () => {

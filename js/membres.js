@@ -4,7 +4,7 @@
 // pièces jointes) + gestion du compte.
 // ============================================================
 
-const SAISON = '2026-2027';
+// SAISON : voir js/saison.js (paramétrable)
 
 let isGestionnaireAnnonces = false;
 let isAdminUser = false;
@@ -24,6 +24,7 @@ const REACTIONS = [
 ];
 
 async function initMembresPage() {
+  await saisonPrete;
   const access = await getCurrentAccess();
 
   const authForms = document.getElementById('authForms');

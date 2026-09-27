@@ -515,9 +515,12 @@ async function supprimerMessage(id) {
 
 function bindMessageForm() {
   const form = document.getElementById('messageForm');
+  // Messages : champ piège seulement (un message court peut être écrit très vite)
+  if (typeof antiSpam !== 'undefined') antiSpam.proteger(form, { delaiMinimalMs: 0 });
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const hint = document.getElementById('messageFormHint');
+    if (typeof antiSpam !== 'undefined' && antiSpam.estSuspect(form)) { if (hint) hint.textContent = antiSpam.MESSAGE; return; }
     const contenu = form.contenu.value.trim();
     const fichier = form.fichier.files[0];
     const auteurSaisi = document.getElementById('messageAuteurInput');
@@ -553,10 +556,6 @@ function bindMessageForm() {
 // Utilitaires (estImage et formatDate sont centralisés dans auth.js)
 // ============================================================
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str === null || str === undefined ? '' : String(str);
-  return div.innerHTML;
-}
+// escapeHtml : fonction commune, définie dans auth.js
 
 document.addEventListener('DOMContentLoaded', initPage);

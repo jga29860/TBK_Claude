@@ -443,9 +443,11 @@ async function getTournoiCible() {
   return data;
 }
 
+/** Échappe un texte pour l'insérer dans du HTML (fonction commune à
+ *  toutes les pages qui chargent auth.js). null / undefined → chaîne vide. */
 function escapeHtml(str) {
   const div = document.createElement('div');
-  div.textContent = str;
+  div.textContent = str === null || str === undefined ? '' : str;
   return div.innerHTML;
 }
 

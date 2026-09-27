@@ -74,9 +74,11 @@ function onCompetitionChange() {
 
 function bindForm() {
   const form = document.getElementById('tournoiInscriptionForm');
+  if (typeof antiSpam !== 'undefined') antiSpam.proteger(form);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const hint = document.getElementById('formHint');
+    if (typeof antiSpam !== 'undefined' && antiSpam.estSuspect(form)) { hint.textContent = antiSpam.MESSAGE; return; }
     const submitBtn = document.getElementById('submitBtn');
     const fd = new FormData(form);
 

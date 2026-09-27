@@ -281,10 +281,6 @@ function bindToggleButtons() {
   });
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str === null || str === undefined ? '' : String(str);
-  return div.innerHTML;
-}
+// escapeHtml : fonction commune, définie dans auth.js
 
 document.addEventListener('DOMContentLoaded', initPage);
