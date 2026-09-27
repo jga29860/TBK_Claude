@@ -31,6 +31,80 @@ let isAdminUser = false;
 let isBureau = false;
 let currentAccess = null;
 
+// ============================================================
+// Administrateur : listes par email (mailto) des inscriptions de la
+// saison dont la cotisation n'est pas payée, ou dont le dossier santé
+// ne respecte pas les règles (mêmes règles que le contrôle à la
+// validation : dossierSanteComplet, auth.js).
+// ============================================================
+
+// Au-delà, certaines messageries tronquent un lien mailto : la liste
+// est alors copiée dans le presse-papiers, à coller dans l'email.
+const MAILTO_LONGUEUR_MAX = 1900;
+
+function bindListesParMail() {
+  const btnCotis = document.getElementById('listeCotisationNonPayeeBtn');
+  const btnSante = document.getElementById('listeSanteNonAJourBtn');
+  if (!btnCotis || !btnSante || btnCotis.dataset.bound) return;
+  btnCotis.dataset.bound = 'true';
+  btnCotis.hidden = false;
+  btnSante.hidden = false;
+
+  btnCotis.addEventListener('click', () => envoyerListeParMail(
+    inscriptionsCache.filter(i => !estValeurAffirmative((i.champs || {}).cotisation_payee)),
+    'Cotisation non payée',
+    'Membres dont la cotisation n\'est pas payée'
+  ));
+  btnSante.addEventListener('click', () => envoyerListeParMail(
+    inscriptionsCache.filter(i => !dossierSanteComplet(i.champs || {}, i.categorie)),
+    'Santé non à jour',
+    'Membres dont le dossier santé n\'est pas à jour (certificat médical ou QS Sport, selon les règles du club)'
+  ));
+}
+
+async function envoyerListeParMail(liste, titre, intro) {
+  const hint = document.getElementById('listesMailHint');
+  const tries = [...liste].sort((a, b) =>
+    (a.nom || '').localeCompare(b.nom || '', 'fr') || (a.prenom || '').localeCompare(b.prenom || '', 'fr'));
+  if (!tries.length) {
+    hint.textContent = `${titre} : aucun membre concerné pour la saison ${SAISON}.`;
+    return;
+  }
+
+  const lignes = tries.map(i =>
+    `- ${i.nom || ''} ${i.prenom || ''} — ${i.categorie || '?'} — ${i.bad_ping || '?'}`.replace(/\s+—/g, ' —'));
+  const listeTexte = lignes.join('\n');
+  const sujet = `TBK — ${titre} — saison ${SAISON} (${tries.length} membre${tries.length > 1 ? 's' : ''})`;
+  const entete = `Bonjour,\n\n${intro} — saison ${SAISON} — ${tries.length} membre${tries.length > 1 ? 's' : ''} :\n\n`;
+
+  // Destinataire proposé : l'email de contact du club (modifiable dans la messagerie)
+  let destinataire = '';
+  try {
+    const { data } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').maybeSingle();
+    destinataire = (data && data.valeur) || '';
+  } catch (e) { /* sans destinataire : saisi dans la messagerie */ }
+
+  let corps = `${entete}${listeTexte}\n\nListe extraite du site TBK le ${new Date().toLocaleDateString('fr-FR')}.`;
+  let lien = `mailto:${destinataire}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  let copiee = false;
+
+  if (lien.length > MAILTO_LONGUEUR_MAX) {
+    try {
+      await navigator.clipboard.writeText(`${sujet}\n\n${listeTexte}`);
+      copiee = true;
+    } catch (e) { copiee = false; }
+    corps = copiee
+      ? `${entete}[La liste complète a été copiée : collez-la ici avec Ctrl+V (ou appui long → Coller).]\n`
+      : `${entete}[Liste trop longue pour être insérée automatiquement : consultez-la sur la page Inscriptions du site.]\n`;
+    lien = `mailto:${destinataire}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+  }
+
+  window.location.href = lien;
+  hint.textContent = copiee
+    ? `${titre} : ${tries.length} membre(s). La liste étant longue, elle a été copiée : collez-la dans l'email qui vient de s'ouvrir.`
+    : `${titre} : ${tries.length} membre(s) — email pré-rempli ouvert dans votre messagerie.`;
+}
+
 async function initInscriptionsPage() {
   await saisonPrete;
   // Liste affichée en premier : accès direct au formulaire de saisie
@@ -58,6 +132,7 @@ async function initInscriptionsPage() {
   document.getElementById('configSection').hidden = !isAdminUser;
   document.getElementById('envoiGroupeSection').hidden = !isAdminUser;
   if (isAdminUser) bindEnvoiGroupe();
+  if (isAdminUser) bindListesParMail();
 
   await loadBareme();
   await loadChamps();

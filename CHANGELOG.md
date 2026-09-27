@@ -1102,3 +1102,8 @@ Aucune migration SQL (le modèle par défaut est intégré au site ; le texte pe
 **Administration** (`admin.html` / `admin.js`) : section "Email de demande de justificatif" — objet, message, liste des variables, Aperçu (membre fictif), Rétablir le texte par défaut, Enregistrer (upsert).
 
 **Commun** (`auth.js`) : `JUSTIFICATIF_EMAIL_DEFAUT`, `JUSTIFICATIF_VARIABLES`, `remplirModeleJustificatif` ({prenom}, {nom}, {saison}, {montant}, {mode_paiement}, {categorie}, {pratique}, {email} ; une variable inconnue est laissée telle quelle). Version des fichiers : `?v=20260927d`.
+
+
+## Inscriptions — listes par email "Cotisation non payée" et "Santé non à jour" (administrateur)
+
+Aucune migration SQL. `inscriptions.html` / `inscriptions.js` : deux boutons à côté de "+ Nouvelle inscription", visibles pour le profil ayant le droit "administration". Filtrent les inscriptions de la saison chargées sur la page — cotisation : `!estValeurAffirmative(champs.cotisation_payee)` ; santé : `!dossierSanteComplet(champs, categorie)` (règles identiques au contrôle à la validation et à `supabase/requete_inscriptions_non_finalisees.sql`) — et ouvrent un `mailto:` vers l'email de contact du club : objet avec saison et effectif, liste "- Nom Prénom — Catégorie — Bad/Ping" triée par nom. Lien de plus de 1 900 caractères : liste copiée dans le presse-papiers et invitation à la coller dans l'email. Version des fichiers : `?v=20260927e`.

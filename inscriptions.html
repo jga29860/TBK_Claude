@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inscriptions saison 2026/2027 — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
-<link rel="stylesheet" href="css/style.css?v=20260927d">
+<link rel="stylesheet" href="css/style.css?v=20260927e">
 </head>
 <body>
 
@@ -40,7 +40,12 @@
     <!-- ===== Liste des inscriptions ===== -->
     <section class="admin-section">
       <h2>Inscrits — <span data-saison-libelle>2026 / 2027</span> <span id="inscriptionsCount" class="count-badge"></span> <span id="inscriptionsStats" class="inscriptions-stats"></span></h2>
-      <p><button type="button" class="btn btn-primary btn-small" id="allerNouvelleInscriptionBtn">+ Nouvelle inscription</button></p>
+      <p class="inscriptions-actions">
+        <button type="button" class="btn btn-primary btn-small" id="allerNouvelleInscriptionBtn">+ Nouvelle inscription</button>
+        <button type="button" class="btn btn-ghost btn-small" id="listeCotisationNonPayeeBtn" hidden>✉️ Cotisation non payée</button>
+        <button type="button" class="btn btn-ghost btn-small" id="listeSanteNonAJourBtn" hidden>✉️ Santé non à jour</button>
+      </p>
+      <p class="form-hint" id="listesMailHint"></p>
       <div class="couleurs-legende">
         <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#e3f2fd;"></span>Jeune</span>
         <span class="couleurs-legende-item"><span class="couleurs-legende-pastille" style="background:#fff3e0;"></span>Adulte</span>
@@ -260,13 +265,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-<script src="js/menu-mobile.js?v=20260927d"></script>
-<script src="js/tableaux-mobile.js?v=20260927d"></script>
-<script src="js/sections-repliables.js?v=20260927d"></script>
-<script src="js/supabase-config.js?v=20260927d"></script>
-<script src="js/auth.js?v=20260927d"></script>
-<script src="js/main.js?v=20260927d"></script>
-<script src="js/saison.js?v=20260927d"></script>
-<script src="js/inscriptions.js?v=20260927d"></script>
+<script src="js/menu-mobile.js?v=20260927e"></script>
+<script src="js/tableaux-mobile.js?v=20260927e"></script>
+<script src="js/sections-repliables.js?v=20260927e"></script>
+<script src="js/supabase-config.js?v=20260927e"></script>
+<script src="js/auth.js?v=20260927e"></script>
+<script src="js/main.js?v=20260927e"></script>
+<script src="js/saison.js?v=20260927e"></script>
+<script src="js/inscriptions.js?v=20260927e"></script>
 </body>
 </html>

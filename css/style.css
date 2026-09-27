@@ -1535,3 +1535,6 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   white-space:pre-wrap; font-family: var(--font-body); font-size:0.9rem; background:var(--pale);
   border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0;
 }
+
+/* Inscriptions : boutons d'action au-dessus de la liste */
+.inscriptions-actions{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
