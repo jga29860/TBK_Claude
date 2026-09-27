@@ -122,6 +122,9 @@ async function chargerMesInformations() {
   section.hidden = false;
   contenu.innerHTML = rendreMesInformations(data);
 
+  const btnJustificatif = document.getElementById('demanderJustificatifBtn');
+  if (btnJustificatif) btnJustificatif.addEventListener('click', () => demanderJustificatifPaiement(data));
+
   const btnPayer = document.getElementById('payerCotisationBtn');
   if (btnPayer) {
     btnPayer.addEventListener('click', () => {
@@ -144,6 +147,34 @@ async function chargerMesInformations() {
       });
     });
   }
+}
+
+/**
+ * Ouvre la messagerie du membre avec un email au bureau (adresse de
+ * contact du club) demandant un justificatif de paiement de l'adhésion.
+ * Objet et texte : modèle paramétré par l'administrateur, sinon modèle
+ * par défaut (auth.js). Comme tout mailto, le membre relit puis envoie.
+ */
+async function demanderJustificatifPaiement(insc) {
+  const hint = document.getElementById('justificatifHint');
+  if (hint) hint.textContent = 'Préparation de votre demande…';
+  const { data, error } = await sbClient
+    .from('parametres_site')
+    .select('cle, valeur')
+    .in('cle', ['email_contact', 'justificatif_email_objet', 'justificatif_email_corps']);
+  const valeur = (cle) => {
+    const ligne = (!error && data ? data : []).find(p => p.cle === cle);
+    return ligne && ligne.valeur ? ligne.valeur : '';
+  };
+  const emailContact = valeur('email_contact');
+  if (!emailContact) {
+    if (hint) hint.textContent = "Adresse de contact du club introuvable : contactez directement un membre du bureau.";
+    return;
+  }
+  const objet = remplirModeleJustificatif(valeur('justificatif_email_objet') || JUSTIFICATIF_EMAIL_DEFAUT.objet, insc);
+  const corps = remplirModeleJustificatif(valeur('justificatif_email_corps') || JUSTIFICATIF_EMAIL_DEFAUT.corps, insc);
+  window.location.href = `mailto:${emailContact}?subject=${encodeURIComponent(objet)}&body=${encodeURIComponent(corps)}`;
+  if (hint) hint.textContent = "Votre messagerie s'est ouverte avec la demande pré-remplie : il ne reste qu'à l'envoyer.";
 }
 
 function rendreMesInformations(insc) {
@@ -178,7 +209,7 @@ function rendreMesInformations(insc) {
       <div class="info-ligne"><span class="info-label">Statut de l'inscription</span><span class="info-valeur">${statutBadge}</span></div>
       <div class="info-ligne"><span class="info-label">Catégorie</span><span class="info-valeur">${escapeHtml(insc.categorie || '—')}</span></div>
       <div class="info-ligne"><span class="info-label">Pratique</span><span class="info-valeur">${escapeHtml(insc.bad_ping || '—')}</span></div>
-      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? (estPayeHelloAsso(champs.cotisation_payee) ? '✅ Payée en ligne (Hello Asso)' : '✅ Payée') : '⏳ Non payée'}${!estValeurAffirmative(champs.cotisation_payee) && Number(insc.cotisation) > 0 ? '<br><button type="button" class="btn btn-primary btn-small paiement-en-ligne-btn" id="payerCotisationBtn">💳 Payer en ligne</button>' : ''}</span></div>
+      <div class="info-ligne"><span class="info-label">Cotisation</span><span class="info-valeur">${Number(insc.cotisation || 0).toFixed(2)} € — ${estValeurAffirmative(champs.cotisation_payee) ? (estPayeHelloAsso(champs.cotisation_payee) ? '✅ Payée en ligne (Hello Asso)' : '✅ Payée') : '⏳ Non payée'}${!estValeurAffirmative(champs.cotisation_payee) && Number(insc.cotisation) > 0 ? '<br><button type="button" class="btn btn-primary btn-small paiement-en-ligne-btn" id="payerCotisationBtn">💳 Payer en ligne</button>' : ''}${estValeurAffirmative(champs.cotisation_payee) ? '<br><button type="button" class="btn btn-ghost btn-small" id="demanderJustificatifBtn">📄 Demander un justificatif de paiement</button><br><span class="form-hint" id="justificatifHint"></span>' : ''}</span></div>
       ${certifLigne}
       ${qsSportLigne}
       <div class="info-ligne"><span class="info-label">N° téléphone</span><span class="info-valeur">${escapeHtml(champs.telephone || '—')}</span></div>

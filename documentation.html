@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927c">
+<link rel="stylesheet" href="css/style.css?v=20260927d">
 </head>
 <body>
 
@@ -200,6 +200,7 @@
         <li><strong>Envoyer par email à tous les membres</strong> (icône ✉️, réservée au profil administrateur) : ouvre un mailto pré-rempli, destinataires en copie cachée (BCC, pour ne pas exposer les adresses entre elles) — toutes les adresses email des membres <strong>validés</strong> de la saison en cours, récupérées depuis leur inscription. Le corps du mail reprend le texte intégral de l'annonce, suivi d'un lien direct vers celle-ci sur le site (qui y fait défiler automatiquement à l'ouverture). Rien n'est envoyé automatiquement — la personne connectée valide l'envoi depuis son propre client email. Avertissement si plus de 30 destinataires (certains clients email peuvent tronquer ou refuser un envoi aussi large).</li>
       </ul>
       <p>Toute personne connectée, quel que soit son profil (même un simple visiteur), voit aussi une section "Mon compte" pour changer son mot de passe, et — si une inscription saison lui est reliée — une section "Mes informations" affichant sa saison, son statut, sa catégorie, sa pratique, sa cotisation (avec un bouton "💳 Payer en ligne" tant qu'elle n'est pas réglée — voir 7.3), la validité de son certificat médical (et du QS Sport le complétant, si pertinent pour sa situation — voir 5.9), ainsi que son numéro de téléphone, son adresse, son email et sa date de naissance (tels que renseignés sur son inscription).</p>
+      <p><strong>Justificatif de paiement</strong> : une fois la cotisation payée (en ligne ou auprès du bureau), un bouton "📄 Demander un justificatif de paiement" apparaît sous la ligne Cotisation de "Mes informations". Il ouvre la messagerie du membre avec un email au bureau (adresse de contact du club) déjà rédigé — nom, saison, montant, mode de paiement, email de réponse — qu'il n'a plus qu'à relire et envoyer. Le texte de cet email est paramétrable par l'administrateur (voir 7).</p>
     </section>
 
     <!-- ===== 5. INSCRIPTIONS SAISON ===== -->
@@ -408,6 +409,7 @@
       <ul>
         <li><strong>Mon compte</strong> — changer son propre mot de passe.</li>
         <li><strong>Paramètres du site</strong> — email de contact du club, <strong>saison en cours</strong> (format AAAA-AAAA, à changer au lancement de chaque nouvelle saison : utilisée par les inscriptions du bureau et le formulaire public, l'espace membre et la boutique, et reprise automatiquement dans les libellés "Saison … / …" ; les inscriptions des saisons précédentes restent en base), URL des deux widgets de paiement en ligne HelloAsso, boutique et cotisation (voir 7.3), utilisés automatiquement sur les pages publiques, et case Oui / Non d'affichage des anniversaires des membres dans l'agenda du club (voir 8).</li>
+        <li><strong>Email de demande de justificatif</strong> — objet et texte de l'email que le membre envoie au bureau (adresse de contact du club) avec le bouton "📄 Demander un justificatif de paiement" de son espace membre. Variables remplacées automatiquement : {prenom}, {nom}, {saison}, {montant}, {mode_paiement} ("en ligne (Hello Asso)" ou "auprès du bureau"), {categorie}, {pratique}, {email}. Boutons Aperçu (avec un membre fictif) et Rétablir le texte par défaut.</li>
         <li><strong>Page d'accueil — Section "Le club"</strong> — voir 7.2 ci-dessous.</li>
         <li><strong>Anti-pause Supabase</strong> — voir 7.1 ci-dessous.</li>
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
@@ -711,11 +713,11 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927c"></script>
-<script src="js/tableaux-mobile.js?v=20260927c"></script>
-<script src="js/supabase-config.js?v=20260927c"></script>
-<script src="js/auth.js?v=20260927c"></script>
-<script src="js/main.js?v=20260927c"></script>
-<script src="js/documentation.js?v=20260927c"></script>
+<script src="js/menu-mobile.js?v=20260927d"></script>
+<script src="js/tableaux-mobile.js?v=20260927d"></script>
+<script src="js/supabase-config.js?v=20260927d"></script>
+<script src="js/auth.js?v=20260927d"></script>
+<script src="js/main.js?v=20260927d"></script>
+<script src="js/documentation.js?v=20260927d"></script>
 </body>
 </html>

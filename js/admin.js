@@ -62,6 +62,8 @@ async function initAdminPage() {
   bindChangePasswordForm();
   bindParametresForm();
   await loadParametres();
+  bindJustificatifForm();
+  await loadJustificatif();
   bindClubSection();
   await loadClubSection();
   bindKeepaliveForm();
@@ -87,6 +89,62 @@ async function loadParametres() {
   document.getElementById('agendaAnniversairesInput').checked = valeurParametre('agenda_anniversaires') === 'true';
   // Saison : valeur en base, sinon saison utilisée actuellement par le site (js/saison.js)
   document.getElementById('saisonEnCoursInput').value = valeurParametre('saison_en_cours') || (typeof SAISON !== 'undefined' ? SAISON : '');
+}
+
+// ===== Email de demande de justificatif de paiement =====
+
+async function loadJustificatif() {
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur')
+    .in('cle', ['justificatif_email_objet', 'justificatif_email_corps']);
+  const valeur = (cle) => {
+    const ligne = (!error && data ? data : []).find(p => p.cle === cle);
+    return ligne && ligne.valeur ? ligne.valeur : '';
+  };
+  document.getElementById('justificatifObjetInput').value = valeur('justificatif_email_objet') || JUSTIFICATIF_EMAIL_DEFAUT.objet;
+  document.getElementById('justificatifCorpsInput').value = valeur('justificatif_email_corps') || JUSTIFICATIF_EMAIL_DEFAUT.corps;
+  document.getElementById('justificatifVariables').innerHTML = 'Variables remplacées automatiquement : '
+    + JUSTIFICATIF_VARIABLES.map(([v, desc]) => `<code>${escapeHtml(v)}</code> ${escapeHtml(desc)}`).join(' · ');
+}
+
+function bindJustificatifForm() {
+  const form = document.getElementById('justificatifForm');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = 'true';
+  const hint = document.getElementById('justificatifHintAdmin');
+  const apercu = document.getElementById('justificatifApercu');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const objet = document.getElementById('justificatifObjetInput').value.trim();
+    const corps = document.getElementById('justificatifCorpsInput').value.trim();
+    if (!objet || !corps) { hint.textContent = "L'objet et le message sont obligatoires."; return; }
+    hint.textContent = 'Enregistrement…';
+    const maintenant = new Date().toISOString();
+    const { error } = await sbClient.from('parametres_site').upsert([
+      { cle: 'justificatif_email_objet', valeur: objet, updated_at: maintenant },
+      { cle: 'justificatif_email_corps', valeur: corps, updated_at: maintenant },
+    ], { onConflict: 'cle' });
+    hint.textContent = error ? 'Erreur : ' + error.message : 'Email de demande de justificatif enregistré.';
+  });
+
+  document.getElementById('justificatifApercuBtn').addEventListener('click', () => {
+    const exemple = {
+      prenom: 'Maëlle', nom: 'Bernard', saison: typeof SAISON !== 'undefined' ? SAISON : '2026-2027',
+      cotisation: 40, categorie: 'Adulte', bad_ping: 'Bad',
+      champs: { email: 'maelle.bernard@exemple.fr', cotisation_payee: VALEUR_PAYE_HELLOASSO },
+    };
+    const objet = remplirModeleJustificatif(document.getElementById('justificatifObjetInput').value, exemple);
+    const corps = remplirModeleJustificatif(document.getElementById('justificatifCorpsInput').value, exemple);
+    apercu.textContent = `Objet : ${objet}\n\n${corps}`;
+    apercu.hidden = false;
+  });
+
+  document.getElementById('justificatifDefautBtn').addEventListener('click', () => {
+    if (!confirm('Remplacer le texte actuel par le texte par défaut ? (Pensez à enregistrer ensuite.)')) return;
+    document.getElementById('justificatifObjetInput').value = JUSTIFICATIF_EMAIL_DEFAUT.objet;
+    document.getElementById('justificatifCorpsInput').value = JUSTIFICATIF_EMAIL_DEFAUT.corps;
+    hint.textContent = 'Texte par défaut rétabli — cliquez sur Enregistrer pour le conserver.';
+  });
 }
 
 function bindParametresForm() {

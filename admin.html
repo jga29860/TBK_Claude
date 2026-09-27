@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administration — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
-<link rel="stylesheet" href="css/style.css?v=20260927c">
+<link rel="stylesheet" href="css/style.css?v=20260927d">
 </head>
 <body>
 
@@ -80,6 +80,28 @@
       <p class="form-hint">Le paiement en ligne (boutique, cotisation) nécessite un formulaire HelloAsso "don" à montant libre par usage, dont vous copiez ici l'URL du widget (menu Partager → Bouton/Widget dans HelloAsso). Laissez un champ vide pour désactiver le paiement en ligne correspondant.</p>
       <p class="form-hint">Saison en cours (format AAAA-AAAA) : utilisée par les inscriptions (bureau et formulaire public), l'espace membre et la boutique. À changer au lancement de la nouvelle saison : les inscriptions de la saison précédente restent en base, et la liste du bureau affiche alors la nouvelle saison (vide au départ).</p>
       <p class="form-hint">Anniversaires : quand la case est cochée, l'agenda affiche 🎂 le prénom et le nom des membres à la date de leur anniversaire (inscription validée de la saison en cours, date de naissance renseignée). L'année de naissance et l'âge ne sont jamais affichés, et rien n'est ajouté dans Google Agenda.</p>
+    </section>
+
+    <!-- ===== Email de demande de justificatif de paiement ===== -->
+    <section class="admin-section" data-repliable-mobile id="justificatifSection">
+      <h2>Email de demande de justificatif</h2>
+      <p class="section-lead">Texte de l'email que le membre envoie au bureau (adresse de contact du club) avec le bouton "📄 Demander un justificatif de paiement" de son espace membre (Mes informations), une fois sa cotisation payée. Le membre relit l'email dans sa messagerie avant de l'envoyer.</p>
+      <form id="justificatifForm" class="justificatif-form">
+        <label>Objet
+          <input type="text" id="justificatifObjetInput" maxlength="200" required>
+        </label>
+        <label>Message
+          <textarea id="justificatifCorpsInput" rows="12" required></textarea>
+        </label>
+        <p class="form-hint" id="justificatifVariables"></p>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+          <button type="button" class="btn btn-ghost btn-small" id="justificatifApercuBtn">Aperçu</button>
+          <button type="button" class="btn btn-ghost btn-small" id="justificatifDefautBtn">Rétablir le texte par défaut</button>
+        </div>
+        <p class="form-hint" id="justificatifHintAdmin"></p>
+        <pre class="justificatif-apercu" id="justificatifApercu" hidden></pre>
+      </form>
     </section>
 
     <!-- ===== Page d'accueil — Section "Le club" ===== -->
@@ -222,12 +244,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927c"></script>
-<script src="js/tableaux-mobile.js?v=20260927c"></script>
-<script src="js/sections-repliables.js?v=20260927c"></script>
-<script src="js/supabase-config.js?v=20260927c"></script>
-<script src="js/auth.js?v=20260927c"></script>
-<script src="js/saison.js?v=20260927c"></script>
-<script src="js/admin.js?v=20260927c"></script>
+<script src="js/menu-mobile.js?v=20260927d"></script>
+<script src="js/tableaux-mobile.js?v=20260927d"></script>
+<script src="js/sections-repliables.js?v=20260927d"></script>
+<script src="js/supabase-config.js?v=20260927d"></script>
+<script src="js/auth.js?v=20260927d"></script>
+<script src="js/saison.js?v=20260927d"></script>
+<script src="js/admin.js?v=20260927d"></script>
 </body>
 </html>

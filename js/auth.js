@@ -41,6 +41,44 @@ function estPayeHelloAsso(val) {
   return typeof val === 'string' && val.replace(/\s+/g, '').toLowerCase() === 'helloasso';
 }
 
+// ============================================================
+// Email de demande de justificatif de paiement de l'adhésion
+// (espace membre → Mes informations). Texte paramétrable par
+// l'administrateur (Administration → Email de demande de
+// justificatif), valeurs par défaut ci-dessous.
+// ============================================================
+const JUSTIFICATIF_VARIABLES = [
+  ['{prenom}', 'prénom du membre'],
+  ['{nom}', 'nom du membre'],
+  ['{saison}', 'saison (ex. 2026-2027)'],
+  ['{montant}', 'montant de la cotisation (ex. 40,00 €)'],
+  ['{mode_paiement}', '"en ligne (Hello Asso)" ou "auprès du bureau"'],
+  ['{categorie}', 'Adulte / Jeune'],
+  ['{pratique}', 'Bad / Ping / Bad et Ping'],
+  ['{email}', 'email du membre'],
+];
+
+const JUSTIFICATIF_EMAIL_DEFAUT = {
+  objet: "Demande de justificatif de paiement — adhésion TBK {saison}",
+  corps: "Bonjour,\n\nPourriez-vous m'adresser un justificatif de paiement de mon adhésion au club TBK pour la saison {saison} ?\n\n- Adhérent : {prenom} {nom}\n- Catégorie : {categorie} ({pratique})\n- Montant de la cotisation : {montant}\n- Paiement effectué {mode_paiement}\n\nMerci de me l'envoyer à l'adresse {email}.\n\nBien cordialement,\n{prenom} {nom}",
+};
+
+/** Remplace les variables {…} du modèle par les informations de l'inscription. */
+function remplirModeleJustificatif(modele, insc) {
+  const champs = (insc && insc.champs) || {};
+  const valeurs = {
+    '{prenom}': insc.prenom || '',
+    '{nom}': insc.nom || '',
+    '{saison}': insc.saison || '',
+    '{montant}': Number(insc.cotisation || 0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }),
+    '{mode_paiement}': estPayeHelloAsso(champs.cotisation_payee) ? 'en ligne (Hello Asso)' : 'auprès du bureau',
+    '{categorie}': insc.categorie || '',
+    '{pratique}': insc.bad_ping || '',
+    '{email}': champs.email || '',
+  };
+  return String(modele || '').replace(/\{[a-z_]+\}/g, (v) => (v in valeurs ? valeurs[v] : v));
+}
+
 /** Le champ personnalisé est-il le champ "Cotisation payée" ? Reconnu
  *  par sa clé, ou à défaut par son libellé (champ recréé ou renommé
  *  depuis l'administration). */

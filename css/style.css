@@ -1521,3 +1521,17 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   .pending-badge{ display:block; overflow:hidden; text-overflow:ellipsis; min-width:0; line-height:28px; }
   .nav-auth-link{ flex:none; font-size:0.8rem; }
 }
+
+/* ===== Administration : email de demande de justificatif ===== */
+.justificatif-form{ display:flex; flex-direction:column; gap:14px; max-width:760px; }
+.justificatif-form label{ display:flex; flex-direction:column; gap:6px; font-size:0.85rem; font-weight:700; color:var(--dark); }
+.justificatif-form input, .justificatif-form textarea{
+  font-family: var(--font-body); font-size:0.95rem; padding:10px 12px; border-radius:8px;
+  border:1px solid #a9d18e; background:var(--white); color:var(--ink); width:100%; box-sizing:border-box;
+}
+.justificatif-form textarea{ resize:vertical; line-height:1.5; }
+.justificatif-form .form-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+.justificatif-apercu{
+  white-space:pre-wrap; font-family: var(--font-body); font-size:0.9rem; background:var(--pale);
+  border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin:0;
+}

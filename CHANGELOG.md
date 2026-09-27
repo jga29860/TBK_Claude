@@ -1091,3 +1091,14 @@ Exécutez `supabase/migration_saison_parametrable.sql` (sans effet sur le compor
 **Confort PC** — Planning : largeurs par défaut recalculées pour tenir sans défilement à 1366 px, en-têtes entièrement lisibles ("Lancé à"), cases de score compactes (deux scores + tiret tiennent dans la colonne), nom complet des équipes au survol ; les largeurs réglées à la main restent prioritaires. Inscriptions : liste des inscrits en premier + bouton "+ Nouvelle inscription". Boutique : Catalogue et Mes commandes en premier, outils du bureau ensuite. Navigation : bandeau inchangé (choix antérieur délibéré : "Bandeau de navigation simplifié").
 
 **Non-régression vérifiée** : 0 erreur JS et 0 débordement (23 pages, PC et mobile), menu et sections repliables, saisie Hello Asso (3 configurations), journal des connexions et visites, images chargées, saison paramétrée testée à 2027-2028, anti-spam (robot bloqué, envoi trop rapide bloqué, personne réelle acceptée). Version des fichiers : `?v=20260927c`.
+
+
+## Espace membre — demande de justificatif de paiement
+
+Aucune migration SQL (le modèle par défaut est intégré au site ; le texte personnalisé est enregistré dans `parametres_site` : `justificatif_email_objet`, `justificatif_email_corps`).
+
+**Espace membre** (`membres.js`) : bouton "📄 Demander un justificatif de paiement" sous la ligne Cotisation de Mes informations, affiché quand la cotisation est payée (Oui ou Hello Asso). Ouvre un `mailto:` vers l'email de contact du club, objet et texte issus du modèle.
+
+**Administration** (`admin.html` / `admin.js`) : section "Email de demande de justificatif" — objet, message, liste des variables, Aperçu (membre fictif), Rétablir le texte par défaut, Enregistrer (upsert).
+
+**Commun** (`auth.js`) : `JUSTIFICATIF_EMAIL_DEFAUT`, `JUSTIFICATIF_VARIABLES`, `remplirModeleJustificatif` ({prenom}, {nom}, {saison}, {montant}, {mode_paiement}, {categorie}, {pratique}, {email} ; une variable inconnue est laissée telle quelle). Version des fichiers : `?v=20260927d`.
