@@ -1538,3 +1538,7 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 
 /* Inscriptions : boutons d'action au-dessus de la liste */
 .inscriptions-actions{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+
+/* Paiements HelloAsso : en-tête de section avec bouton plier / déplier */
+.ha-section-entete{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+#haNotificationsResume{ margin:8px 0 0; }

@@ -57,6 +57,7 @@ async function initPage() {
 }
 
 function lierEvenements() {
+  lierPliageNotifications();
   document.getElementById('haPeriodeForm').addEventListener('submit', (e) => { e.preventDefault(); charger(); });
   document.getElementById('haSaisonBtn').addEventListener('click', () => { appliquerPeriodeSaison(); charger(); });
   document.getElementById('haTroisMoisBtn').addEventListener('click', () => {
@@ -355,18 +356,48 @@ const RESULTATS_NOTIF = {
   erreur: { libelle: '⚠️ Erreur', classe: 'ha-etat--erreur' },
 };
 
+// ----- Plier / déplier la section Notifications (choix mémorisé) -----
+const CLE_NOTIFS_DEPLIEES = 'tbk_helloasso_notifications_depliees';
+
+function notificationsDepliees() {
+  try { return localStorage.getItem(CLE_NOTIFS_DEPLIEES) === '1'; } catch (e) { return false; }
+}
+
+function appliquerPliageNotifications(depliees) {
+  document.getElementById('haNotificationsDetail').hidden = !depliees;
+  const bouton = document.getElementById('haNotifsBasculeBtn');
+  bouton.textContent = depliees ? '▾ Plier' : '▸ Déplier';
+  bouton.setAttribute('aria-expanded', depliees ? 'true' : 'false');
+  try { localStorage.setItem(CLE_NOTIFS_DEPLIEES, depliees ? '1' : '0'); } catch (e) { /* sans mémorisation */ }
+}
+
+function lierPliageNotifications() {
+  const bouton = document.getElementById('haNotifsBasculeBtn');
+  if (!bouton || bouton.dataset.bound) return;
+  bouton.dataset.bound = '1';
+  appliquerPliageNotifications(notificationsDepliees());
+  bouton.addEventListener('click', () =>
+    appliquerPliageNotifications(document.getElementById('haNotificationsDetail').hidden));
+}
+
 function rendreNotifications() {
+  lierPliageNotifications();
   const zone = document.getElementById('haNotifications');
+  const resume = document.getElementById('haNotificationsResume');
   const liste = haEtat.notifications;
   if (liste === null) {
+    resume.textContent = 'Journal des notifications indisponible.';
     zone.innerHTML = '<p class="form-hint">Journal des notifications indisponible (migration <code>migration_helloasso_notification.sql</code> exécutée ?).</p>';
     return;
   }
   if (!liste.length) {
+    resume.textContent = 'Aucune notification reçue sur la période.';
     zone.innerHTML = '<p class="form-hint">Aucune notification reçue de HelloAsso sur la période. Si des paiements ont eu lieu, vérifier l\'URL de notification déclarée dans HelloAsso (voir documentation, 7.5).</p>';
     return;
   }
   const aTraiter = liste.filter(n => n.resultat === 'non_attribuee' || n.resultat === 'erreur' || n.resultat === 'rembourse').length;
+  // Résumé toujours visible, même section pliée
+  resume.innerHTML = `${liste.length} notification(s) sur la période${aTraiter ? ` — <strong style="color:#c05a00;">${aTraiter} à examiner</strong>` : ', aucune à examiner'}.`;
   zone.innerHTML = `
     <p class="form-hint">${liste.length} notification(s) reçue(s)${aTraiter ? ` — <strong>${aTraiter} à examiner</strong>` : ', aucune à examiner'}.</p>
     ${tableauHtml(['Reçue le', 'Payeur', 'Type', 'Montant', 'Résultat', 'Détail'], liste.map(n => {

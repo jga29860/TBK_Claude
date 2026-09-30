@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Paiements HelloAsso — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927e">
+<link rel="stylesheet" href="css/style.css?v=20260927h">
 </head>
 <body>
 
@@ -72,9 +72,15 @@
 
     <!-- ===== Notifications HelloAsso ===== -->
     <section class="admin-section">
-      <h2>Notifications HelloAsso</h2>
-      <p class="section-lead">Chaque paiement déclenche une notification de HelloAsso vers le site, qui confirme automatiquement la commande ou la cotisation correspondante — y compris si le membre a fermé la fenêtre de paiement avant la fin.</p>
-      <div id="haNotifications"></div>
+      <div class="ha-section-entete">
+        <h2 style="margin:0;">Notifications HelloAsso</h2>
+        <button type="button" class="btn btn-ghost btn-small" id="haNotifsBasculeBtn" aria-expanded="false" aria-controls="haNotificationsDetail">▸ Déplier</button>
+      </div>
+      <p class="form-hint" id="haNotificationsResume"></p>
+      <div id="haNotificationsDetail" hidden>
+        <p class="section-lead">Chaque paiement déclenche une notification de HelloAsso vers le site, qui confirme automatiquement la commande ou la cotisation correspondante — y compris si le membre a fermé la fenêtre de paiement avant la fin.</p>
+        <div id="haNotifications"></div>
+      </div>
     </section>
 
     <!-- ===== Liste des paiements ===== -->
@@ -134,11 +140,11 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927e"></script>
-<script src="js/tableaux-mobile.js?v=20260927e"></script>
-<script src="js/supabase-config.js?v=20260927e"></script>
-<script src="js/auth.js?v=20260927e"></script>
-<script src="js/main.js?v=20260927e"></script>
-<script src="js/helloasso.js?v=20260927e"></script>
+<script src="js/menu-mobile.js?v=20260927h"></script>
+<script src="js/tableaux-mobile.js?v=20260927h"></script>
+<script src="js/supabase-config.js?v=20260927h"></script>
+<script src="js/auth.js?v=20260927h"></script>
+<script src="js/main.js?v=20260927h"></script>
+<script src="js/helloasso.js?v=20260927h"></script>
 </body>
 </html>

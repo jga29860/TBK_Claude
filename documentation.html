@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927e">
+<link rel="stylesheet" href="css/style.css?v=20260927h">
 </head>
 <body>
 
@@ -480,7 +480,7 @@
         <li><strong>Notification HelloAsso</strong> (quelques secondes après le paiement) : l'Edge Function <code>helloasso-notification</code> relit le paiement auprès de HelloAsso, retrouve la demande correspondante — même type, même montant, dans les 24 h, puis même email, sinon même nom — et la marque "confirmée par HelloAsso" ; si le widget n'avait pas confirmé, la commande / la cotisation est marquée payée à ce moment-là.</li>
         <li><strong>Prudence</strong> : si plusieurs demandes correspondent, ou si la seule demande possible concerne un autre membre sans confirmation du widget, <strong>rien n'est appliqué</strong> : la notification est signalée "❔ Non attribuée" sur la page Paiements HelloAsso, pour traitement manuel. Un remboursement notifié est signalé, mais ne repasse jamais automatiquement une commande ou une cotisation en "non payée".</li>
       </ul>
-      <p>La page Paiements HelloAsso affiche le journal des notifications reçues (résultat et détail de chacune), et les paiements confirmés par notification apparaissent "✅ Confirmé HelloAsso" dans la liste et le rapprochement.</p>
+      <p>La page Paiements HelloAsso affiche le journal des notifications reçues (résultat et détail de chacune), dans une section repliable (bouton "Déplier / Plier", pliée par défaut, choix mémorisé sur l'appareil) ; un résumé reste toujours visible — nombre de notifications de la période et nombre à examiner, et les paiements confirmés par notification apparaissent "✅ Confirmé HelloAsso" dans la liste et le rapprochement.</p>
       <p><strong>Sécurité</strong> : l'adresse de notification contient une clé secrète, sans laquelle rien n'est traité ; le contenu envoyé à cette adresse n'est jamais utilisé tel quel (seul l'identifiant du paiement est lu, puis le paiement est relu auprès de HelloAsso avec les identifiants du club) ; l'écriture en base passe par une fonction SQL (<code>appliquer_notification_helloasso</code>) qu'aucun utilisateur du site ne peut appeler.</p>
       <p><strong>Mise en place (une seule fois)</strong> :</p>
       <ol>
@@ -491,7 +491,8 @@
         <li>Test : payer 1 € en ligne (commande boutique test), fermer la fenêtre HelloAsso <em>avant</em> le retour au site, puis vérifier que la commande passe payée et que la notification apparaît "✅ Appliquée" sur la page Paiements HelloAsso.</li>
       </ol>
       <p>Les erreurs techniques sont visibles sur la page Paiements HelloAsso (notifications "⚠️ Erreur") et dans Supabase → Edge Functions → helloasso-notification → Logs.</p>
-    </section>
+    
+</section>
 
     <!-- ===== 8. AGENDA ===== -->
     <section class="admin-section" id="agenda">
@@ -714,11 +715,11 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927e"></script>
-<script src="js/tableaux-mobile.js?v=20260927e"></script>
-<script src="js/supabase-config.js?v=20260927e"></script>
-<script src="js/auth.js?v=20260927e"></script>
-<script src="js/main.js?v=20260927e"></script>
-<script src="js/documentation.js?v=20260927e"></script>
+<script src="js/menu-mobile.js?v=20260927h"></script>
+<script src="js/tableaux-mobile.js?v=20260927h"></script>
+<script src="js/supabase-config.js?v=20260927h"></script>
+<script src="js/auth.js?v=20260927h"></script>
+<script src="js/main.js?v=20260927h"></script>
+<script src="js/documentation.js?v=20260927h"></script>
 </body>
 </html>

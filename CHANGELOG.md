@@ -1107,3 +1107,7 @@ Aucune migration SQL (le modèle par défaut est intégré au site ; le texte pe
 ## Inscriptions — listes par email "Cotisation non payée" et "Santé non à jour" (administrateur)
 
 Aucune migration SQL. `inscriptions.html` / `inscriptions.js` : deux boutons à côté de "+ Nouvelle inscription", visibles pour le profil ayant le droit "administration". Filtrent les inscriptions de la saison chargées sur la page — cotisation : `!estValeurAffirmative(champs.cotisation_payee)` ; santé : `!dossierSanteComplet(champs, categorie)` (règles identiques au contrôle à la validation et à `supabase/requete_inscriptions_non_finalisees.sql`) — et ouvrent un `mailto:` vers l'email de contact du club : objet avec saison et effectif, liste "- Nom Prénom — Catégorie — Bad/Ping" triée par nom. Lien de plus de 1 900 caractères : liste copiée dans le presse-papiers et invitation à la coller dans l'email. Version des fichiers : `?v=20260927e`.
+
+## Paiements HelloAsso — section Notifications repliable
+
+Aucune migration SQL. `helloasso.html` / `helloasso.js` : bouton "▸ Déplier / ▾ Plier" sur la section Notifications HelloAsso, pliée par défaut, choix mémorisé (localStorage `tbk_helloasso_notifications_depliees`) ; résumé toujours visible (nombre de notifications, nombre à examiner en orange). Bouton actif même si la lecture HelloAsso échoue. Version des fichiers : `?v=20260927h`.
