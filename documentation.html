@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927h">
+<link rel="stylesheet" href="css/style.css?v=20260927i">
 </head>
 <body>
 
@@ -344,6 +344,8 @@
       <p><strong>Accessible sans connexion</strong> — page ouverte à tous (joueurs extérieurs au club inclus), accessible via un lien ou un QR code affiché sur la page d'accueil du site (voir 1.2). Chaque équipe se déclare elle-même : coordonnées de la personne qui fait la demande (email et téléphone, pour la recontacter et l'informer par la suite), choix de la compétition (le formulaire s'adapte automatiquement en simple/double selon son format), puis pour chaque joueur — nom, prénom, club, niveau (Débutant / Intermédiaire / Confirmé), et affiliation fédérale (Oui/Non). Une demande soumise via ce formulaire démarre toujours au statut "En attente" — jamais directement validée.</p>
       <p><strong>Validation par l'organisation</strong> (droits "Tournois - Administration" ou "Tournois - Gestion") : sur tournoi-inscriptions.html, une section "🟠 Demandes en attente" regroupe les demandes à traiter — coordonnées du demandeur visibles dans une colonne dédiée — avec un bouton "Valider" (la demande rejoint alors le tableau normal des équipes, avec ses données de niveau/Fédé visibles au survol) et un bouton "Refuser" (la demande bascule dans une section "⛔ Demandes refusées", d'où elle peut être remise en attente en cas d'erreur). Les équipes saisies directement par le bureau via le formulaire habituel de cette page restent automatiquement validées, comme auparavant.</p>
       <p><strong>Email de confirmation</strong> : au moment de valider une demande, si un email a été renseigné par le demandeur, une confirmation d'envoi est proposée ("Envoyer un email de confirmation à [adresse] ?") — un lien mailto pré-rempli s'ouvre alors dans le client email de la personne connectée, qui valide l'envoi elle-même (rien n'est envoyé automatiquement). Un bouton "Renvoyer confirmation" reste ensuite disponible sur l'équipe validée, dans le tableau normal, pour un nouvel envoi si besoin.</p>
+      <p><strong>Contenu de l'email de confirmation</strong> (administrateur) : en bas de tournoi-inscriptions.html, la section repliable "Email de confirmation d'inscription" permet de modifier l'objet et le texte. Variables remplacées automatiquement : {equipe} (joueur 1, ou "joueur 1 / joueur 2" en double), {joueur1}, {joueur2}, {competition}, {tournoi}, {date_tournoi}. Boutons Aperçu (équipe fictive) et Rétablir le texte par défaut. Sans personnalisation, le texte d'origine est utilisé.</p>
+      <p><strong>Modifier une équipe</strong> : le formulaire en haut de page affiche toutes les informations saisies lors de la demande — joueurs (nom, club, niveau, licencié en club), email et téléphone du demandeur — ainsi qu'un rappel du statut (en attente, validée, refusée), de la date d'inscription, de la poule et de la tête de poule. Tout est modifiable ; un email ou un téléphone effacé est bien effacé.</p>
       <p><strong>Protection des coordonnées</strong> : les pages Phase Poule et Phase finale étant consultables sans connexion (QR code), la liste des équipes est publique. L'email et le téléphone du demandeur sont donc conservés à part, dans une table non publique, et n'apparaissent que sur tournoi-inscriptions.html pour les profils autorisés — aucune différence pour le demandeur ni pour l'organisation.</p>
 
       <h3 class="admin-subheading">6.4 Émargement (emargement.html)</h3>
@@ -715,11 +717,11 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927h"></script>
-<script src="js/tableaux-mobile.js?v=20260927h"></script>
-<script src="js/supabase-config.js?v=20260927h"></script>
-<script src="js/auth.js?v=20260927h"></script>
-<script src="js/main.js?v=20260927h"></script>
-<script src="js/documentation.js?v=20260927h"></script>
+<script src="js/menu-mobile.js?v=20260927i"></script>
+<script src="js/tableaux-mobile.js?v=20260927i"></script>
+<script src="js/supabase-config.js?v=20260927i"></script>
+<script src="js/auth.js?v=20260927i"></script>
+<script src="js/main.js?v=20260927i"></script>
+<script src="js/documentation.js?v=20260927i"></script>
 </body>
 </html>

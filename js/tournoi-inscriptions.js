@@ -6,6 +6,8 @@ let competitionsCache = [];   // compétitions du tournoi en cours (jointure typ
 let selectedCompetition = null; // { id, nom, format, nb_poules, taille_poule }
 let equipesCache = [];
 let editingEquipeId = null;
+let tournoiCourant = null;
+let modeleConfirmation = null; // { objet, corps } paramétrés (sinon modèle par défaut)
 
 async function initPage() {
   const access = await getCurrentAccess();
@@ -23,6 +25,9 @@ async function initPage() {
   mainPanel.hidden = false;
 
   const tournoi = await getTournoiEnCours();
+  tournoiCourant = tournoi;
+  await chargerModeleConfirmation();
+  if (access.pages.includes('administration')) initConfigurationEmail();
   if (!tournoi) {
     document.getElementById('pasDeTournoiMessage').hidden = false;
     document.getElementById('competitionSelectWrap').hidden = true;
@@ -77,6 +82,8 @@ async function onCompetitionChange() {
   const isDouble = selectedCompetition.format === 'double';
   document.getElementById('joueur2NomLabel').hidden = !isDouble;
   document.getElementById('joueur2ClubLabel').hidden = !isDouble;
+  document.getElementById('joueur2NiveauLabel').hidden = !isDouble;
+  document.getElementById('joueur2FedeLabel').hidden = !isDouble;
   document.querySelector('#equipeForm [name="joueur2_nom"]').required = isDouble;
 
   resetEquipeForm();
@@ -244,18 +251,118 @@ function renderDemandesBlock(titre, equipes, isDouble, type) {
     </div>`;
 }
 
+// ============================================================
+// Email de confirmation : modèle paramétrable (administrateur)
+// ============================================================
+
+const CONFIRMATION_TOURNOI_DEFAUT = {
+  objet: 'TBK — Inscription au tournoi validée',
+  corps: 'Bonjour,\n\nVotre inscription au tournoi TBK ({competition}) pour "{equipe}" est validée.\n\nÀ bientôt sur les terrains !\n\nSportivement,\nL\'organisation du tournoi TBK',
+};
+
+const CONFIRMATION_TOURNOI_VARIABLES = [
+  ['{equipe}', 'joueur 1, ou « joueur 1 / joueur 2 » en double'],
+  ['{joueur1}', 'nom du joueur 1'],
+  ['{joueur2}', 'nom du joueur 2 (vide en simple)'],
+  ['{competition}', 'compétition (ex. Double Homme)'],
+  ['{tournoi}', 'nom du tournoi'],
+  ['{date_tournoi}', 'date du tournoi (ex. dimanche 15 novembre 2026)'],
+];
+
+function remplirModeleConfirmation(modele, equipe) {
+  const isDouble = !!equipe.joueur2_nom;
+  const dateTournoi = tournoiCourant && tournoiCourant.date_tournoi
+    ? new Date(String(tournoiCourant.date_tournoi).slice(0, 10) + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+  const valeurs = {
+    '{equipe}': isDouble ? `${equipe.joueur1_nom} / ${equipe.joueur2_nom}` : (equipe.joueur1_nom || ''),
+    '{joueur1}': equipe.joueur1_nom || '',
+    '{joueur2}': equipe.joueur2_nom || '',
+    '{competition}': selectedCompetition ? selectedCompetition.nom : '',
+    '{tournoi}': tournoiCourant ? tournoiCourant.nom : '',
+    '{date_tournoi}': dateTournoi,
+  };
+  return String(modele || '').replace(/\{[a-z0-9_]+\}/g, (v) => (v in valeurs ? valeurs[v] : v));
+}
+
+async function chargerModeleConfirmation() {
+  const { data, error } = await sbClient.from('parametres_site').select('cle, valeur')
+    .in('cle', ['tournoi_confirmation_objet', 'tournoi_confirmation_corps']);
+  const valeur = (cle) => {
+    const ligne = (!error && data ? data : []).find(p => p.cle === cle);
+    return ligne && ligne.valeur ? ligne.valeur : '';
+  };
+  modeleConfirmation = {
+    objet: valeur('tournoi_confirmation_objet') || CONFIRMATION_TOURNOI_DEFAUT.objet,
+    corps: valeur('tournoi_confirmation_corps') || CONFIRMATION_TOURNOI_DEFAUT.corps,
+  };
+}
+
+function initConfigurationEmail() {
+  const section = document.getElementById('emailConfirmationSection');
+  if (!section || section.dataset.bound) return;
+  section.dataset.bound = '1';
+  section.hidden = false;
+
+  const detail = document.getElementById('emailConfirmationDetail');
+  const bascule = document.getElementById('emailConfirmationBasculeBtn');
+  bascule.addEventListener('click', () => {
+    detail.hidden = !detail.hidden;
+    bascule.textContent = detail.hidden ? '▸ Déplier' : '▾ Plier';
+    bascule.setAttribute('aria-expanded', detail.hidden ? 'false' : 'true');
+  });
+
+  const objet = document.getElementById('emailConfirmationObjet');
+  const corps = document.getElementById('emailConfirmationCorps');
+  const hint = document.getElementById('emailConfirmationHint');
+  const apercu = document.getElementById('emailConfirmationApercu');
+  objet.value = modeleConfirmation.objet;
+  corps.value = modeleConfirmation.corps;
+  document.getElementById('emailConfirmationVariables').innerHTML = 'Variables remplacées automatiquement : '
+    + CONFIRMATION_TOURNOI_VARIABLES.map(([v, d]) => `<code>${escapeHtml(v)}</code> ${escapeHtml(d)}`).join(' · ');
+
+  document.getElementById('emailConfirmationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const o = objet.value.trim();
+    const c = corps.value.trim();
+    if (!o || !c) { hint.textContent = "L'objet et le message sont obligatoires."; return; }
+    hint.textContent = 'Enregistrement…';
+    const maintenant = new Date().toISOString();
+    const { error } = await sbClient.from('parametres_site').upsert([
+      { cle: 'tournoi_confirmation_objet', valeur: o, updated_at: maintenant },
+      { cle: 'tournoi_confirmation_corps', valeur: c, updated_at: maintenant },
+    ], { onConflict: 'cle' });
+    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+    modeleConfirmation = { objet: o, corps: c };
+    hint.textContent = 'Email de confirmation enregistré.';
+  });
+
+  document.getElementById('emailConfirmationApercuBtn').addEventListener('click', () => {
+    const double = !selectedCompetition || selectedCompetition.format === 'double';
+    const exemple = { joueur1_nom: 'Maëlle Bernard', joueur2_nom: double ? 'Soizic Cadiou' : null };
+    apercu.textContent = `Objet : ${remplirModeleConfirmation(objet.value, exemple)}\n\n${remplirModeleConfirmation(corps.value, exemple)}`;
+    apercu.hidden = false;
+  });
+
+  document.getElementById('emailConfirmationDefautBtn').addEventListener('click', () => {
+    if (!confirm('Remplacer le texte actuel par le texte par défaut ? (Pensez à enregistrer ensuite.)')) return;
+    objet.value = CONFIRMATION_TOURNOI_DEFAUT.objet;
+    corps.value = CONFIRMATION_TOURNOI_DEFAUT.corps;
+    hint.textContent = 'Texte par défaut rétabli — cliquez sur Enregistrer pour le conserver.';
+  });
+}
+
 /** Construit et ouvre un mailto de confirmation, vers l'adresse
  *  renseignée par la personne qui a fait la demande d'inscription au
  *  tournoi (formulaire public). Rien n'est envoyé automatiquement —
  *  la personne connectée valide l'envoi depuis son propre client email. */
 function envoyerConfirmationEquipe(equipe) {
   if (!equipe.demandeur_email) return;
-  const isDouble = !!equipe.joueur2_nom;
-  const nomEquipe = isDouble ? `${equipe.joueur1_nom} / ${equipe.joueur2_nom}` : equipe.joueur1_nom;
-  const nomTournoi = selectedCompetition ? selectedCompetition.nom : '';
-
-  const sujet = `TBK — Inscription au tournoi validée`;
-  const corps = `Bonjour,\n\nVotre inscription au tournoi TBK (${nomTournoi}) pour "${nomEquipe}" est validée.\n\nÀ bientôt sur les terrains !\n\nSportivement,\nL'organisation du tournoi TBK`;
+  // Objet et texte : modèle paramétré par l'administrateur (section
+  // "Email de confirmation d'inscription"), sinon modèle par défaut
+  const modele = modeleConfirmation || CONFIRMATION_TOURNOI_DEFAUT;
+  const sujet = remplirModeleConfirmation(modele.objet, equipe);
+  const corps = remplirModeleConfirmation(modele.corps, equipe);
 
   window.location.href = `mailto:${encodeURIComponent(equipe.demandeur_email)}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
 }
@@ -502,6 +609,23 @@ function editEquipe(id) {
   form.joueur1_club.value = eq.joueur1_club || '';
   if (form.joueur2_nom) form.joueur2_nom.value = eq.joueur2_nom || '';
   if (form.joueur2_club) form.joueur2_club.value = eq.joueur2_club || '';
+  // Toutes les informations saisies lors de la demande
+  const valeurFede = (v) => v === true ? 'true' : v === false ? 'false' : '';
+  form.joueur1_niveau.value = eq.joueur1_niveau || '';
+  form.joueur1_fede.value = valeurFede(eq.joueur1_fede);
+  form.joueur2_niveau.value = eq.joueur2_niveau || '';
+  form.joueur2_fede.value = valeurFede(eq.joueur2_fede);
+  form.demandeur_email.value = eq.demandeur_email || '';
+  form.demandeur_telephone.value = eq.demandeur_telephone || '';
+  const libellesStatut = { en_attente: '🟠 Demande en attente', validee: '✅ Validée', refusee: '⛔ Refusée' };
+  const infos = document.getElementById('equipeInfosDemande');
+  infos.innerHTML = [
+    `<strong>${escapeHtml(libellesStatut[eq.statut] || '✅ Validée')}</strong>`,
+    eq.created_at ? `inscription du ${escapeHtml(new Date(eq.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : '',
+    eq.poule ? `poule ${escapeHtml(String(eq.poule))}` : 'pas encore en poule',
+    eq.tete_de_poule ? 'tête de poule' : '',
+  ].filter(Boolean).join(' · ');
+  infos.hidden = false;
 
   document.getElementById('formTitle').textContent = 'Modifier une inscription';
   document.getElementById('submitBtn').textContent = 'Mettre à jour';
@@ -513,6 +637,8 @@ function resetEquipeForm() {
   const form = document.getElementById('equipeForm');
   form.reset();
   editingEquipeId = null;
+  const infos = document.getElementById('equipeInfosDemande');
+  if (infos) { infos.hidden = true; infos.innerHTML = ''; }
   document.getElementById('formTitle').textContent = 'Nouvelle inscription';
   document.getElementById('submitBtn').textContent = 'Inscrire';
   document.getElementById('cancelEditBtn').hidden = true;
@@ -561,11 +687,30 @@ function bindStaticEvents() {
       joueur2_nom: selectedCompetition.format === 'double' ? (fd.get('joueur2_nom') || '').trim() || null : null,
       joueur2_club: selectedCompetition.format === 'double' ? (fd.get('joueur2_club') || '').trim() || null : null,
     };
+    const isDouble = selectedCompetition.format === 'double';
+    const fede = (v) => v === 'true' ? true : v === 'false' ? false : null;
+    payload.joueur1_niveau = fd.get('joueur1_niveau') || null;
+    payload.joueur1_fede = fede(fd.get('joueur1_fede'));
+    payload.joueur2_niveau = isDouble ? (fd.get('joueur2_niveau') || null) : null;
+    payload.joueur2_fede = isDouble ? fede(fd.get('joueur2_fede')) : null;
+    // Coordonnées : écrites dans l'équipe, puis déplacées automatiquement vers
+    // la table protégée equipes_contacts (déclencheur en base)
+    const email = (fd.get('demandeur_email') || '').trim() || null;
+    const telephone = (fd.get('demandeur_telephone') || '').trim() || null;
+    payload.demandeur_email = email;
+    payload.demandeur_telephone = telephone;
 
     hint.textContent = 'Enregistrement…';
     let error;
     if (editingEquipeId) {
       ({ error } = await sbClient.from('equipes').update(payload).eq('id', editingEquipeId));
+      // Valeurs exactes (y compris un email ou téléphone effacé) dans la table protégée
+      if (!error) {
+        const { error: errContact } = await sbClient.from('equipes_contacts').upsert(
+          { equipe_id: editingEquipeId, demandeur_email: email, demandeur_telephone: telephone, updated_at: new Date().toISOString() },
+          { onConflict: 'equipe_id' });
+        if (errContact) console.warn('[Contacts équipes]', errContact.message);
+      }
     } else {
       ({ error } = await sbClient.from('equipes').insert(payload));
     }

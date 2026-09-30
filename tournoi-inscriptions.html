@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inscriptions tournoi — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
-<link rel="stylesheet" href="css/style.css?v=20260927h">
+<link rel="stylesheet" href="css/style.css?v=20260927i">
 </head>
 <body>
 
@@ -64,6 +64,7 @@
           <strong>Compétition complète</strong> — toutes les places sont prises, les inscriptions sont closes pour cette compétition.
         </div>
         <form id="equipeForm">
+          <p class="form-hint equipe-infos-demande" id="equipeInfosDemande" hidden></p>
           <div class="field-grid">
             <label>Nom du joueur 1
               <input type="text" name="joueur1_nom" required>
@@ -71,11 +72,29 @@
             <label>Club joueur 1
               <input type="text" name="joueur1_club">
             </label>
+            <label>Niveau joueur 1
+              <select name="joueur1_niveau"><option value="">— Non renseigné —</option><option value="Débutant">Débutant</option><option value="Intermédiaire">Intermédiaire</option><option value="Confirmé">Confirmé</option></select>
+            </label>
+            <label>Licencié(e) en club (Fédé) — joueur 1
+              <select name="joueur1_fede"><option value="">— Non renseigné —</option><option value="false">Non</option><option value="true">Oui</option></select>
+            </label>
             <label id="joueur2NomLabel" hidden>Nom du joueur 2
               <input type="text" name="joueur2_nom">
             </label>
             <label id="joueur2ClubLabel" hidden>Club joueur 2
               <input type="text" name="joueur2_club">
+            </label>
+            <label id="joueur2NiveauLabel" hidden>Niveau joueur 2
+              <select name="joueur2_niveau"><option value="">— Non renseigné —</option><option value="Débutant">Débutant</option><option value="Intermédiaire">Intermédiaire</option><option value="Confirmé">Confirmé</option></select>
+            </label>
+            <label id="joueur2FedeLabel" hidden>Licencié(e) en club (Fédé) — joueur 2
+              <select name="joueur2_fede"><option value="">— Non renseigné —</option><option value="false">Non</option><option value="true">Oui</option></select>
+            </label>
+            <label>Email du demandeur
+              <input type="email" name="demandeur_email" placeholder="Pour l'email de confirmation">
+            </label>
+            <label>Téléphone du demandeur
+              <input type="tel" name="demandeur_telephone">
             </label>
           </div>
           <div class="form-actions">
@@ -98,6 +117,33 @@
 
     </div>
 
+    <!-- ===== Email de confirmation (administrateur) ===== -->
+    <section class="admin-section" id="emailConfirmationSection" hidden>
+      <div class="ha-section-entete">
+        <h2 style="margin:0;">Email de confirmation d'inscription</h2>
+        <button type="button" class="btn btn-ghost btn-small" id="emailConfirmationBasculeBtn" aria-expanded="false">▸ Déplier</button>
+      </div>
+      <div id="emailConfirmationDetail" hidden>
+        <p class="section-lead">Email proposé à la validation d'une demande (et avec le bouton ✉️ d'une équipe), adressé à l'email du demandeur. Il s'ouvre dans votre messagerie : vous le relisez avant l'envoi.</p>
+        <form id="emailConfirmationForm" class="justificatif-form">
+          <label>Objet
+            <input type="text" id="emailConfirmationObjet" maxlength="200" required>
+          </label>
+          <label>Message
+            <textarea id="emailConfirmationCorps" rows="10" required></textarea>
+          </label>
+          <p class="form-hint" id="emailConfirmationVariables"></p>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+            <button type="button" class="btn btn-ghost btn-small" id="emailConfirmationApercuBtn">Aperçu</button>
+            <button type="button" class="btn btn-ghost btn-small" id="emailConfirmationDefautBtn">Rétablir le texte par défaut</button>
+          </div>
+          <p class="form-hint" id="emailConfirmationHint"></p>
+          <pre class="justificatif-apercu" id="emailConfirmationApercu" hidden></pre>
+        </form>
+      </div>
+    </section>
+
   </div>
 </main>
 
@@ -109,11 +155,11 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927h"></script>
-<script src="js/tableaux-mobile.js?v=20260927h"></script>
-<script src="js/supabase-config.js?v=20260927h"></script>
-<script src="js/auth.js?v=20260927h"></script>
-<script src="js/main.js?v=20260927h"></script>
-<script src="js/tournoi-inscriptions.js?v=20260927h"></script>
+<script src="js/menu-mobile.js?v=20260927i"></script>
+<script src="js/tableaux-mobile.js?v=20260927i"></script>
+<script src="js/supabase-config.js?v=20260927i"></script>
+<script src="js/auth.js?v=20260927i"></script>
+<script src="js/main.js?v=20260927i"></script>
+<script src="js/tournoi-inscriptions.js?v=20260927i"></script>
 </body>
 </html>

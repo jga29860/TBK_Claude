@@ -1542,3 +1542,5 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 /* Paiements HelloAsso : en-tête de section avec bouton plier / déplier */
 .ha-section-entete{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
 #haNotificationsResume{ margin:8px 0 0; }
+/* Inscriptions tournoi : rappel du statut de la demande en modification */
+.equipe-infos-demande{ background:var(--pale); border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin:0 0 14px; }

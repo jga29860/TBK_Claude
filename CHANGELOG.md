@@ -1111,3 +1111,11 @@ Aucune migration SQL. `inscriptions.html` / `inscriptions.js` : deux boutons à 
 ## Paiements HelloAsso — section Notifications repliable
 
 Aucune migration SQL. `helloasso.html` / `helloasso.js` : bouton "▸ Déplier / ▾ Plier" sur la section Notifications HelloAsso, pliée par défaut, choix mémorisé (localStorage `tbk_helloasso_notifications_depliees`) ; résumé toujours visible (nombre de notifications, nombre à examiner en orange). Bouton actif même si la lecture HelloAsso échoue. Version des fichiers : `?v=20260927h`.
+
+## Inscriptions tournoi — modification complète d'une équipe, email de confirmation paramétrable
+
+Aucune migration SQL (modèle enregistré dans `parametres_site` : `tournoi_confirmation_objet`, `tournoi_confirmation_corps` ; écriture réservée à l'administrateur par les règles existantes).
+
+**Modifier une équipe** (`tournoi-inscriptions.html` / `.js`) : le formulaire affiche et enregistre désormais niveau et licence fédé des deux joueurs, email et téléphone du demandeur (écrits dans `equipes`, déplacés par le déclencheur vers `equipes_contacts`, puis valeurs exactes — effacement compris — écrites directement dans `equipes_contacts`), avec un rappel statut / date / poule / tête de poule. Nouvelle inscription par le bureau : ces champs sont facultatifs ("— Non renseigné —").
+
+**Email de confirmation** : section repliable "Email de confirmation d'inscription" (profil administrateur) — objet, texte, variables {equipe}, {joueur1}, {joueur2}, {competition}, {tournoi}, {date_tournoi}, Aperçu, texte par défaut identique à l'ancien texte figé. Utilisé à la validation d'une demande et par le bouton de renvoi. Version des fichiers : `?v=20260927i`.
