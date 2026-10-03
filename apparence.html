@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<title>Apparence du site — TBK</title>
+<script src="js/theme-init.js?v=20260927j"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927j">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Accès selon profil</p>
+  <h1>Apparence du site</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Votre profil n'a pas accès à cette page (droit "Apparence du site", réglable dans Administration → Profils).</p>
+  </div>
+
+  <div id="content" hidden>
+
+    <section class="admin-section">
+      <p class="section-lead">Personnalisez le logo et les couleurs de tout le site. Les modifications s'affichent immédiatement sur cette page (aperçu) et s'appliquent à toutes les pages, pour tous les visiteurs, une fois enregistrées. La version d'origine reste la <strong>référence</strong> : elle peut être remise en place à tout moment.</p>
+      <p class="form-hint" id="apHint"></p>
+    </section>
+
+    <!-- ===== Logo ===== -->
+    <section class="admin-section">
+      <h2>Logo</h2>
+      <div class="ap-logo-ligne">
+        <img src="images/logo-tbk-rond-256.webp" alt="Logo actuel" class="ap-logo-apercu" id="apLogoApercu">
+        <div>
+          <p class="section-lead" style="margin-top:0;">Logo affiché à côté de « TBK » dans le bandeau de toutes les pages et à côté de « Smashez la routine » sur l'accueil. Affiché dans un cercle : privilégiez une image carrée, sujet centré.</p>
+          <p id="apLogoStatut" class="form-hint"></p>
+          <div class="inscriptions-actions">
+            <label class="btn btn-primary btn-small ap-fichier">📤 Choisir un nouveau logo
+              <input type="file" id="apLogoFichier" accept="image/png,image/jpeg,image/webp" hidden>
+            </label>
+            <button type="button" class="btn btn-ghost btn-small" id="apLogoReferenceBtn">↺ Rétablir le logo par défaut</button>
+          </div>
+          <p class="form-hint">PNG, JPEG ou WebP, 10 Mo maximum. L'image est automatiquement mise au format carré (512 × 512 px) et allégée.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Couleurs ===== -->
+    <section class="admin-section">
+      <h2>Couleurs</h2>
+      <p class="section-lead">Chaque couleur indique sa valeur de référence ; ↺ la remet à sa valeur d'origine. Une couleur modifiée et non enregistrée est signalée par un point orange.</p>
+      <div class="inscriptions-actions ap-actions-couleurs">
+        <button type="button" class="btn btn-primary btn-small" id="apEnregistrerBtn">💾 Enregistrer les couleurs</button>
+        <button type="button" class="btn btn-ghost btn-small" id="apAnnulerBtn">Annuler les modifications non enregistrées</button>
+        <button type="button" class="btn btn-danger btn-small" id="apReferenceBtn">↺ Rétablir toutes les couleurs par défaut</button>
+      </div>
+      <p class="form-hint" id="apCouleursHint"></p>
+
+      <div class="ap-apercu" aria-label="Aperçu">
+        <div class="ap-apercu-bandeau"><span class="ap-apercu-logo">TBK</span><span>Aperçu du bandeau</span></div>
+        <div class="ap-apercu-corps">
+          <p class="section-eyebrow" style="margin:0;">Surtitre</p>
+          <p style="margin:0;">Texte secondaire du site, avec un <a href="#" onclick="return false;">lien</a>.</p>
+          <div class="inscriptions-actions">
+            <button type="button" class="btn btn-primary btn-small">Bouton principal</button>
+            <button type="button" class="btn btn-ghost btn-small">Bouton secondaire</button>
+            <button type="button" class="btn btn-danger btn-small">Supprimer</button>
+            <button type="button" class="btn btn-small paiement-en-ligne-btn" style="margin-top:0;">💳 Payer en ligne</button>
+          </div>
+          <div class="inscriptions-actions">
+            <span class="statut-badge ha-etat--valide">Validé</span>
+            <span class="statut-badge ha-etat--rembourse">En attente</span>
+            <span class="statut-badge ha-etat--autre">Neutre</span>
+            <span class="statut-badge ha-etat--erreur">Erreur</span>
+          </div>
+          <div class="field-grid"><label>Champ de saisie<input type="text" value="Exemple"></label></div>
+          <div class="table-wrap" style="margin-top:6px;"><table class="schedule"><thead><tr><th>Colonne</th><th>Colonne</th></tr></thead><tbody><tr><td>Ligne</td><td>Valeur</td></tr><tr><td>Ligne</td><td>Valeur</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <div id="apGroupes"></div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20260927j"></script>
+<script src="js/tableaux-mobile.js?v=20260927j"></script>
+<script src="js/supabase-config.js?v=20260927j"></script>
+<script src="js/auth.js?v=20260927j"></script>
+<script src="js/theme.js?v=20260927j"></script>
+<script src="js/main.js?v=20260927j"></script>
+<script src="js/apparence-palette.js?v=20260927j"></script>
+<script src="js/apparence.js?v=20260927j"></script>
+</body>
+</html>

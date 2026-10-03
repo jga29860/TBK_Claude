@@ -71,7 +71,7 @@ function renderCourses() {
   tbody.innerHTML = coursesCache.map(c => {
     const sousTotal = Number(c.quantite) * Number(c.prix_unitaire);
     total += sousTotal;
-    const styleNegatif = sousTotal < 0 ? ' style="color:#b3261e; font-weight:700;"' : '';
+    const styleNegatif = sousTotal < 0 ? ' style="color:var(--c-montant-negatif); font-weight:700;"' : '';
     return `
       <tr data-id="${c.id}">
         <td>${escapeHtml(c.libelle)}</td>

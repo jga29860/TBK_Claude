@@ -18,6 +18,7 @@ const PAGE_CATALOG = [
   { key: 'benevoles', label: 'Bénévoles tournoi' },
   { key: 'agenda', label: 'Agenda et boîte mail' },
   { key: 'helloasso', label: 'Paiements HelloAsso' },
+  { key: 'apparence', label: 'Apparence du site (couleurs, logo)' },
   { key: 'jeu_cartes', label: 'Jeu de cartes' },
   { key: 'boutique', label: 'Boutique - Achat' },
   { key: 'boutique_gestion', label: 'Boutique - Gestion' },

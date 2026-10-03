@@ -181,7 +181,7 @@ function rendreMesInformations(insc) {
   const champs = insc.champs || {};
   const statutBadge = insc.statut === 'validee'
     ? '<span class="statut-badge statut-en-cours">Validée</span>'
-    : '<span class="statut-badge" style="background:#ffe9d9; color:#8a4a12;">En attente de validation</span>';
+    : '<span class="statut-badge" style="background:var(--c-fond-attente); color:var(--c-texte-attente);">En attente de validation</span>';
 
   let certifLigne = '';
   if (champs.date_certif) {

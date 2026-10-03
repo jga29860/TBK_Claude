@@ -403,6 +403,7 @@ const TOOL_LINKS = [
   { pageKeys: ['boutique', 'boutique_gestion'], href: 'boutique.html', label: 'Boutique', group: 'Club' },
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda et boîte mail', group: 'Administration' },
   { pageKeys: ['helloasso'], href: 'helloasso.html', label: 'Paiements HelloAsso', group: 'Administration' },
+  { pageKeys: ['apparence'], href: 'apparence.html', label: 'Apparence du site', group: 'Administration' },
 ];
 const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];
 

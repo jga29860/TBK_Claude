@@ -1119,3 +1119,15 @@ Aucune migration SQL (modèle enregistré dans `parametres_site` : `tournoi_conf
 **Modifier une équipe** (`tournoi-inscriptions.html` / `.js`) : le formulaire affiche et enregistre désormais niveau et licence fédé des deux joueurs, email et téléphone du demandeur (écrits dans `equipes`, déplacés par le déclencheur vers `equipes_contacts`, puis valeurs exactes — effacement compris — écrites directement dans `equipes_contacts`), avec un rappel statut / date / poule / tête de poule. Nouvelle inscription par le bureau : ces champs sont facultatifs ("— Non renseigné —").
 
 **Email de confirmation** : section repliable "Email de confirmation d'inscription" (profil administrateur) — objet, texte, variables {equipe}, {joueur1}, {joueur2}, {competition}, {tournoi}, {date_tournoi}, Aperçu, texte par défaut identique à l'ancien texte figé. Utilisé à la validation d'une demande et par le bouton de renvoi. Version des fichiers : `?v=20260927i`.
+
+## Apparence du site — couleurs et logo personnalisables, version de référence
+
+Exécutez `supabase/migration_apparence.sql` (droit `apparence` accordé à l'admin ; réglages `theme_couleurs` / `theme_logo_url` dans `parametres_site`, modifiables par ce droit ; espace de stockage public `apparence` pour le logo).
+
+**Centralisation des couleurs** (`css/style.css`) : les 57 couleurs écrites en dur sont devenues des variables `--c-…` dans `:root` (valeurs inchangées : rendu identique pixel à pixel sur les 23 pages, PC et mobile) ; `#d6e5d1` relié à `--border`. Couleurs en dur des scripts et pages (`courses.js`, `helloasso.js`, `inscriptions.js`, `membres.js`, `suivi-connexions.js`, `inscription-publique.html`, `inscriptions.html`) reliées aux mêmes variables. Non modifiables volontairement : transparences `rgba()`, fond blanc des QR codes, contenu des emails affichés (`boite-mail.js`).
+
+**Thème** : `js/theme-init.js` (dans `<head>`, application immédiate depuis la mémoire du navigateur, contrôle strict des valeurs : `#rrggbb` sur variables `--…`, logo en `https://` ou `images/…`) et `js/theme.js` (lecture en base, mise à jour) sur les 23 pages.
+
+**Écran** `apparence.html` / `js/apparence.js` / `js/apparence-palette.js` : 68 couleurs (11 principales + 57 d'interface) groupées, référence lue dans `css/style.css`, aperçu en direct, enregistrement des seules différences, "Rétablir toutes les couleurs par défaut", logo (recadrage carré 512 px WebP, envoi, suppression de l'ancien fichier, "Rétablir le logo par défaut").
+
+**Accueil** : logo du club à côté de « Smashez la routine » (`.hero-logo`, `images/logo-tbk-rond-256.webp`), suit le logo personnalisé. Version des fichiers : `?v=20260927j`.

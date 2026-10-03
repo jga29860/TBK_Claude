@@ -150,6 +150,10 @@ Pour réserver d'autres contenus (résultats de tournoi, documents internes…),
 4. **Numéro de version des fichiers** : chaque page charge ses scripts et sa feuille de style avec `?v=AAAAMMJJx` (ex. `js/auth.js?v=20260927c`). À chaque livraison, ce numéro est changé dans toutes les pages, pour obliger les navigateurs à recharger les fichiers au lieu d'utiliser une ancienne version en cache.
 5. **Bibliothèque Supabase** : version figée (`@supabase/supabase-js@2.117.2`) pour éviter qu'une mise à jour publiée par Supabase ne modifie le site sans contrôle. Pour la mettre à jour : changer le numéro dans les 23 pages, puis tester connexion, inscriptions, boutique et paiement.
 
+## Couleurs et logo
+
+Administration → **Apparence du site** : couleurs et logo modifiables, retour à la référence en un clic. La référence est `css/style.css` (variables de `:root`) : toute nouvelle couleur ajoutée au CSS doit y être déclarée comme variable (et ajoutée à `js/apparence-palette.js` pour être modifiable).
+
 ## Nouvelle saison
 
 Administration → Paramètres du site → **Saison en cours** (format AAAA-AAAA). Utilisée par les inscriptions (bureau et formulaire public), l'espace membre et la boutique ; les libellés "Saison … / …" des pages suivent automatiquement.

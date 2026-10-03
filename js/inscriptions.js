@@ -1103,9 +1103,9 @@ function renderStatutCell(record) {
     return `<span class="statut-badge statut-en-cours" title="Validée par ${qui}${quand ? ' le ' + quand : ''}${titreFinalise}">${libelle}</span>`;
   }
   if (record.statut === 'elements_demandes') {
-    return `<span class="statut-badge" style="background:#fde9c8; color:#7a4a00;" title="Un email de relance a été envoyé pour demander les éléments manquants">Éléments demandés</span>`;
+    return `<span class="statut-badge" style="background:var(--c-fond-relance); color:var(--c-texte-relance);" title="Un email de relance a été envoyé pour demander les éléments manquants">Éléments demandés</span>`;
   }
-  return `<span class="statut-badge statut-cloture" style="background:#ffe9d9; color:#8a4a12;">En attente</span>`;
+  return `<span class="statut-badge statut-cloture" style="background:var(--c-fond-attente); color:var(--c-texte-attente);">En attente</span>`;
 }
 
 function formatColumnValue(record, key) {

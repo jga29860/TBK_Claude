@@ -73,7 +73,7 @@ function renderTable() {
       <td>${escapeHtml(l.identifiant || '—')}</td>
       <td>${l.succes
         ? '<span class="statut-badge statut-en-cours">Réussie</span>'
-        : '<span class="statut-badge" style="background:#fde0e0; color:#a11f1f;">Échouée</span>'}</td>
+        : '<span class="statut-badge" style="background:var(--c-dislike-fond); color:var(--c-dislike-texte);">Échouée</span>'}</td>
       <td>${l.succes ? '—' : escapeHtml(l.motif_echec || '—')}</td>
       <td class="connexion-appareil">${escapeHtml(resumeAppareil(l.user_agent))}</td>
     </tr>

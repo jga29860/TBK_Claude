@@ -289,7 +289,7 @@ function rendreKpis() {
   const nbEcarts = e.declaresSansPaiement.length + e.paiementsSansDeclaration.length + e.rembourses.length;
   const kpi = document.getElementById('kpiEcarts');
   kpi.textContent = String(nbEcarts);
-  kpi.style.color = nbEcarts ? '#c05a00' : '';
+  kpi.style.color = nbEcarts ? 'var(--c-alerte)' : '';
 }
 
 function rendreRapprochement() {
@@ -397,7 +397,7 @@ function rendreNotifications() {
   }
   const aTraiter = liste.filter(n => n.resultat === 'non_attribuee' || n.resultat === 'erreur' || n.resultat === 'rembourse').length;
   // Résumé toujours visible, même section pliée
-  resume.innerHTML = `${liste.length} notification(s) sur la période${aTraiter ? ` — <strong style="color:#c05a00;">${aTraiter} à examiner</strong>` : ', aucune à examiner'}.`;
+  resume.innerHTML = `${liste.length} notification(s) sur la période${aTraiter ? ` — <strong style="color:var(--c-alerte);">${aTraiter} à examiner</strong>` : ', aucune à examiner'}.`;
   zone.innerHTML = `
     <p class="form-hint">${liste.length} notification(s) reçue(s)${aTraiter ? ` — <strong>${aTraiter} à examiner</strong>` : ', aucune à examiner'}.</p>
     ${tableauHtml(['Reçue le', 'Payeur', 'Type', 'Montant', 'Résultat', 'Détail'], liste.map(n => {

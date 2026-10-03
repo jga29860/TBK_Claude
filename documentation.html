@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<link rel="stylesheet" href="css/style.css?v=20260927i">
+<script src="js/theme-init.js?v=20260927j"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927j">
 </head>
 <body>
 
@@ -52,7 +53,7 @@
         <div><a href="#espace-membres">4. Espace membres</a></div>
         <div><a href="#inscriptions-saison">5. Inscriptions à la saison</a></div>
         <div><a href="#tournois">6. Gestion des tournois</a></div>
-        <div><a href="#administration">7. Administration du site (dont paiements HelloAsso)</a></div>
+        <div><a href="#administration">7. Administration du site (dont paiements HelloAsso, apparence)</a></div>
         <div><a href="#agenda">8. Agenda et boîte mail du club</a></div>
         <div><a href="#sauvegarde">9. Sauvegarde des données</a></div>
         <div><a href="#jeu-de-cartes">10. Jeu de cartes</a></div>
@@ -132,6 +133,7 @@
             <tr><td>tournois_emargement</td><td>emargement.html</td><td>Émargement le jour du tournoi</td></tr>
             <tr><td>tournois_courses</td><td>courses.html</td><td>Suivi des achats effectués pour le tournoi</td></tr>
             <tr><td>agenda</td><td>agenda.html</td><td>Agenda du club (Google Calendar) et boîte mail du club (Gmail)</td></tr>
+            <tr><td>apparence</td><td>apparence.html</td><td>Apparence du site : couleurs et logo, avec retour à la version de référence</td></tr>
             <tr><td>helloasso</td><td>helloasso.html</td><td>Consultation des paiements reçus sur HelloAsso, rapprochement avec le site, export CSV (trésorerie)</td></tr>
             <tr><td>jeu_cartes</td><td>jeu-de-cartes.html</td><td>Composition aléatoire d'équipes par tirage de cartes</td></tr>
             <tr><td>boutique</td><td>boutique.html</td><td>Consultation du catalogue et passage de commandes</td></tr>
@@ -494,7 +496,17 @@
       </ol>
       <p>Les erreurs techniques sont visibles sur la page Paiements HelloAsso (notifications "⚠️ Erreur") et dans Supabase → Edge Functions → helloasso-notification → Logs.</p>
     
-</section>
+
+      <h3 class="admin-subheading">7.6 Apparence du site (apparence.html)</h3>
+      <p>Écran de personnalisation des couleurs et du logo de tout le site. Accès paramétrable par profil : droit "apparence" (Administration → Profils), pré-accordé à l'administrateur. La version d'origine du site est la <strong>version de référence</strong> : elle n'est jamais modifiée et peut être remise en place à tout moment.</p>
+      <ul>
+        <li><strong>Logo</strong> : "Choisir un nouveau logo" (PNG, JPEG ou WebP, 10 Mo maximum) — l'image est mise au format carré 512 × 512 px, allégée, puis affichée à côté de « TBK » dans le bandeau de toutes les pages et à côté de « Smashez la routine » sur l'accueil (affichage dans un cercle : privilégier une image carrée, sujet centré). "Rétablir le logo par défaut" remet le logo d'origine du club.</li>
+        <li><strong>Couleurs</strong> : les 68 couleurs du site, regroupées par usage (couleurs principales, boutons et alertes, formulaires et cadres, statuts et pastilles, tableau des inscriptions, tournoi, réactions aux annonces, agenda et messagerie, jeu de cartes). Pour chacune : sélecteur de couleur, code hexadécimal, valeur de référence et bouton ↺ pour la retrouver.</li>
+        <li><strong>Aperçu en direct</strong> : toute modification s'affiche immédiatement sur la page (bandeau, boutons, pastilles, champ, tableau d'exemple) ; elle ne s'applique aux autres visiteurs qu'après "Enregistrer les couleurs". "Annuler les modifications non enregistrées" revient au dernier enregistrement ; un point orange signale une couleur modifiée non enregistrée, et un avertissement apparaît si l'on quitte la page avant d'enregistrer.</li>
+        <li><strong>Rétablir toutes les couleurs par défaut</strong> : remet en un clic toutes les couleurs de référence sur tout le site.</li>
+      </ul>
+      <p><strong>Fonctionnement</strong> : les couleurs de référence sont celles de <code>css/style.css</code> (variables CSS, dont 57 couleurs d'interface regroupées lors de cette évolution sans aucun changement visuel). Seules les différences avec la référence sont enregistrées (<code>parametres_site.theme_couleurs</code>) ; le logo personnalisé est stocké dans l'espace public "apparence" de Supabase (<code>theme_logo_url</code>). Chaque page applique le thème dès son ouverture (dernière version gardée en mémoire par le navigateur), puis vérifie la version enregistrée. Les ombres et transparences (blanc ou noir semi-transparents) et le fond blanc des QR codes ne sont pas modifiables, pour rester lisibles.</p>
+    </section>
 
     <!-- ===== 8. AGENDA ===== -->
     <section class="admin-section" id="agenda">
@@ -717,11 +729,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927i"></script>
-<script src="js/tableaux-mobile.js?v=20260927i"></script>
-<script src="js/supabase-config.js?v=20260927i"></script>
-<script src="js/auth.js?v=20260927i"></script>
-<script src="js/main.js?v=20260927i"></script>
-<script src="js/documentation.js?v=20260927i"></script>
+<script src="js/menu-mobile.js?v=20260927j"></script>
+<script src="js/tableaux-mobile.js?v=20260927j"></script>
+<script src="js/supabase-config.js?v=20260927j"></script>
+<script src="js/auth.js?v=20260927j"></script>
+<script src="js/theme.js?v=20260927j"></script>
+<script src="js/main.js?v=20260927j"></script>
+<script src="js/documentation.js?v=20260927j"></script>
 </body>
 </html>
