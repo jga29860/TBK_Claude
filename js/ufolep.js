@@ -2,7 +2,7 @@
 // TBK — Section UFOLEP (ufolep.html)
 // Arborescence : saisons → équipes (ex. DM1 — Double Mixte 1).
 // Page d'équipe : composition, calendrier et résultats (une image de
-// synthèse par journée), classement du championnat.
+// synthèse par journée), classement du championnat (fichiers légendés).
 // Droits : "ufolep" (consultation), "ufolep_gestion" (modification).
 // ============================================================
 
@@ -14,7 +14,7 @@ const ufEtat = {
   joueurs: [],
   journees: [],        // synthèses de journée (images)
   urlsImages: {},      // chemin → lien temporaire de l'image
-  classement: [],
+  classementFichiers: [], // fichiers de classement (image ou PDF) avec légende
 };
 
 const UF_BUCKET = 'ufolep';
@@ -51,19 +51,6 @@ const UF_ENTITES = {
       { nom: 'licence', libelle: 'N° de licence UFOLEP', type: 'text' },
       { nom: 'ordre', libelle: 'Ordre', type: 'number', defaut: 100 },
       { nom: 'capitaine', libelle: 'Capitaine', type: 'checkbox' },
-    ],
-  },
-  classement: {
-    table: 'ufolep_classement', titre: 'ligne de classement',
-    champs: [
-      { nom: 'rang', libelle: 'Rang', type: 'number', min: 1 },
-      { nom: 'club', libelle: 'Club / équipe', type: 'text', requis: true },
-      { nom: 'joues', libelle: 'Joués', type: 'number', min: 0, defaut: 0 },
-      { nom: 'gagnes', libelle: 'Gagnés', type: 'number', min: 0, defaut: 0 },
-      { nom: 'nuls', libelle: 'Nuls', type: 'number', min: 0, defaut: 0 },
-      { nom: 'perdus', libelle: 'Perdus', type: 'number', min: 0, defaut: 0 },
-      { nom: 'points', libelle: 'Points', type: 'number', defaut: 0 },
-      { nom: 'est_tbk', libelle: 'C\'est TBK', type: 'checkbox' },
     ],
   },
 };
@@ -154,7 +141,7 @@ function rendreArbre() {
   zone.querySelectorAll('[data-supprimer-saison]').forEach(b => b.addEventListener('click', async () => {
     const s = ufEtat.saisons.find(x => x.id === b.dataset.supprimerSaison);
     const n = ufEtat.equipes.filter(e => e.saison_id === s.id).length;
-    if (!confirm(`Supprimer la saison ${s.libelle}${n ? ` et ses ${n} équipe(s) (composition, images des journées, classement compris)` : ''} ?`)) return;
+    if (!confirm(`Supprimer la saison ${s.libelle}${n ? ` et ses ${n} équipe(s) (composition, images des journées et fichiers de classement compris)` : ''} ?`)) return;
     await supprimerImagesEquipes(ufEtat.equipes.filter(e => e.saison_id === s.id).map(e => e.id));
     await supprimer('saison', s.id, apresModifArbre);
   }));
@@ -198,28 +185,17 @@ async function chargerEquipe() {
   const [j, r, c] = await Promise.all([
     sbClient.from('ufolep_joueurs').select('*').eq('equipe_id', id).order('ordre').order('nom'),
     sbClient.from('ufolep_journees').select('*').eq('equipe_id', id).order('journee', { ascending: false }),
-    sbClient.from('ufolep_classement').select('*').eq('equipe_id', id).order('rang', { ascending: true, nullsFirst: false }).order('points', { ascending: false }),
+    sbClient.from('ufolep_classement_fichiers').select('*').eq('equipe_id', id).order('created_at', { ascending: false }),
   ]);
   const err = j.error || r.error || c.error;
-  if (err) message('Erreur de chargement : ' + err.message + (r.error ? ' — migration migration_ufolep_journees.sql exécutée ?' : ''));
+  if (err) message('Erreur de chargement : ' + err.message + (r.error || c.error ? ' — migrations UFOLEP (journées, fichiers de classement) exécutées ?' : ''));
   ufEtat.joueurs = j.data || [];
   ufEtat.journees = r.data || [];
-  ufEtat.classement = c.data || [];
+  ufEtat.classementFichiers = c.data || [];
   await chargerLiensImages();
-  rendreBilan();
   rendreJoueurs();
   rendreJournees();
   rendreClassement();
-}
-
-function rendreBilan() {
-  const tbk = ufEtat.classement.find(l => l.est_tbk);
-  const derniere = ufEtat.journees[0];
-  document.getElementById('ufBilan').innerHTML = `
-    <div class="kpi-card"><span class="kpi-value">${tbk && tbk.rang ? tbk.rang + '<small>e</small>' : '–'}</span><span class="kpi-label">Classement${tbk ? ` (${tbk.points} pts)` : ''}</span></div>
-    <div class="kpi-card"><span class="kpi-value">${tbk ? `${tbk.gagnes ?? 0} / ${tbk.nuls ?? 0} / ${tbk.perdus ?? 0}` : '–'}</span><span class="kpi-label">Gagnés / nuls / perdus</span></div>
-    <div class="kpi-card"><span class="kpi-value">${ufEtat.journees.length}</span><span class="kpi-label">Journée(s) publiée(s)</span></div>
-    <div class="kpi-card"><span class="kpi-value uf-kpi-texte">${derniere ? 'J' + derniere.journee : '–'}</span><span class="kpi-label">${derniere && derniere.date_journee ? 'Dernière journée : ' + escapeHtml(formatDate(derniere.date_journee)) : 'Dernière journée publiée'}</span></div>`;
 }
 
 function enteteSection(titre, entite, compteur) {
@@ -268,7 +244,10 @@ function rendreJoueurs() {
 // ------------------------------------------------------------
 
 async function chargerLiensImages() {
-  const chemins = ufEtat.journees.map(j => j.image_chemin).filter(Boolean);
+  const chemins = [
+    ...ufEtat.journees.map(j => j.image_chemin),
+    ...ufEtat.classementFichiers.map(f => f.fichier_chemin),
+  ].filter(Boolean);
   ufEtat.urlsImages = {};
   if (!chemins.length) return;
   const { data, error } = await sbClient.storage.from(UF_BUCKET).createSignedUrls(chemins, 3600);
@@ -428,28 +407,121 @@ function ouvrirZoom(url, titre) {
   document.body.appendChild(voile);
 }
 
+// ------------------------------------------------------------
+// Classement du championnat : fichiers (image ou PDF) avec légende
+// ------------------------------------------------------------
+
+const UF_TYPES_CLASSEMENT = /^(image\/(png|jpeg|webp)|application\/pdf)$/;
+
 function rendreClassement() {
   const section = document.getElementById('ufSectionClassement');
-  const l = ufEtat.classement;
-  const maj = ufEtat.equipe.classement_maj_le;
-  section.innerHTML = enteteSection('Classement du championnat', 'classement') + `
-    <p class="form-hint">${maj ? `Mis à jour le ${escapeHtml(formatDate(maj))}.` : 'Date de mise à jour non renseignée.'}
-      ${ufEtat.gestion ? ' <button type="button" class="btn btn-ghost btn-small" id="ufMajClassementBtn">Mis à jour aujourd\'hui</button>' : ''}</p>` + (l.length ? `
-    <div class="table-wrap"><table class="schedule uf-classement">
-      <thead><tr><th>Rang</th><th>Club / équipe</th><th>J</th><th>G</th><th>N</th><th>P</th><th>Pts</th>${ufEtat.gestion ? '<th></th>' : ''}</tr></thead>
-      <tbody>${l.map(c => `<tr class="${c.est_tbk ? 'uf-ligne-tbk' : ''}">
-        <td>${c.rang || '—'}</td><td>${escapeHtml(c.club)}</td><td>${c.joues ?? 0}</td><td>${c.gagnes ?? 0}</td><td>${c.nuls ?? 0}</td><td>${c.perdus ?? 0}</td><td><strong>${c.points ?? 0}</strong></td>
-        ${ufEtat.gestion ? `<td>${boutonsLigne('classement', c.id)}</td>` : ''}</tr>`).join('')}</tbody>
-    </table></div>` : '<p class="form-hint">Classement non renseigné.</p>');
-  lierSection(section, 'classement', l);
-  const maj2 = document.getElementById('ufMajClassementBtn');
-  if (maj2) maj2.addEventListener('click', async () => {
-    const aujourdhui = new Date().toISOString().slice(0, 10);
-    const { error } = await sbClient.from('ufolep_equipes').update({ classement_maj_le: aujourdhui }).eq('id', ufEtat.equipe.id);
-    if (error) { message('Erreur : ' + error.message); return; }
-    ufEtat.equipe.classement_maj_le = aujourdhui;
-    rendreClassement();
+  const l = ufEtat.classementFichiers;
+  section.innerHTML = `
+    <div class="ha-section-entete">
+      <h2 style="margin:0;">Classement du championnat <span class="count-badge">(${l.length})</span></h2>
+      ${ufEtat.gestion ? '<button type="button" class="btn btn-primary btn-small" id="ufAjouterClassementBtn">+ Ajouter un fichier</button>' : ''}
+    </div>
+    <div class="uf-form-zone" id="ufClassementFormZone"></div>
+    ${l.length ? `<div class="uf-journees">${l.map(f => {
+      const url = ufEtat.urlsImages[f.fichier_chemin];
+      const estPdf = (f.type_mime || '').includes('pdf') || /\.pdf$/i.test(f.fichier_chemin);
+      const apercu = !url ? '<p class="form-hint">Fichier indisponible.</p>'
+        : estPdf
+          ? `<a class="uf-fichier-pdf" href="${escapeHtml(url)}" target="_blank" rel="noopener">📄 Ouvrir le PDF${f.nom_original ? `<span>${escapeHtml(f.nom_original)}</span>` : ''}</a>`
+          : `<button type="button" class="uf-journee-image" data-zoom="${escapeHtml(url)}" data-titre="${escapeHtml(f.legende)}" title="Agrandir"><img src="${escapeHtml(url)}" alt="${escapeHtml(f.legende)}" loading="lazy"></button>`;
+      return `
+        <figure class="uf-journee">
+          <figcaption>
+            <strong>${escapeHtml(f.legende)}</strong>
+            <span class="uf-journee-legende">Ajouté le ${escapeHtml(formatDate(f.created_at))}</span>
+          </figcaption>
+          ${apercu}
+          ${ufEtat.gestion ? `<div class="inscriptions-actions">
+            <button type="button" class="btn btn-ghost btn-small" data-modifier-fichier="${f.id}">Modifier</button>
+            <button type="button" class="btn btn-danger btn-small" data-supprimer-fichier="${f.id}">Supprimer</button></div>` : ''}
+        </figure>`;
+    }).join('')}</div>` : '<p class="form-hint">Aucun fichier de classement pour l\'instant.</p>'}`;
+
+  const ajouter = document.getElementById('ufAjouterClassementBtn');
+  if (ajouter) ajouter.addEventListener('click', () => ouvrirFormulaireClassement(null));
+  section.querySelectorAll('[data-modifier-fichier]').forEach(b => b.addEventListener('click', () =>
+    ouvrirFormulaireClassement(ufEtat.classementFichiers.find(x => x.id === b.dataset.modifierFichier))));
+  section.querySelectorAll('[data-supprimer-fichier]').forEach(b => b.addEventListener('click', () =>
+    supprimerFichierClassement(ufEtat.classementFichiers.find(x => x.id === b.dataset.supprimerFichier))));
+  section.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => ouvrirZoom(b.dataset.zoom, b.dataset.titre)));
+}
+
+function ouvrirFormulaireClassement(fichierExistant) {
+  const zone = document.getElementById('ufClassementFormZone');
+  zone.innerHTML = `
+    <form class="uf-form">
+      <h3>${fichierExistant ? 'Modifier le fichier' : 'Ajouter un fichier de classement'}</h3>
+      <div class="field-grid">
+        <label class="uf-large">Légende
+          <input type="text" name="legende" maxlength="200" required value="${escapeHtml(fichierExistant ? fichierExistant.legende : '')}" placeholder="Ex. Classement après la 3e journée">
+        </label>
+        <label class="uf-large">Fichier ${fichierExistant ? '(laisser vide pour garder le fichier actuel)' : ''}
+          <input type="file" name="fichier" accept="image/png,image/jpeg,image/webp,application/pdf" ${fichierExistant ? '' : 'required'}>
+        </label>
+      </div>
+      <p class="form-hint">Image (PNG, JPEG, WebP — allégée automatiquement en restant lisible) ou PDF, 15 Mo maximum.</p>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+        <button type="button" class="btn btn-ghost btn-small" data-annuler>Annuler</button>
+      </div>
+      <p class="form-hint" data-hint></p>
+    </form>`;
+  const form = zone.querySelector('form');
+  form.querySelector('[data-annuler]').addEventListener('click', () => { zone.innerHTML = ''; });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = form.querySelector('[data-hint]');
+    const fichier = form.fichier.files && form.fichier.files[0];
+    const legende = form.legende.value.trim();
+    if (!legende) { hint.textContent = 'La légende est obligatoire.'; return; }
+    if (!fichierExistant && !fichier) { hint.textContent = 'Choisissez un fichier.'; return; }
+    if (fichier && !UF_TYPES_CLASSEMENT.test(fichier.type)) { hint.textContent = 'Format non accepté : image (PNG, JPEG, WebP) ou PDF.'; return; }
+    if (fichier && fichier.size > UF_IMAGE_POIDS_MAX) { hint.textContent = 'Fichier trop lourd (15 Mo maximum).'; return; }
+    form.querySelector('button[type=submit]').disabled = true;
+    try {
+      const donnees = { equipe_id: ufEtat.equipe.id, legende };
+      if (fichier) {
+        let blob = fichier, extension = 'pdf', type = 'application/pdf';
+        if (fichier.type !== 'application/pdf') {
+          hint.textContent = 'Préparation de l\'image…';
+          ({ blob, extension, type } = await alleger(fichier));
+        }
+        const chemin = `${ufEtat.equipe.id}/classement-${Date.now()}.${extension}`;
+        hint.textContent = 'Envoi du fichier…';
+        const { error: errEnvoi } = await sbClient.storage.from(UF_BUCKET).upload(chemin, blob, { contentType: type, upsert: false });
+        if (errEnvoi) throw new Error(errEnvoi.message);
+        Object.assign(donnees, { fichier_chemin: chemin, type_mime: type, nom_original: fichier.name });
+      }
+      const { error } = fichierExistant
+        ? await sbClient.from('ufolep_classement_fichiers').update(donnees).eq('id', fichierExistant.id)
+        : await sbClient.from('ufolep_classement_fichiers').insert(donnees);
+      if (error) throw new Error(error.message);
+      if (fichierExistant && donnees.fichier_chemin && fichierExistant.fichier_chemin !== donnees.fichier_chemin) {
+        sbClient.storage.from(UF_BUCKET).remove([fichierExistant.fichier_chemin]).catch(() => {});
+      }
+      zone.innerHTML = '';
+      message('Fichier de classement enregistré.');
+      await chargerEquipe();
+    } catch (err) {
+      hint.textContent = 'Erreur : ' + err.message;
+      form.querySelector('button[type=submit]').disabled = false;
+    }
   });
+  zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function supprimerFichierClassement(f) {
+  if (!f || !confirm(`Supprimer le fichier « ${f.legende} » ?`)) return;
+  const { error } = await sbClient.from('ufolep_classement_fichiers').delete().eq('id', f.id);
+  if (error) { message('Erreur : ' + error.message); return; }
+  if (f.fichier_chemin) sbClient.storage.from(UF_BUCKET).remove([f.fichier_chemin]).catch(() => {});
+  message('Fichier supprimé.');
+  await chargerEquipe();
 }
 
 // ============================================================
@@ -507,7 +579,7 @@ function ouvrirFormulaire(entite, zone, ligne, apres) {
       else if (c.type === 'number') donnees[c.nom] = el.value === '' ? null : Number(el.value);
       else donnees[c.nom] = el.value.trim() === '' ? null : el.value.trim();
     }
-    if (['joueur', 'classement'].includes(entite)) donnees.equipe_id = ufEtat.equipe.id;
+    if (entite === 'joueur') donnees.equipe_id = ufEtat.equipe.id;
     hint.textContent = 'Enregistrement…';
     const requete = ligne
       ? sbClient.from(def.table).update(donnees).eq('id', ligne.id)
@@ -534,8 +606,11 @@ function ouvrirFormulaire(entite, zone, ligne, apres) {
  *  (avant la suppression de l'équipe ou de la saison). */
 async function supprimerImagesEquipes(idsEquipes) {
   if (!idsEquipes.length) return;
-  const { data } = await sbClient.from('ufolep_journees').select('image_chemin').in('equipe_id', idsEquipes);
-  const chemins = (data || []).map(j => j.image_chemin).filter(Boolean);
+  const [{ data }, { data: fichiers }] = await Promise.all([
+    sbClient.from('ufolep_journees').select('image_chemin').in('equipe_id', idsEquipes),
+    sbClient.from('ufolep_classement_fichiers').select('fichier_chemin').in('equipe_id', idsEquipes),
+  ]);
+  const chemins = [...(data || []).map(j => j.image_chemin), ...(fichiers || []).map(f => f.fichier_chemin)].filter(Boolean);
   if (chemins.length) await sbClient.storage.from(UF_BUCKET).remove(chemins).catch(() => {});
 }
 
@@ -570,7 +645,7 @@ function lierEvenementsGeneraux() {
     ouvrirFormulaire('equipe', document.getElementById('ufFormEquipe'), ufEtat.equipe, chargerEquipe));
   document.getElementById('ufSupprimerEquipeBtn').addEventListener('click', async () => {
     const e = ufEtat.equipe;
-    if (!e || !confirm(`Supprimer l'équipe ${e.code} — ${e.nom}, avec sa composition, les images des journées et son classement ?`)) return;
+    if (!e || !confirm(`Supprimer l'équipe ${e.code} — ${e.nom}, avec sa composition, les images des journées et les fichiers de classement ?`)) return;
     await supprimerImagesEquipes([e.id]);
     const { error } = await sbClient.from('ufolep_equipes').delete().eq('id', e.id);
     if (error) { message('Erreur : ' + error.message); return; }

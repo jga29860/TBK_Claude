@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927m"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927m">
+<script src="js/theme-init.js?v=20260927n"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927n">
 </head>
 <body>
 
@@ -516,11 +516,11 @@
       <p>Suivi des équipes du club engagées dans le championnat UFOLEP. Dans le menu Organisation, groupe <strong>UFOLEP</strong> : "Vue d'ensemble", puis l'arborescence <strong>Saison → équipes</strong> (ex. Saison 2026-2027 → DM1 — Double Mixte 1), mise à jour automatiquement. Accès paramétrable par profil : "UFOLEP — consultation" (lecture) et "UFOLEP — gestion" (création et modification), tous deux accordés à l'administrateur.</p>
       <ul>
         <li><strong>Vue d'ensemble</strong> : saisons (de la plus récente à la plus ancienne) et leurs équipes. Gestion : "+ Saison" (ex. 2026-2027 ; case "Affichée dans le menu" pour masquer une saison terminée), "+ Équipe" (saison, code ex. DM1, nom ex. Double Mixte 1, division / poule, informations : salle, créneau, contact, ordre d'affichage). Supprimer une saison ou une équipe supprime aussi ses données.</li>
-        <li><strong>Page d'une équipe</strong> : bilan (classement et points, gagnés / nuls / perdus d'après le classement, nombre de journées publiées, dernière journée), puis :
+        <li><strong>Page d'une équipe</strong> : informations de l'équipe (division, salle, créneau…), puis :
           <ul>
             <li><strong>Composition</strong> : joueurs, n° de licence UFOLEP, capitaine (saisie avec suggestions des noms des inscrits du club).</li>
             <li><strong>Calendrier et résultats</strong> : une <strong>image de synthèse par journée</strong> (capture du site UFOLEP, photo de la feuille de résultats…), avec n° de journée, date et légende facultatives, des plus récentes aux plus anciennes. Un clic agrandit l'image (Échap ou ✕ pour fermer, ou ouverture dans un onglet). Gestion : "+ Ajouter une journée" (le n° suivant est proposé ; PNG, JPEG ou WebP, 15 Mo maximum, image allégée automatiquement en restant lisible), Modifier (légende, date, remplacement de l'image — l'ancienne est supprimée), Supprimer. Les images ne sont visibles que des profils ayant un droit UFOLEP.</li>
-            <li><strong>Classement du championnat</strong> : tableau rang, club, joués, gagnés, nuls, perdus, points, saisi d'après les publications UFOLEP, ligne TBK mise en évidence, date de mise à jour (bouton "Mis à jour aujourd'hui").</li>
+            <li><strong>Classement du championnat</strong> : <strong>fichiers avec légende</strong> (image ou PDF du classement publié par l'UFOLEP), du plus récent au plus ancien, avec leur date d'ajout. Image : aperçu, agrandissement au clic ; PDF : bouton « Ouvrir le PDF ». Gestion : "+ Ajouter un fichier" (légende obligatoire ; PNG, JPEG, WebP ou PDF, 15 Mo maximum ; images allégées automatiquement), Modifier (légende et / ou remplacement du fichier — l'ancien est supprimé), Supprimer. Fichiers visibles uniquement des profils ayant un droit UFOLEP.</li>
           </ul>
         </li>
       </ul>
@@ -652,7 +652,7 @@
             <tr><td>boutique_commandes</td><td>Commandes des membres (article + taille figés au moment de la commande, flocage et nom associé si demandé), statut et paiement.</td></tr>
             <tr><td>paiements_en_ligne_journal</td><td>Suivi des paiements en ligne (type boutique / cotisation, membre, email, montant, commandes ou inscription concernées) : demande au clic sur "Payer en ligne" (en attente), confirmation par le widget (déclarée), confirmation par la notification HelloAsso (confirmée, avec l'identifiant du paiement HelloAsso), remboursement. Utilisé pour le rapprochement et la confirmation automatique (voir 7.4 et 7.5). Alimenté uniquement par des fonctions dédiées, limitées aux propres commandes / inscription de la personne connectée.</td></tr>
             <tr><td>ufolep_saisons, ufolep_equipes</td><td>Section UFOLEP : saisons (libellé, affichage dans le menu) et équipes (code, nom, division, informations, ordre, date de mise à jour du classement) (voir 7.7).</td></tr>
-            <tr><td>ufolep_joueurs, ufolep_journees, ufolep_classement</td><td>Composition, images de synthèse des journées (stockées dans l'espace privé "ufolep"), classement du championnat de chaque équipe UFOLEP. (La table ufolep_rencontres, ancienne saisie détaillée, n'est plus utilisée.)</td></tr>
+            <tr><td>ufolep_joueurs, ufolep_journees, ufolep_classement_fichiers</td><td>Composition, images de synthèse des journées et fichiers de classement légendés (ufolep_classement_fichiers), stockés dans l'espace privé "ufolep". (Les tables ufolep_rencontres et ufolep_classement, anciennes saisies détaillées, ne sont plus utilisées.)</td></tr>
             <tr><td>notifications_helloasso</td><td>Notifications de paiement reçues de HelloAsso et résultat de leur traitement (appliquée, déjà traitée, ignorée, non attribuée, remboursement, erreur), avec un message explicatif (voir 7.5).</td></tr>
             <tr><td>tournoi_courses</td><td>Achats effectués pour le tournoi (libellé, quantité, prix), avec total automatique.</td></tr>
             <tr><td>inscriptions_email_templates</td><td>Modèles d'emails de relance (sujet + corps, avec variables), utilisés par le bouton "Envoyer" de chaque inscription.</td></tr>
@@ -749,12 +749,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927m"></script>
-<script src="js/tableaux-mobile.js?v=20260927m"></script>
-<script src="js/supabase-config.js?v=20260927m"></script>
-<script src="js/auth.js?v=20260927m"></script>
-<script src="js/theme.js?v=20260927m"></script>
-<script src="js/main.js?v=20260927m"></script>
-<script src="js/documentation.js?v=20260927m"></script>
+<script src="js/menu-mobile.js?v=20260927n"></script>
+<script src="js/tableaux-mobile.js?v=20260927n"></script>
+<script src="js/supabase-config.js?v=20260927n"></script>
+<script src="js/auth.js?v=20260927n"></script>
+<script src="js/theme.js?v=20260927n"></script>
+<script src="js/main.js?v=20260927n"></script>
+<script src="js/documentation.js?v=20260927n"></script>
 </body>
 </html>

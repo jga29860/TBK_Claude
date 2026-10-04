@@ -1693,3 +1693,8 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 .uf-zoom-barre{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; color:var(--white); font-weight:700; }
 .uf-zoom img{ max-width:100%; height:auto; border-radius:6px; background:var(--white); }
 @media (max-width: 760px){ .uf-journees{ grid-template-columns:1fr; } }
+
+/* UFOLEP : fichier PDF de classement */
+.uf-fichier-pdf{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:140px; border:1px dashed var(--c-bordure-champ); border-radius:8px; background:var(--pale); text-decoration:none; font-weight:700; color:var(--dark); padding:16px; text-align:center; }
+.uf-fichier-pdf span{ font-weight:400; font-size:0.8rem; color:var(--ink-soft); overflow-wrap:anywhere; }
+.uf-fichier-pdf:hover{ border-color:var(--green); }

@@ -1151,3 +1151,9 @@ Nouvelle page `ufolep.html` / `js/ufolep.js` : vue d'ensemble (saisons → équi
 Exécutez `supabase/migration_ufolep_journees.sql` (table `ufolep_journees` : journée, date, légende, chemin de l'image ; espace de stockage privé `ufolep`, lecture pour les droits UFOLEP, envoi / suppression pour `ufolep_gestion`).
 
 `ufolep.js` : la saisie détaillée des rencontres est supprimée (table `ufolep_rencontres` conservée en base, non utilisée) ; section "Calendrier et résultats" = une image par journée (liens temporaires d'une heure), ajout (n° suivant proposé, image réduite à 2 000 px de large en WebP / JPEG), modification avec remplacement d'image (ancienne supprimée), suppression (image comprise), agrandissement plein écran. Bilan recalculé d'après le classement et les journées publiées. Suppression d'une équipe ou d'une saison : images supprimées aussi. Version des fichiers : `?v=20260927m`.
+
+## UFOLEP — indicateurs retirés, classement en fichiers légendés
+
+Exécutez `supabase/migration_ufolep_classement_fichiers.sql` (après `migration_ufolep_journees.sql` ; table `ufolep_classement_fichiers` : légende, chemin, type, nom d'origine, date ; stockage dans l'espace privé `ufolep`).
+
+`ufolep.html` / `ufolep.js` : bloc d'indicateurs de la page d'équipe supprimé ; section "Classement du championnat" = fichiers légendés (image avec aperçu et agrandissement, ou PDF avec lien d'ouverture), ajout / modification (légende, remplacement avec suppression de l'ancien fichier) / suppression ; tableau de classement et date de mise à jour supprimés (table `ufolep_classement` conservée, non utilisée). Suppression d'une équipe ou d'une saison : fichiers supprimés aussi. Version des fichiers : `?v=20260927n`.
