@@ -1157,3 +1157,9 @@ Exécutez `supabase/migration_ufolep_journees.sql` (table `ufolep_journees` : jo
 Exécutez `supabase/migration_ufolep_classement_fichiers.sql` (après `migration_ufolep_journees.sql` ; table `ufolep_classement_fichiers` : légende, chemin, type, nom d'origine, date ; stockage dans l'espace privé `ufolep`).
 
 `ufolep.html` / `ufolep.js` : bloc d'indicateurs de la page d'équipe supprimé ; section "Classement du championnat" = fichiers légendés (image avec aperçu et agrandissement, ou PDF avec lien d'ouverture), ajout / modification (légende, remplacement avec suppression de l'ancien fichier) / suppression ; tableau de classement et date de mise à jour supprimés (table `ufolep_classement` conservée, non utilisée). Suppression d'une équipe ou d'une saison : fichiers supprimés aussi. Version des fichiers : `?v=20260927n`.
+
+## Correctif — envoi de fichiers UFOLEP refusé (règles de stockage)
+
+Exécutez `supabase/migration_ufolep_stockage_correctif.sql` : règles de l'espace de stockage `ufolep` recréées sur le modèle de celles de la boutique (sans restriction de rôle de connexion, droit `administration` accepté en plus de `ufolep_gestion`, règle de mise à jour ajoutée), même traitement pour l'espace `apparence` ; tables `ufolep_journees` / `ufolep_classement_fichiers` : droit `administration` accepté. Le script affiche en fin d'exécution les 4 règles `ufolep_images…` attendues.
+
+`ufolep.js` : message d'erreur précisant l'étape refusée (envoi du fichier ou enregistrement de la fiche) ; fichier envoyé supprimé si la fiche est refusée. Version des fichiers : `?v=20260927o`.

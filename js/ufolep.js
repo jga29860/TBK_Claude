@@ -329,7 +329,7 @@ function ouvrirFormulaireJournee(journee) {
         chemin = `${ufEtat.equipe.id}/journee-${Number(form.journee.value)}-${Date.now()}.${extension}`;
         hint.textContent = 'Envoi de l\'image…';
         const { error: errEnvoi } = await sbClient.storage.from(UF_BUCKET).upload(chemin, blob, { contentType: type, upsert: false });
-        if (errEnvoi) throw new Error(errEnvoi.message);
+        if (errEnvoi) throw new Error(`envoi de l'image refusé par l'espace de stockage (${errEnvoi.message})`);
       }
       const donnees = {
         equipe_id: ufEtat.equipe.id,
@@ -341,7 +341,10 @@ function ouvrirFormulaireJournee(journee) {
       const { error } = journee
         ? await sbClient.from('ufolep_journees').update(donnees).eq('id', journee.id)
         : await sbClient.from('ufolep_journees').insert(donnees);
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (fichier && chemin) sbClient.storage.from(UF_BUCKET).remove([chemin]).catch(() => {});
+        throw new Error(`enregistrement de la journée refusé (${error.message})`);
+      }
       // Image remplacée : l'ancienne est supprimée
       if (journee && fichier && journee.image_chemin && journee.image_chemin !== chemin) {
         sbClient.storage.from(UF_BUCKET).remove([journee.image_chemin]).catch(() => {});
@@ -494,13 +497,17 @@ function ouvrirFormulaireClassement(fichierExistant) {
         const chemin = `${ufEtat.equipe.id}/classement-${Date.now()}.${extension}`;
         hint.textContent = 'Envoi du fichier…';
         const { error: errEnvoi } = await sbClient.storage.from(UF_BUCKET).upload(chemin, blob, { contentType: type, upsert: false });
-        if (errEnvoi) throw new Error(errEnvoi.message);
+        if (errEnvoi) throw new Error(`envoi du fichier refusé par l'espace de stockage (${errEnvoi.message})`);
         Object.assign(donnees, { fichier_chemin: chemin, type_mime: type, nom_original: fichier.name });
       }
       const { error } = fichierExistant
         ? await sbClient.from('ufolep_classement_fichiers').update(donnees).eq('id', fichierExistant.id)
         : await sbClient.from('ufolep_classement_fichiers').insert(donnees);
-      if (error) throw new Error(error.message);
+      if (error) {
+        // Fichier envoyé mais fiche refusée : on ne laisse pas de fichier orphelin
+        if (donnees.fichier_chemin) sbClient.storage.from(UF_BUCKET).remove([donnees.fichier_chemin]).catch(() => {});
+        throw new Error(`enregistrement de la fiche refusé (${error.message})`);
+      }
       if (fichierExistant && donnees.fichier_chemin && fichierExistant.fichier_chemin !== donnees.fichier_chemin) {
         sbClient.storage.from(UF_BUCKET).remove([fichierExistant.fichier_chemin]).catch(() => {});
       }
