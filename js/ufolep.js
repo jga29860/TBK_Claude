@@ -1,8 +1,8 @@
 // ============================================================
 // TBK — Section UFOLEP (ufolep.html)
 // Arborescence : saisons → équipes (ex. DM1 — Double Mixte 1).
-// Page d'équipe : composition, calendrier des rencontres, résultats et
-// scores, classement du championnat.
+// Page d'équipe : composition, calendrier et résultats (une image de
+// synthèse par journée), classement du championnat.
 // Droits : "ufolep" (consultation), "ufolep_gestion" (modification).
 // ============================================================
 
@@ -12,11 +12,15 @@ const ufEtat = {
   equipes: [],
   equipe: null,        // équipe affichée
   joueurs: [],
-  rencontres: [],
+  journees: [],        // synthèses de journée (images)
+  urlsImages: {},      // chemin → lien temporaire de l'image
   classement: [],
 };
 
-const UF_STATUTS = { a_jouer: 'À jouer', jouee: 'Jouée', reportee: 'Reportée', annulee: 'Annulée' };
+const UF_BUCKET = 'ufolep';
+const UF_IMAGE_LARGEUR_MAX = 2000;   // px : lisible, sans fichier énorme
+const UF_IMAGE_POIDS_MAX = 15 * 1024 * 1024;
+
 
 // ------------------------------------------------------------
 // Définition des éléments modifiables (formulaires et contrôles)
@@ -47,21 +51,6 @@ const UF_ENTITES = {
       { nom: 'licence', libelle: 'N° de licence UFOLEP', type: 'text' },
       { nom: 'ordre', libelle: 'Ordre', type: 'number', defaut: 100 },
       { nom: 'capitaine', libelle: 'Capitaine', type: 'checkbox' },
-    ],
-  },
-  rencontre: {
-    table: 'ufolep_rencontres', titre: 'rencontre',
-    champs: [
-      { nom: 'journee', libelle: 'Journée', type: 'number' },
-      { nom: 'date_rencontre', libelle: 'Date', type: 'date' },
-      { nom: 'heure', libelle: 'Heure', type: 'time' },
-      { nom: 'domicile', libelle: 'Lieu de la rencontre', type: 'select', options: () => [['true', 'Domicile'], ['false', 'Extérieur']], defaut: 'true' },
-      { nom: 'adversaire', libelle: 'Adversaire', type: 'text', requis: true },
-      { nom: 'lieu', libelle: 'Salle / adresse', type: 'text' },
-      { nom: 'statut', libelle: 'Statut', type: 'select', options: () => Object.entries(UF_STATUTS), defaut: 'a_jouer' },
-      { nom: 'score_tbk', libelle: 'Score TBK', type: 'number', min: 0 },
-      { nom: 'score_adversaire', libelle: 'Score adversaire', type: 'number', min: 0 },
-      { nom: 'detail', libelle: 'Détail des matchs / sets', type: 'textarea', large: true },
     ],
   },
   classement: {
@@ -165,7 +154,8 @@ function rendreArbre() {
   zone.querySelectorAll('[data-supprimer-saison]').forEach(b => b.addEventListener('click', async () => {
     const s = ufEtat.saisons.find(x => x.id === b.dataset.supprimerSaison);
     const n = ufEtat.equipes.filter(e => e.saison_id === s.id).length;
-    if (!confirm(`Supprimer la saison ${s.libelle}${n ? ` et ses ${n} équipe(s) (composition, rencontres, classement compris)` : ''} ?`)) return;
+    if (!confirm(`Supprimer la saison ${s.libelle}${n ? ` et ses ${n} équipe(s) (composition, images des journées, classement compris)` : ''} ?`)) return;
+    await supprimerImagesEquipes(ufEtat.equipes.filter(e => e.saison_id === s.id).map(e => e.id));
     await supprimer('saison', s.id, apresModifArbre);
   }));
 }
@@ -207,37 +197,29 @@ async function chargerEquipe() {
   const id = ufEtat.equipe.id;
   const [j, r, c] = await Promise.all([
     sbClient.from('ufolep_joueurs').select('*').eq('equipe_id', id).order('ordre').order('nom'),
-    sbClient.from('ufolep_rencontres').select('*').eq('equipe_id', id).order('date_rencontre', { ascending: true, nullsFirst: false }).order('journee'),
+    sbClient.from('ufolep_journees').select('*').eq('equipe_id', id).order('journee', { ascending: false }),
     sbClient.from('ufolep_classement').select('*').eq('equipe_id', id).order('rang', { ascending: true, nullsFirst: false }).order('points', { ascending: false }),
   ]);
   const err = j.error || r.error || c.error;
-  if (err) message('Erreur de chargement : ' + err.message);
+  if (err) message('Erreur de chargement : ' + err.message + (r.error ? ' — migration migration_ufolep_journees.sql exécutée ?' : ''));
   ufEtat.joueurs = j.data || [];
-  ufEtat.rencontres = r.data || [];
+  ufEtat.journees = r.data || [];
   ufEtat.classement = c.data || [];
+  await chargerLiensImages();
   rendreBilan();
   rendreJoueurs();
-  rendreRencontres();
+  rendreJournees();
   rendreClassement();
 }
 
-function resultat(r) {
-  if (r.statut !== 'jouee' || r.score_tbk === null || r.score_adversaire === null) return null;
-  if (r.score_tbk > r.score_adversaire) return 'V';
-  if (r.score_tbk < r.score_adversaire) return 'D';
-  return 'N';
-}
-
 function rendreBilan() {
-  const jouees = ufEtat.rencontres.filter(r => resultat(r));
-  const compte = (x) => jouees.filter(r => resultat(r) === x).length;
-  const prochaine = ufEtat.rencontres.find(r => r.statut === 'a_jouer' && r.date_rencontre && r.date_rencontre >= new Date().toISOString().slice(0, 10));
   const tbk = ufEtat.classement.find(l => l.est_tbk);
+  const derniere = ufEtat.journees[0];
   document.getElementById('ufBilan').innerHTML = `
-    <div class="kpi-card"><span class="kpi-value">${jouees.length}</span><span class="kpi-label">Rencontres jouées</span></div>
-    <div class="kpi-card"><span class="kpi-value">${compte('V')} / ${compte('N')} / ${compte('D')}</span><span class="kpi-label">Victoires / nuls / défaites</span></div>
     <div class="kpi-card"><span class="kpi-value">${tbk && tbk.rang ? tbk.rang + '<small>e</small>' : '–'}</span><span class="kpi-label">Classement${tbk ? ` (${tbk.points} pts)` : ''}</span></div>
-    <div class="kpi-card"><span class="kpi-value uf-kpi-texte">${prochaine ? escapeHtml(formatDate(prochaine.date_rencontre)) : '–'}</span><span class="kpi-label">${prochaine ? `Prochaine : ${prochaine.domicile ? 'reçoit' : 'chez'} ${escapeHtml(prochaine.adversaire)}` : 'Prochaine rencontre'}</span></div>`;
+    <div class="kpi-card"><span class="kpi-value">${tbk ? `${tbk.gagnes ?? 0} / ${tbk.nuls ?? 0} / ${tbk.perdus ?? 0}` : '–'}</span><span class="kpi-label">Gagnés / nuls / perdus</span></div>
+    <div class="kpi-card"><span class="kpi-value">${ufEtat.journees.length}</span><span class="kpi-label">Journée(s) publiée(s)</span></div>
+    <div class="kpi-card"><span class="kpi-value uf-kpi-texte">${derniere ? 'J' + derniere.journee : '–'}</span><span class="kpi-label">${derniere && derniere.date_journee ? 'Dernière journée : ' + escapeHtml(formatDate(derniere.date_journee)) : 'Dernière journée publiée'}</span></div>`;
 }
 
 function enteteSection(titre, entite, compteur) {
@@ -281,31 +263,169 @@ function rendreJoueurs() {
   lierSection(section, 'joueur', l);
 }
 
-function rendreRencontres() {
+// ------------------------------------------------------------
+// Calendrier et résultats : une image de synthèse par journée
+// ------------------------------------------------------------
+
+async function chargerLiensImages() {
+  const chemins = ufEtat.journees.map(j => j.image_chemin).filter(Boolean);
+  ufEtat.urlsImages = {};
+  if (!chemins.length) return;
+  const { data, error } = await sbClient.storage.from(UF_BUCKET).createSignedUrls(chemins, 3600);
+  if (error) { console.warn('[UFOLEP images]', error.message); return; }
+  (data || []).forEach(d => { if (d && d.signedUrl) ufEtat.urlsImages[d.path] = d.signedUrl; });
+}
+
+function rendreJournees() {
   const section = document.getElementById('ufSectionRencontres');
-  const l = ufEtat.rencontres;
-  const badge = { V: ['Victoire', 'ha-etat--valide'], N: ['Nul', 'ha-etat--autre'], D: ['Défaite', 'ha-etat--erreur'] };
-  section.innerHTML = enteteSection('Calendrier et résultats', 'rencontre', l.length) + (l.length ? `
-    <div class="table-wrap"><table class="schedule">
-      <thead><tr><th>Journée</th><th>Date</th><th>Rencontre</th><th>Lieu</th><th>Score</th><th>Résultat</th>${ufEtat.gestion ? '<th></th>' : ''}</tr></thead>
-      <tbody>${l.map(r => {
-        const res = resultat(r);
-        const rencontre = r.domicile ? `<strong>TBK</strong> – ${escapeHtml(r.adversaire)}` : `${escapeHtml(r.adversaire)} – <strong>TBK</strong>`;
-        const score = r.score_tbk !== null && r.score_adversaire !== null
-          ? (r.domicile ? `${r.score_tbk} – ${r.score_adversaire}` : `${r.score_adversaire} – ${r.score_tbk}`) : '—';
-        const etat = res ? `<span class="statut-badge ${badge[res][1]}">${badge[res][0]}</span>`
-          : `<span class="statut-badge ${r.statut === 'a_jouer' ? 'ha-etat--rembourse' : 'ha-etat--autre'}">${UF_STATUTS[r.statut]}</span>`;
-        return `<tr>
-          <td>${r.journee || '—'}</td>
-          <td style="white-space:nowrap;">${escapeHtml(formatDate(r.date_rencontre))}${r.heure ? ` · ${escapeHtml(String(r.heure).slice(0, 5))}` : ''}</td>
-          <td>${rencontre} <span class="form-hint-inline">(${r.domicile ? 'domicile' : 'extérieur'})</span>${r.detail ? `<br><span class="form-hint-inline">${escapeHtml(r.detail).replace(/\n/g, '<br>')}</span>` : ''}</td>
-          <td>${escapeHtml(r.lieu || '—')}</td>
-          <td style="white-space:nowrap;font-weight:700;">${score}</td>
-          <td>${etat}</td>
-          ${ufEtat.gestion ? `<td>${boutonsLigne('rencontre', r.id)}</td>` : ''}</tr>`;
-      }).join('')}</tbody>
-    </table></div>` : '<p class="form-hint">Aucune rencontre au calendrier.</p>');
-  lierSection(section, 'rencontre', l);
+  const l = ufEtat.journees;
+  section.innerHTML = `
+    <div class="ha-section-entete">
+      <h2 style="margin:0;">Calendrier et résultats <span class="count-badge">(${l.length})</span></h2>
+      ${ufEtat.gestion ? '<button type="button" class="btn btn-primary btn-small" id="ufAjouterJourneeBtn">+ Ajouter une journée</button>' : ''}
+    </div>
+    <div class="uf-form-zone" id="ufJourneeFormZone"></div>
+    ${l.length ? `<div class="uf-journees">${l.map(j => {
+      const url = ufEtat.urlsImages[j.image_chemin];
+      return `
+        <figure class="uf-journee">
+          <figcaption>
+            <strong>Journée ${j.journee}</strong>${j.date_journee ? ` · ${escapeHtml(formatDate(j.date_journee))}` : ''}
+            ${j.legende ? `<span class="uf-journee-legende">${escapeHtml(j.legende)}</span>` : ''}
+          </figcaption>
+          ${url
+            ? `<button type="button" class="uf-journee-image" data-zoom="${escapeHtml(url)}" data-titre="Journée ${j.journee}" title="Agrandir"><img src="${escapeHtml(url)}" alt="Synthèse de la journée ${j.journee}" loading="lazy"></button>`
+            : '<p class="form-hint">Image indisponible.</p>'}
+          ${ufEtat.gestion ? `<div class="inscriptions-actions">
+            <button type="button" class="btn btn-ghost btn-small" data-modifier-journee="${j.id}">Modifier</button>
+            <button type="button" class="btn btn-danger btn-small" data-supprimer-journee="${j.id}">Supprimer</button></div>` : ''}
+        </figure>`;
+    }).join('')}</div>` : '<p class="form-hint">Aucune journée publiée pour l\'instant.</p>'}`;
+
+  const ajouter = document.getElementById('ufAjouterJourneeBtn');
+  if (ajouter) ajouter.addEventListener('click', () => ouvrirFormulaireJournee(null));
+  section.querySelectorAll('[data-modifier-journee]').forEach(b => b.addEventListener('click', () =>
+    ouvrirFormulaireJournee(ufEtat.journees.find(x => x.id === b.dataset.modifierJournee))));
+  section.querySelectorAll('[data-supprimer-journee]').forEach(b => b.addEventListener('click', () =>
+    supprimerJournee(ufEtat.journees.find(x => x.id === b.dataset.supprimerJournee))));
+  section.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => ouvrirZoom(b.dataset.zoom, b.dataset.titre)));
+}
+
+function ouvrirFormulaireJournee(journee) {
+  const zone = document.getElementById('ufJourneeFormZone');
+  const suivante = ufEtat.journees.reduce((m, j) => Math.max(m, j.journee), 0) + 1;
+  zone.innerHTML = `
+    <form class="uf-form">
+      <h3>${journee ? `Modifier la journée ${journee.journee}` : 'Ajouter une journée'}</h3>
+      <div class="field-grid">
+        <label>Journée n°<input type="number" name="journee" min="1" required value="${journee ? journee.journee : suivante}"></label>
+        <label>Date<input type="date" name="date_journee" value="${journee && journee.date_journee ? journee.date_journee : ''}"></label>
+        <label class="uf-large">Légende (facultatif)<input type="text" name="legende" maxlength="200" value="${escapeHtml(journee && journee.legende ? journee.legende : '')}" placeholder="Ex. Victoire 4-2 contre BC Landerneau"></label>
+        <label class="uf-large">Image de synthèse de la journée ${journee ? '(laisser vide pour garder l\'image actuelle)' : ''}
+          <input type="file" name="image" accept="image/png,image/jpeg,image/webp" ${journee ? '' : 'required'}>
+        </label>
+      </div>
+      <p class="form-hint">PNG, JPEG ou WebP (capture d'écran, photo de la feuille de résultats…), 15 Mo maximum. L'image est allégée automatiquement en restant lisible.</p>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+        <button type="button" class="btn btn-ghost btn-small" data-annuler>Annuler</button>
+      </div>
+      <p class="form-hint" data-hint></p>
+    </form>`;
+  const form = zone.querySelector('form');
+  form.querySelector('[data-annuler]').addEventListener('click', () => { zone.innerHTML = ''; });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hint = form.querySelector('[data-hint]');
+    const fichier = form.image.files && form.image.files[0];
+    if (!journee && !fichier) { hint.textContent = 'Choisissez une image.'; return; }
+    if (fichier && !/^image\/(png|jpeg|webp)$/.test(fichier.type)) { hint.textContent = 'Format non accepté : PNG, JPEG ou WebP.'; return; }
+    if (fichier && fichier.size > UF_IMAGE_POIDS_MAX) { hint.textContent = 'Image trop lourde (15 Mo maximum).'; return; }
+    form.querySelector('button[type=submit]').disabled = true;
+    try {
+      let chemin = journee ? journee.image_chemin : null;
+      if (fichier) {
+        hint.textContent = 'Préparation de l\'image…';
+        const { blob, extension, type } = await alleger(fichier);
+        chemin = `${ufEtat.equipe.id}/journee-${Number(form.journee.value)}-${Date.now()}.${extension}`;
+        hint.textContent = 'Envoi de l\'image…';
+        const { error: errEnvoi } = await sbClient.storage.from(UF_BUCKET).upload(chemin, blob, { contentType: type, upsert: false });
+        if (errEnvoi) throw new Error(errEnvoi.message);
+      }
+      const donnees = {
+        equipe_id: ufEtat.equipe.id,
+        journee: Number(form.journee.value),
+        date_journee: form.date_journee.value || null,
+        legende: form.legende.value.trim() || null,
+        image_chemin: chemin,
+      };
+      const { error } = journee
+        ? await sbClient.from('ufolep_journees').update(donnees).eq('id', journee.id)
+        : await sbClient.from('ufolep_journees').insert(donnees);
+      if (error) throw new Error(error.message);
+      // Image remplacée : l'ancienne est supprimée
+      if (journee && fichier && journee.image_chemin && journee.image_chemin !== chemin) {
+        sbClient.storage.from(UF_BUCKET).remove([journee.image_chemin]).catch(() => {});
+      }
+      zone.innerHTML = '';
+      message(`Journée ${donnees.journee} enregistrée.`);
+      await chargerEquipe();
+    } catch (err) {
+      hint.textContent = 'Erreur : ' + err.message;
+      form.querySelector('button[type=submit]').disabled = false;
+    }
+  });
+  zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function supprimerJournee(j) {
+  if (!j || !confirm(`Supprimer la journée ${j.journee} et son image ?`)) return;
+  const { error } = await sbClient.from('ufolep_journees').delete().eq('id', j.id);
+  if (error) { message('Erreur : ' + error.message); return; }
+  if (j.image_chemin) sbClient.storage.from(UF_BUCKET).remove([j.image_chemin]).catch(() => {});
+  message(`Journée ${j.journee} supprimée.`);
+  await chargerEquipe();
+}
+
+/** Réduit l'image à 2 000 px de large au plus (lisible pour un tableau de
+ *  résultats), en WebP (JPEG si non supporté). */
+function alleger(fichier) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(fichier);
+    const img = new Image();
+    img.onload = () => {
+      const echelle = Math.min(1, UF_IMAGE_LARGEUR_MAX / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * echelle);
+      canvas.height = Math.round(img.height * echelle);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => {
+        if (blob && blob.type === 'image/webp') return resolve({ blob, extension: 'webp', type: 'image/webp' });
+        canvas.toBlob((jpg) => jpg ? resolve({ blob: jpg, extension: 'jpg', type: 'image/jpeg' }) : reject(new Error('Conversion impossible')), 'image/jpeg', 0.88);
+      }, 'image/webp', 0.88);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image illisible')); };
+    img.src = url;
+  });
+}
+
+/** Affichage en grand d'une image (clic ou Échap pour fermer). */
+function ouvrirZoom(url, titre) {
+  const voile = document.createElement('div');
+  voile.className = 'uf-zoom';
+  voile.innerHTML = `<div class="uf-zoom-barre"><span>${escapeHtml(titre || '')}</span>
+      <a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="btn btn-ghost btn-small">Ouvrir dans un onglet</a>
+      <button type="button" class="btn btn-primary btn-small" data-fermer>✕ Fermer</button></div>
+    <img src="${escapeHtml(url)}" alt="${escapeHtml(titre || '')}">`;
+  const fermer = () => { voile.remove(); document.removeEventListener('keydown', echap); };
+  const echap = (e) => { if (e.key === 'Escape') fermer(); };
+  voile.addEventListener('click', (e) => { if (e.target === voile || e.target.closest('[data-fermer]')) fermer(); });
+  document.addEventListener('keydown', echap);
+  document.body.appendChild(voile);
 }
 
 function rendreClassement() {
@@ -385,13 +505,9 @@ function ouvrirFormulaire(entite, zone, ligne, apres) {
       const el = form.elements[c.nom];
       if (c.type === 'checkbox') donnees[c.nom] = el.checked;
       else if (c.type === 'number') donnees[c.nom] = el.value === '' ? null : Number(el.value);
-      else if (c.nom === 'domicile') donnees[c.nom] = el.value === 'true';
       else donnees[c.nom] = el.value.trim() === '' ? null : el.value.trim();
     }
-    if (['joueur', 'rencontre', 'classement'].includes(entite)) donnees.equipe_id = ufEtat.equipe.id;
-    if (entite === 'rencontre' && (donnees.score_tbk !== null || donnees.score_adversaire !== null) && donnees.statut === 'a_jouer') {
-      donnees.statut = 'jouee'; // score saisi : rencontre jouée
-    }
+    if (['joueur', 'classement'].includes(entite)) donnees.equipe_id = ufEtat.equipe.id;
     hint.textContent = 'Enregistrement…';
     const requete = ligne
       ? sbClient.from(def.table).update(donnees).eq('id', ligne.id)
@@ -412,6 +528,15 @@ function ouvrirFormulaire(entite, zone, ligne, apres) {
     await apres();
   });
   zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/** Supprime du stockage les images de journée des équipes indiquées
+ *  (avant la suppression de l'équipe ou de la saison). */
+async function supprimerImagesEquipes(idsEquipes) {
+  if (!idsEquipes.length) return;
+  const { data } = await sbClient.from('ufolep_journees').select('image_chemin').in('equipe_id', idsEquipes);
+  const chemins = (data || []).map(j => j.image_chemin).filter(Boolean);
+  if (chemins.length) await sbClient.storage.from(UF_BUCKET).remove(chemins).catch(() => {});
 }
 
 async function supprimer(entite, id, apres) {
@@ -445,7 +570,8 @@ function lierEvenementsGeneraux() {
     ouvrirFormulaire('equipe', document.getElementById('ufFormEquipe'), ufEtat.equipe, chargerEquipe));
   document.getElementById('ufSupprimerEquipeBtn').addEventListener('click', async () => {
     const e = ufEtat.equipe;
-    if (!e || !confirm(`Supprimer l'équipe ${e.code} — ${e.nom}, avec sa composition, son calendrier et son classement ?`)) return;
+    if (!e || !confirm(`Supprimer l'équipe ${e.code} — ${e.nom}, avec sa composition, les images des journées et son classement ?`)) return;
+    await supprimerImagesEquipes([e.id]);
     const { error } = await sbClient.from('ufolep_equipes').delete().eq('id', e.id);
     if (error) { message('Erreur : ' + error.message); return; }
     window.location.href = 'ufolep.html';

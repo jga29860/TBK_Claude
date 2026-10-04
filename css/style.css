@@ -1681,3 +1681,15 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 .uf-form input[type="date"], .uf-form input[type="time"], .uf-form input[type="number"]{ font-family:var(--font-body); font-size:0.95rem; padding:10px 12px; border-radius:8px; border:1px solid var(--c-bordure-champ); background:var(--white); }
 .uf-ligne-tbk td{ font-weight:700; background:var(--c-fond-valide); }
 .uf-kpi-texte{ font-size:1.1rem !important; }
+
+/* UFOLEP : images de synthèse des journées */
+.uf-journees{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px; margin-top:14px; }
+.uf-journee{ margin:0; border:1px solid var(--border); border-radius:12px; padding:12px; background:var(--white); display:flex; flex-direction:column; gap:10px; }
+.uf-journee figcaption{ display:flex; flex-direction:column; gap:2px; color:var(--ink); }
+.uf-journee-legende{ font-size:0.85rem; color:var(--ink-soft); }
+.uf-journee-image{ border:1px solid var(--border); border-radius:8px; padding:0; background:var(--pale); cursor:zoom-in; overflow:hidden; display:block; width:100%; }
+.uf-journee-image img{ display:block; width:100%; height:auto; max-height:420px; object-fit:contain; }
+.uf-zoom{ position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.88); display:flex; flex-direction:column; align-items:center; padding:12px; gap:10px; overflow:auto; }
+.uf-zoom-barre{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; color:var(--white); font-weight:700; }
+.uf-zoom img{ max-width:100%; height:auto; border-radius:6px; background:var(--white); }
+@media (max-width: 760px){ .uf-journees{ grid-template-columns:1fr; } }

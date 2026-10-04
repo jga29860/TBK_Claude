@@ -1145,3 +1145,9 @@ Exécutez `supabase/migration_profils_multiples.sql`.
 Exécutez `supabase/migration_ufolep.sql` (droits `ufolep` et `ufolep_gestion` accordés à l'admin ; tables `ufolep_saisons`, `ufolep_equipes`, `ufolep_joueurs`, `ufolep_rencontres`, `ufolep_classement` ; RLS : lecture avec l'un des deux droits, écriture avec `ufolep_gestion`).
 
 Nouvelle page `ufolep.html` / `js/ufolep.js` : vue d'ensemble (saisons → équipes), page d'équipe (`?equipe=<id>`) avec bilan, composition, calendrier et résultats (résultat calculé, statut "Jouée" automatique à la saisie d'un score), classement (ligne TBK, date de mise à jour) ; formulaires génériques d'ajout / modification / suppression pour le droit gestion. Menu (`auth.js`) : groupe UFOLEP avec arborescence dynamique Saison → équipes (saisons actives), rafraîchie après chaque modification. `admin.js` : 2 nouveaux droits. Version des fichiers : `?v=20260927l`.
+
+## UFOLEP — Calendrier et résultats en images
+
+Exécutez `supabase/migration_ufolep_journees.sql` (table `ufolep_journees` : journée, date, légende, chemin de l'image ; espace de stockage privé `ufolep`, lecture pour les droits UFOLEP, envoi / suppression pour `ufolep_gestion`).
+
+`ufolep.js` : la saisie détaillée des rencontres est supprimée (table `ufolep_rencontres` conservée en base, non utilisée) ; section "Calendrier et résultats" = une image par journée (liens temporaires d'une heure), ajout (n° suivant proposé, image réduite à 2 000 px de large en WebP / JPEG), modification avec remplacement d'image (ancienne supprimée), suppression (image comprise), agrandissement plein écran. Bilan recalculé d'après le classement et les journées publiées. Suppression d'une équipe ou d'une saison : images supprimées aussi. Version des fichiers : `?v=20260927m`.
