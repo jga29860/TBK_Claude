@@ -223,29 +223,47 @@ async function getCurrentAccess() {
   const { data: { session } } = await sbClient.auth.getSession();
   if (!session) return null;
 
-  const { data: profile, error: profileError } = await sbClient
+  // Profil principal + profils supplémentaires (colonne absente si la
+  // migration "profils multiples" n'est pas encore exécutée : repli)
+  let { data: profile, error: profileError } = await sbClient
     .from('profiles')
-    .select('id, email, display_name, role')
+    .select('id, email, display_name, role, roles_supplementaires')
     .eq('id', session.user.id)
     .single();
+  if (profileError && /roles_supplementaires/.test(profileError.message || '')) {
+    ({ data: profile, error: profileError } = await sbClient
+      .from('profiles')
+      .select('id, email, display_name, role')
+      .eq('id', session.user.id)
+      .single());
+  }
 
   if (profileError || !profile) {
     console.error('Erreur de récupération du profil :', profileError && profileError.message);
     return null;
   }
 
-  const { data: roleRow, error: roleError } = await sbClient
+  const roles = [profile.role, ...((profile.roles_supplementaires || []).filter(r => r && r !== profile.role))];
+  const { data: roleRows, error: roleError } = await sbClient
     .from('roles')
     .select('key, label, pages')
-    .eq('key', profile.role)
-    .single();
+    .in('key', roles);
 
-  if (roleError || !roleRow) {
+  if (roleError || !roleRows || !roleRows.length) {
     console.error('Erreur de récupération du rôle :', roleError && roleError.message);
-    return { ...profile, roleLabel: profile.role, pages: [] };
+    return { ...profile, roles, roleLabel: profile.role, pages: [] };
   }
 
-  return { ...profile, roleLabel: roleRow.label, pages: roleRow.pages || [] };
+  // Droits = union des pages de tous les profils ; libellé : principal d'abord
+  const ordonnes = roles.map(k => roleRows.find(r => r.key === k)).filter(Boolean);
+  const pages = [...new Set(ordonnes.flatMap(r => r.pages || []))];
+  const roleLabel = ordonnes.map(r => r.label).join(' + ');
+  return { ...profile, roles, roleLabel, pages };
+}
+
+/** L'utilisateur a-t-il ce profil (principal ou supplémentaire) ? */
+function aLeProfil(access, cle) {
+  return !!access && ((access.roles || [access.role]).includes(cle));
 }
 
 /** Conservé pour compatibilité : ancien nom, renvoie le même objet. */
@@ -303,6 +321,7 @@ async function renderAuthState() {
   const access = await getCurrentAccess();
 
   ensurePageNavLinks(access);
+  chargerMenuUfolep(access);
 
   if (!el) return;
 
@@ -339,7 +358,7 @@ async function refreshPendingInscriptionsBadge(access) {
   const container = document.getElementById('pendingBadgeContainer');
   if (!container) return;
 
-  if (!access || (access.role !== 'bureau' && access.role !== 'admin')) {
+  if (!access || (!aLeProfil(access, 'bureau') && !aLeProfil(access, 'admin'))) {
     container.innerHTML = '';
     return;
   }
@@ -368,7 +387,7 @@ let pendingBadgeChannel = null;
  * renderAuthState ne dupliquent pas le canal).
  */
 function subscribeToPendingInscriptionsBadge(access) {
-  if (!access || (access.role !== 'bureau' && access.role !== 'admin')) return;
+  if (!access || (!aLeProfil(access, 'bureau') && !aLeProfil(access, 'admin'))) return;
   if (pendingBadgeChannel) return; // déjà abonné sur cette page
 
   pendingBadgeChannel = sbClient
@@ -404,8 +423,33 @@ const TOOL_LINKS = [
   { pageKeys: ['agenda'], href: 'agenda.html', label: 'Agenda et boîte mail', group: 'Administration' },
   { pageKeys: ['helloasso'], href: 'helloasso.html', label: 'Paiements HelloAsso', group: 'Administration' },
   { pageKeys: ['apparence'], href: 'apparence.html', label: 'Apparence du site', group: 'Administration' },
+  { pageKeys: ['ufolep', 'ufolep_gestion'], href: 'ufolep.html', label: 'Vue d\'ensemble', group: 'UFOLEP' },
 ];
-const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'Administration'];
+const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'UFOLEP', 'Administration'];
+
+// Arborescence UFOLEP du menu (saison → équipes), chargée depuis la base
+let menuUfolepHtml = '';
+let menuUfolepCharge = false;
+
+async function chargerMenuUfolep(access) {
+  if (menuUfolepCharge || !access || !access.pages) return;
+  if (!['ufolep', 'ufolep_gestion'].some(k => access.pages.includes(k))) return;
+  menuUfolepCharge = true;
+  try {
+    const [{ data: saisons }, { data: equipes }] = await Promise.all([
+      sbClient.from('ufolep_saisons').select('id, libelle, actif').eq('actif', true).order('libelle', { ascending: false }),
+      sbClient.from('ufolep_equipes').select('id, saison_id, code, nom, ordre').order('ordre').order('code'),
+    ]);
+    menuUfolepHtml = (saisons || []).map(s => {
+      const eqs = (equipes || []).filter(e => e.saison_id === s.id);
+      return `<div class="nav-dropdown-sous-label">Saison ${escapeHtml(s.libelle)}</div>`
+        + eqs.map(e => `<a href="ufolep.html?equipe=${encodeURIComponent(e.id)}" class="nav-lien-sous">${escapeHtml(e.code)} — ${escapeHtml(e.nom)}</a>`).join('');
+    }).join('');
+    if (menuUfolepHtml) ensurePageNavLinks(access);
+  } catch (e) {
+    console.warn('[Menu UFOLEP]', e && e.message);
+  }
+}
 
 function ensurePageNavLinks(access) {
   const menuHtml = buildToolsMenuHtml(access);
@@ -445,7 +489,8 @@ function buildToolsMenuHtml(access) {
     const items = applicable.filter(l => l.group === group);
     if (items.length === 0) return '';
     const links = items.map(l => `<a href="${l.href}">${l.label}</a>`).join('');
-    return `<div class="nav-dropdown-group-label">${group}</div>${links}`;
+    const extra = group === 'UFOLEP' ? menuUfolepHtml : '';
+    return `<div class="nav-dropdown-group-label">${group}</div>${links}${extra}`;
   }).join('');
 }
 

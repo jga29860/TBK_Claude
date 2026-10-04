@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Courses du tournoi — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<title>UFOLEP — TBK</title>
 <script src="js/theme-init.js?v=20260927l"></script>
 <link rel="stylesheet" href="css/style.css?v=20260927l">
 </head>
@@ -28,52 +28,53 @@
 </header>
 
 <main class="wrap page-section page-section--wide">
-  <p class="section-eyebrow">Réservé à l'organisation des tournois</p>
-  <h1 id="pageTitle">Courses du tournoi</h1>
+  <p class="section-eyebrow">UFOLEP · championnat</p>
+  <h1 id="ufTitre">UFOLEP</h1>
 
   <div id="deniedPanel" class="status-panel" hidden>
     <h2>Accès refusé</h2>
-    <p>Cette page est réservée aux profils Tournois (Administration, Gestion ou Courses/Achats).</p>
+    <p>Votre profil n'a pas accès à cette page (droits "UFOLEP — consultation" ou "UFOLEP — gestion", réglables dans Administration → Profils).</p>
   </div>
 
-  <div id="mainPanel" hidden>
+  <div id="content" hidden>
+    <p class="uf-fil" id="ufFil"></p>
+    <p class="form-hint" id="ufHint"></p>
 
-    <div id="pasDeTournoiMessage" class="status-panel" hidden>
-      <h2>Aucun tournoi en cours</h2>
-      <p>Cette page nécessite un tournoi actif (statut "en cours") pour fonctionner.</p>
+    <!-- Vue d'ensemble : saisons → équipes -->
+    <div id="ufVueEnsemble" hidden>
+      <section class="admin-section">
+        <div class="ha-section-entete">
+          <h2 style="margin:0;">Saisons et équipes</h2>
+          <span class="inscriptions-actions uf-gestion" hidden>
+            <button type="button" class="btn btn-primary btn-small" data-ajouter="saison">+ Saison</button>
+            <button type="button" class="btn btn-ghost btn-small" data-ajouter="equipe">+ Équipe</button>
+          </span>
+        </div>
+        <div id="ufFormsSaisonEquipe"></div>
+        <div id="ufArbre"></div>
+      </section>
     </div>
 
-    <div id="contenuCourses" hidden>
-
+    <!-- Vue d'une équipe -->
+    <div id="ufVueEquipe" hidden>
       <section class="admin-section">
-        <h2>Ajouter un article</h2>
-        <form id="articleCourseForm" class="inline-form">
-          <label>Libellé
-            <input type="text" name="libelle" required placeholder="Ex. Bouteilles d'eau">
-          </label>
-          <label>Quantité
-            <input type="number" name="quantite" min="0" step="0.01" value="1" required>
-          </label>
-          <label>Prix unitaire (€) <span class="form-hint-inline">(négatif pour une réduction)</span>
-            <input type="number" name="prix_unitaire" step="0.01" required>
-          </label>
-          <button type="submit" class="btn btn-primary btn-small" id="courseSubmitBtn">Ajouter</button>
-          <button type="button" class="btn btn-ghost btn-small" id="courseCancelBtn" hidden>Annuler la modification</button>
-        </form>
-        <p class="form-hint" id="courseFormHint"></p>
-      </section>
-
-      <section class="admin-section">
-        <h2>Liste des achats <span id="coursesCount" class="count-badge"></span></h2>
-        <div class="table-wrap">
-          <table class="schedule" id="coursesTable">
-            <thead><tr><th>Libellé</th><th>Quantité</th><th>Prix unitaire</th><th>Sous-total</th><th></th></tr></thead>
-            <tbody id="coursesTableBody"></tbody>
-          </table>
+        <div class="ha-section-entete">
+          <div>
+            <h2 style="margin:0;" id="ufEquipeTitre"></h2>
+            <p class="section-lead" id="ufEquipeInfos" style="margin:6px 0 0;"></p>
+          </div>
+          <span class="inscriptions-actions uf-gestion" hidden>
+            <button type="button" class="btn btn-ghost btn-small" id="ufModifierEquipeBtn">Modifier l'équipe</button>
+            <button type="button" class="btn btn-danger btn-small" id="ufSupprimerEquipeBtn">Supprimer l'équipe</button>
+          </span>
         </div>
-        <p class="courses-total" id="coursesTotal"></p>
+        <div id="ufFormEquipe"></div>
+        <div class="field-grid" id="ufBilan" style="margin-top:16px;"></div>
       </section>
 
+      <section class="admin-section" id="ufSectionJoueurs"></section>
+      <section class="admin-section" id="ufSectionRencontres"></section>
+      <section class="admin-section" id="ufSectionClassement"></section>
     </div>
   </div>
 </main>
@@ -92,6 +93,6 @@
 <script src="js/auth.js?v=20260927l"></script>
 <script src="js/theme.js?v=20260927l"></script>
 <script src="js/main.js?v=20260927l"></script>
-<script src="js/courses.js?v=20260927l"></script>
+<script src="js/ufolep.js?v=20260927l"></script>
 </body>
 </html>

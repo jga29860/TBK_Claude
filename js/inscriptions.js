@@ -128,7 +128,7 @@ async function initInscriptionsPage() {
   mainPanel.hidden = false;
   currentAccess = access;
   isAdminUser = access.pages.includes('administration');
-  isBureau = access.role === 'bureau' || isAdminUser;
+  isBureau = aLeProfil(access, 'bureau') || isAdminUser;
   document.getElementById('configSection').hidden = !isAdminUser;
   document.getElementById('envoiGroupeSection').hidden = !isAdminUser;
   if (isAdminUser) bindEnvoiGroupe();
@@ -574,6 +574,7 @@ function renderInscriptionsTableBody(columns) {
   }
 
   const liste = inscriptionsCache.filter(i => inscriptionCorrespondFiltres(i, columns));
+  afficherTotalCotisations(liste);
   if (liste.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription ne correspond aux filtres.</td></tr>`;
     return;
@@ -652,9 +653,32 @@ function renderFiltreColonneCell(colKey) {
   </th>`;
 }
 
+/**
+ * Total des cotisations des inscriptions affichées (filtres appliqués),
+ * sous l'intitulé de la colonne Cotisation, avec la part déjà payée.
+ * Repris aussi sous le titre de la liste (visible sur téléphone, où
+ * l'en-tête du tableau est masqué).
+ */
+function afficherTotalCotisations(liste) {
+  const euros = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+  const total = liste.reduce((t, i) => t + (Number(i.cotisation) || 0), 0);
+  const paye = liste.filter(i => estValeurAffirmative((i.champs || {}).cotisation_payee))
+    .reduce((t, i) => t + (Number(i.cotisation) || 0), 0);
+  const th = document.getElementById('totalCotisationsTh');
+  if (th) th.innerHTML = `Total ${escapeHtml(euros(total))}<br>(payé ${escapeHtml(euros(paye))})`;
+  const resume = document.getElementById('totalCotisationsResume');
+  if (resume) {
+    resume.textContent = liste.length
+      ? `Total des cotisations${liste.length < inscriptionsCache.length ? ' (inscriptions filtrées)' : ''} : ${euros(total)} — payé : ${euros(paye)} — reste à encaisser : ${euros(total - paye)}`
+      : '';
+  }
+}
+
 function renderInscriptionsTableHead(columns) {
   const thead = document.querySelector('#inscriptionsTable thead');
-  const headerRow = `<tr><th>Nom Prénom</th>${columns.map(c => `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th title="Reliée à un compte ?">Compte</th><th></th></tr>`;
+  const headerRow = `<tr><th>Nom Prénom</th>${columns.map(c => c.key === 'cotisation'
+    ? `<th>${escapeHtml(c.label)}<span class="th-total" id="totalCotisationsTh"></span></th>`
+    : `<th>${escapeHtml(c.label)}</th>`).join('')}<th>Statut</th><th title="Reliée à un compte ?">Compte</th><th></th></tr>`;
   const filterRow = `<tr class="filtres-colonnes-row">
     <th><input type="text" class="filtre-colonne-input" data-col="__nom" placeholder="Filtrer…" value="${escapeHtml(filtresColonnes.__nom || '')}"></th>
     ${columns.map(c => renderFiltreColonneCell(c.key)).join('')}

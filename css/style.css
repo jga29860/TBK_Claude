@@ -1644,3 +1644,40 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   .ap-couleur .ap-hex{ grid-column:2; }
   .ap-couleur .ap-non-enregistre{ display:none; }
 }
+
+/* Administration : profils supplémentaires d'un utilisateur */
+.roles-supp > summary{ cursor:pointer; font-size:0.85rem; color:var(--dark); }
+.roles-supp-liste{ display:flex; flex-direction:column; gap:4px; padding:6px 0 2px; }
+.roles-supp-liste .checkbox-item{ font-size:0.85rem; }
+
+/* Inscriptions : total des cotisations sous l'intitulé de colonne */
+.th-total{ display:block; margin-top:4px; font-family:var(--font-body); font-size:0.72rem; font-weight:600; text-transform:none; letter-spacing:0; opacity:0.95; white-space:nowrap; }
+.total-cotisations-resume{ font-weight:700; color:var(--dark); }
+
+/* Menu : arborescence UFOLEP (saison → équipes) */
+.nav-dropdown-sous-label{ padding:8px 16px 2px 22px; font-size:0.72rem; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; }
+.nav-dropdown-menu a.nav-lien-sous{ padding-left:30px; font-size:0.88rem; }
+@media (max-width: 760px){
+  .nav-dropdown-sous-label{ padding:10px 24px 2px 32px; }
+  .nav-dropdown-menu a.nav-lien-sous{ padding-left:40px; }
+}
+
+/* ===== UFOLEP ===== */
+.uf-fil{ font-size:0.9rem; color:var(--ink-soft); margin:-8px 0 8px; }
+.uf-fil a{ color:var(--dark); }
+.uf-saison{ margin-top:20px; }
+.uf-saison-entete{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.uf-saison-entete h3{ margin:0; }
+.uf-equipes{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; margin-top:12px; }
+.uf-equipe-carte{ display:flex; flex-direction:column; gap:2px; padding:14px 16px; border:1px solid var(--border); border-radius:12px; text-decoration:none; background:var(--white); transition:border-color .15s, box-shadow .15s; }
+.uf-equipe-carte:hover{ border-color:var(--green); box-shadow:0 6px 16px rgba(0,0,0,0.06); }
+.uf-equipe-code{ font-family:var(--font-mono); font-weight:700; color:var(--green); font-size:1.1rem; }
+.uf-equipe-nom{ font-weight:700; color:var(--ink); }
+.uf-equipe-division{ font-size:0.8rem; color:var(--ink-soft); }
+.uf-form{ border:1px solid var(--border); border-radius:12px; padding:16px; margin:14px 0; background:var(--pale); }
+.uf-form h3{ margin-top:0; }
+.uf-form .uf-large{ grid-column:1 / -1; }
+.uf-form .uf-large textarea{ font-family:var(--font-body); font-size:0.95rem; padding:10px 12px; border-radius:8px; border:1px solid var(--c-bordure-champ); width:100%; box-sizing:border-box; }
+.uf-form input[type="date"], .uf-form input[type="time"], .uf-form input[type="number"]{ font-family:var(--font-body); font-size:0.95rem; padding:10px 12px; border-radius:8px; border:1px solid var(--c-bordure-champ); background:var(--white); }
+.uf-ligne-tbk td{ font-weight:700; background:var(--c-fond-valide); }
+.uf-kpi-texte{ font-size:1.1rem !important; }

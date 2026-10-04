@@ -19,6 +19,8 @@ const PAGE_CATALOG = [
   { key: 'agenda', label: 'Agenda et boîte mail' },
   { key: 'helloasso', label: 'Paiements HelloAsso' },
   { key: 'apparence', label: 'Apparence du site (couleurs, logo)' },
+  { key: 'ufolep', label: 'UFOLEP — consultation' },
+  { key: 'ufolep_gestion', label: 'UFOLEP — gestion (saisons, équipes, résultats)' },
   { key: 'jeu_cartes', label: 'Jeu de cartes' },
   { key: 'boutique', label: 'Boutique - Achat' },
   { key: 'boutique_gestion', label: 'Boutique - Gestion' },
@@ -491,10 +493,15 @@ async function loadUsers() {
   const tbody = document.getElementById('usersTableBody');
   tbody.innerHTML = '<tr><td colspan="6">Chargement…</td></tr>';
 
-  const { data, error } = await sbClient
+  let { data, error } = await sbClient
     .from('profiles')
-    .select('id, email, display_name, role, created_at')
+    .select('id, email, display_name, role, roles_supplementaires, created_at')
     .order('email', { ascending: true });
+  // Repli si la migration "profils multiples" n'est pas encore exécutée
+  profilsMultiplesDisponibles = !(error && /roles_supplementaires/.test(error.message || ''));
+  if (!profilsMultiplesDisponibles) {
+    ({ data, error } = await sbClient.from('profiles').select('id, email, display_name, role, created_at').order('email', { ascending: true }));
+  }
 
   if (error) {
     tbody.innerHTML = `<tr><td colspan="6">Erreur : ${escapeHtml(error.message)}</td></tr>`;
@@ -517,6 +524,7 @@ async function loadUsers() {
           ${rolesCache.map(r => `<option value="${escapeHtml(r.key)}" ${r.key === u.role ? 'selected' : ''}>${escapeHtml(r.label)}</option>`).join('')}
         </select>
       </td>
+      <td>${profilsMultiplesDisponibles ? renderProfilsSupplementaires(u) : '<span class="form-hint-inline">Migration à exécuter</span>'}</td>
       <td>${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
       <td><button type="button" class="btn btn-ghost btn-small save-user-btn">Enregistrer</button></td>
       <td>${technique
@@ -567,23 +575,59 @@ async function loadUsers() {
     });
   });
 
+  // Le profil principal n'est pas proposé dans les profils supplémentaires
+  tbody.querySelectorAll('.role-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const row = select.closest('tr');
+      row.querySelectorAll('.roles-supp-liste [data-role-cle]').forEach(l => {
+        const estPrincipal = l.getAttribute('data-role-cle') === select.value;
+        l.hidden = estPrincipal;
+        if (estPrincipal) l.querySelector('input').checked = false;
+      });
+    });
+  });
+
   tbody.querySelectorAll('.save-user-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const row = e.target.closest('tr');
       const userId = row.getAttribute('data-user-id');
       const newRole = row.querySelector('.role-select').value;
-      await saveUserRole(userId, newRole);
+      const supplementaires = [...row.querySelectorAll('.role-supp-input:checked')].map(i => i.value).filter(k => k !== newRole);
+      await saveUserRole(userId, newRole, supplementaires);
     });
   });
 }
 
-async function saveUserRole(userId, newRole) {
+let profilsMultiplesDisponibles = true;
+
+/** Cases à cocher des profils supplémentaires (le profil principal est exclu). */
+function renderProfilsSupplementaires(u) {
+  const actuels = (u.roles_supplementaires || []).filter(k => k !== u.role);
+  const resume = actuels.length
+    ? actuels.map(k => (rolesCache.find(r => r.key === k) || {}).label || k).join(', ')
+    : 'Aucun';
+  return `
+    <details class="roles-supp">
+      <summary>${escapeHtml(resume)}</summary>
+      <div class="roles-supp-liste">
+        ${rolesCache.map(r => `
+          <label class="checkbox-item" data-role-cle="${escapeHtml(r.key)}" ${r.key === u.role ? 'hidden' : ''}>
+            <input type="checkbox" class="role-supp-input" value="${escapeHtml(r.key)}" ${actuels.includes(r.key) ? 'checked' : ''}> ${escapeHtml(r.label)}
+          </label>`).join('')}
+      </div>
+    </details>`;
+}
+
+async function saveUserRole(userId, newRole, supplementaires) {
   const hint = document.getElementById('usersHint');
   hint.textContent = 'Enregistrement…';
 
+  const modification = profilsMultiplesDisponibles && Array.isArray(supplementaires)
+    ? { role: newRole, roles_supplementaires: supplementaires }
+    : { role: newRole };
   const { error } = await sbClient
     .from('profiles')
-    .update({ role: newRole })
+    .update(modification)
     .eq('id', userId);
 
   if (error) {
@@ -591,6 +635,7 @@ async function saveUserRole(userId, newRole) {
     return;
   }
   hint.textContent = 'Profil utilisateur mis à jour.';
+  await loadUsers();
 }
 
 // ===== Invitations =====

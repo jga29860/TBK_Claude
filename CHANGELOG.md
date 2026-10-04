@@ -1131,3 +1131,17 @@ Exécutez `supabase/migration_apparence.sql` (droit `apparence` accordé à l'ad
 **Écran** `apparence.html` / `js/apparence.js` / `js/apparence-palette.js` : 68 couleurs (11 principales + 57 d'interface) groupées, référence lue dans `css/style.css`, aperçu en direct, enregistrement des seules différences, "Rétablir toutes les couleurs par défaut", logo (recadrage carré 512 px WebP, envoi, suppression de l'ancien fichier, "Rétablir le logo par défaut").
 
 **Accueil** : logo du club à côté de « Smashez la routine » (`.hero-logo`, `images/logo-tbk-rond-256.webp`), suit le logo personnalisé. Version des fichiers : `?v=20260927j`.
+
+## Total des cotisations, plusieurs profils par utilisateur
+
+Exécutez `supabase/migration_profils_multiples.sql`.
+
+**Total des cotisations** (`inscriptions.js`) : sous l'intitulé de la colonne Cotisation, total des inscriptions affichées (filtres appliqués) et part payée entre parenthèses ; rappel sous la liste avec le reste à encaisser (visible sur mobile).
+
+**Profils multiples** : colonne `profiles.roles_supplementaires` (text[], vide par défaut) ; `current_user_has_access` et `is_admin` tiennent compte de tous les profils (toutes les règles RLS en profitent sans autre changement) ; déclencheur de protection étendu (seul un admin modifie principal et supplémentaires ; dédoublonnage, principal exclu) ; profil supprimé retiré des supplémentaires. Côté site : `getCurrentAccess` renvoie `roles` et l'union des `pages`, libellé "Profil + Profil", fonction `aLeProfil(access, cle)` (remplace les tests `access.role === …`) ; Administration → Utilisateurs : cases "Profils supplémentaires". Repli automatique si la migration n'est pas encore exécutée. Version des fichiers : `?v=20260927k`.
+
+## Section UFOLEP (saison → équipes)
+
+Exécutez `supabase/migration_ufolep.sql` (droits `ufolep` et `ufolep_gestion` accordés à l'admin ; tables `ufolep_saisons`, `ufolep_equipes`, `ufolep_joueurs`, `ufolep_rencontres`, `ufolep_classement` ; RLS : lecture avec l'un des deux droits, écriture avec `ufolep_gestion`).
+
+Nouvelle page `ufolep.html` / `js/ufolep.js` : vue d'ensemble (saisons → équipes), page d'équipe (`?equipe=<id>`) avec bilan, composition, calendrier et résultats (résultat calculé, statut "Jouée" automatique à la saisie d'un score), classement (ligne TBK, date de mise à jour) ; formulaires génériques d'ajout / modification / suppression pour le droit gestion. Menu (`auth.js`) : groupe UFOLEP avec arborescence dynamique Saison → équipes (saisons actives), rafraîchie après chaque modification. `admin.js` : 2 nouveaux droits. Version des fichiers : `?v=20260927l`.
