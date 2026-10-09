@@ -1184,3 +1184,8 @@ Exécutez `supabase/migration_tournoi_salade_simples.sql` : colonnes `salade_tou
 ## Correctif — tournoi salade : « null value in column "simple" »
 
 `salade.js` : chaque match envoyé porte désormais `simple: true/false` (lors d'un envoi groupé, Supabase complète les champs absents par une valeur vide, refusée par la colonne `simple`). Le message « exécutez la migration » ne s'affiche plus que si la colonne est réellement absente. Version des fichiers : `?v=20260927t`.
+
+## Tournoi salade — un joueur supprimé garde son historique dans le classement
+
+Exécutez `supabase/migration_tournoi_salade_retrait.sql` : colonne `salade_joueurs.retire` (aussi intégrée à `migration_tournoi_salade.sql` pour une installation neuve).
+`salade.js` : un joueur ayant au moins un score est « retiré » (`retire = true`, `present = false`) au lieu d'être effacé — exclu des tirages, affiché en bas de la liste des joueurs avec un bouton « Réintégrer », conservé dans le classement avec la mention « (retiré) ». Un joueur sans aucun score est toujours supprimé. Remplacement sur le terrain du tour en cours inchangé. Re-saisie du nom d'un joueur retiré : invitation à le réintégrer. Version des fichiers : `?v=20260927u`.

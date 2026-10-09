@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927t"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927t">
+<script src="js/theme-init.js?v=20260927u"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927u">
 </head>
 <body>
 
@@ -426,14 +426,14 @@
         <li><strong>Droits</strong> : gestion réservée au droit « Tournoi salade (mêlée) — gestion » (<code>tournoi_salade</code>), aux droits Tournois - Administration / Gestion et à l'administrateur. Consultation ouverte à tous, sans connexion.</li>
         <li><strong>Créer un tournoi</strong> : nom, date, nombre de terrains, points par match (indicatif, affiché aux joueurs), formation des doubles (au hasard ou mixte : une femme et un homme par paire dès que possible), équilibrage des niveaux entre les deux paires (case à cocher), matchs en simple (case à cocher, voir ci-dessous). Plusieurs tournois salade peuvent exister ; on choisit celui à afficher dans la liste. Boutons Modifier, Terminer / Rouvrir, Supprimer.</li>
         <li><strong>Joueurs</strong> : ajout un par un (nom, genre et niveau facultatifs) ou ajout rapide de plusieurs joueurs, un par ligne (« Camille Martin ; F ; Confirmé »). Les doublons de nom sont refusés. La case « Présent » retire un joueur des prochains tirages (départ, pause) sans toucher à ses scores ; un retardataire peut être ajouté à tout moment. </li>
-        <li><strong>Ajouter ou supprimer un joueur en cours de tournoi</strong> : un joueur ajouté est tiré dès le tour suivant, en priorité puisqu'il a le moins joué. Un joueur supprimé disparaît du classement ; ses matchs déjà joués restent comptés pour ses partenaires et adversaires (son nom y devient « joueur retiré »). S'il était attendu sur un terrain du tour en cours (match sans score), il est remplacé automatiquement par le joueur au repos ayant le moins joué ; si personne n'est au repos, le tirage du tour est refait (tant qu'aucun score n'y est saisi), sinon le site prévient que le match reste incomplet. La fenêtre de confirmation indique à l'avance ce qui va se passer.</li>
+        <li><strong>Ajouter ou supprimer un joueur en cours de tournoi</strong> : un joueur ajouté est tiré dès le tour suivant, en priorité puisqu'il a le moins joué. Un joueur supprimé alors qu'il a déjà joué est <strong>retiré</strong> et non effacé : il n'est plus tiré au sort et passe en bas de la liste des joueurs (mention « Retiré »), mais <strong>il reste dans le classement avec tout son historique</strong> (mention « (retiré) ») ; le bouton « Réintégrer » le fait revenir dans les tirages avec ses résultats. Un joueur qui n'a encore aucun score est réellement supprimé. S'il était attendu sur un terrain du tour en cours (match sans score), il est remplacé automatiquement par le joueur au repos ayant le moins joué ; si personne n'est au repos, le tirage du tour est refait (tant qu'aucun score n'y est saisi), sinon le site prévient que le match reste incomplet. La fenêtre de confirmation indique à l'avance ce qui va se passer.</li>
         <li><strong>Matchs en simple</strong> (option cochée par défaut) : quand 2 ou 3 joueurs devraient passer leur tour et qu'un terrain reste libre, deux d'entre eux jouent un simple (le 3<sup>e</sup> se repose). Le tirage fait tourner les simples (ceux qui en ont le moins fait sont choisis en priorité), évite les mêmes adversaires, les écarts de niveau et les simples homme contre femme. Les simples comptent comme les doubles au classement ; la carte du terrain porte la mention « Simple », la liste des joueurs indique « dont n simple(s) », et « Mes matchs » affiche « en simple contre … ». Exemple : 14 joueurs sur 4 terrains → 3 doubles + 1 simple, personne au repos (au lieu de 2 au repos).</li>
         <li><strong>Tirage d'un tour</strong> (« Générer le tour suivant ») : nombre de matchs = nombre de terrains, limité par le nombre de joueurs présents ÷ 4 ; les autres se reposent. Ceux qui ont le plus joué se reposent en premier, ce qui donne à tous le même nombre de matchs (à un près) et fait jouer immédiatement un retardataire. Parmi plusieurs milliers de tirages possibles, le site retient celui qui évite le mieux : de rejouer avec un même partenaire, puis de retrouver les mêmes adversaires, puis un écart de niveau entre les paires (si l'option est cochée) et, en formation mixte, une paire mixte opposée à une paire non mixte. Si un partenaire déjà rencontré est inévitable (peu de joueurs, beaucoup de tours), le site le signale.</li>
         <li><strong>Refaire le tirage</strong> d'un tour : possible tant qu'aucun score n'y est saisi. <strong>Supprimer ce tour</strong> : retire le dernier tour (et ses scores, après confirmation) ; le classement est recalculé.</li>
         <li><strong>Scores</strong> : saisis sur la carte de chaque terrain (touche Entrée ou bouton Valider), corrigeables, y compris dans les tours précédents (section « Tours précédents ») ; un match nul est refusé. La paire gagnante est surlignée en vert. Le site prévient si l'on génère le tour suivant alors que des scores manquent.</li>
         <li><strong>Classement individuel</strong> : victoires, puis différence de points, puis points marqués ; colonnes Joués, Victoires, Défaites, Points marqués / encaissés, Différence et nombre de repos. Médailles 🥇🥈🥉 une fois le tournoi terminé. Sur téléphone, tableau compact (colonnes essentielles).</li>
         <li><strong>Page publique et QR code</strong> : le bandeau du tournoi affiche un QR code et un lien « Ouvrir la page publique » (à afficher dans la salle ou sur un écran). Sans connexion, on y voit le tour en cours (terrains, doubles, scores, joueurs au repos) et le classement, rafraîchis toutes les 20 secondes. Le bloc <strong>« Mes matchs »</strong> permet à chacun de choisir son nom : il voit son terrain, son partenaire et ses adversaires du tour en cours (ou « au repos ») et son rang ; son nom est surligné partout. Ce choix est mémorisé sur son téléphone. Un organisateur qui ouvre ce lien voit la vue publique, avec un lien pour revenir à la gestion.</li>
-        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_salade.sql</code> puis <code>supabase/migration_tournoi_salade_simples.sql</code>, puis cocher le droit « Tournoi salade (mêlée) — gestion » sur les profils concernés (Administration → Profils) si les profils Tournois ne suffisent pas. Les 4 tables figurent dans la page Sauvegarde. Les visites de la page sont comptées dans le journal des visites publiques.</li>
+        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_salade.sql</code> puis <code>supabase/migration_tournoi_salade_simples.sql</code> et <code>supabase/migration_tournoi_salade_retrait.sql</code>, puis cocher le droit « Tournoi salade (mêlée) — gestion » sur les profils concernés (Administration → Profils) si les profils Tournois ne suffisent pas. Les 4 tables figurent dans la page Sauvegarde. Les visites de la page sont comptées dans le journal des visites publiques.</li>
       </ul>
     </section>
 
@@ -774,12 +774,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927t"></script>
-<script src="js/tableaux-mobile.js?v=20260927t"></script>
-<script src="js/supabase-config.js?v=20260927t"></script>
-<script src="js/auth.js?v=20260927t"></script>
-<script src="js/theme.js?v=20260927t"></script>
-<script src="js/main.js?v=20260927t"></script>
-<script src="js/documentation.js?v=20260927t"></script>
+<script src="js/menu-mobile.js?v=20260927u"></script>
+<script src="js/tableaux-mobile.js?v=20260927u"></script>
+<script src="js/supabase-config.js?v=20260927u"></script>
+<script src="js/auth.js?v=20260927u"></script>
+<script src="js/theme.js?v=20260927u"></script>
+<script src="js/main.js?v=20260927u"></script>
+<script src="js/documentation.js?v=20260927u"></script>
 </body>
 </html>

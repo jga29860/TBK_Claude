@@ -191,8 +191,10 @@ function renderJoueurs() {
   const section = document.getElementById('sdJoueursSection');
   section.hidden = !sd.gestion;
   if (!sd.gestion) return;
-  const presents = sd.joueurs.filter(j => j.present).length;
-  document.getElementById('sdJoueursCompteur').textContent = `(${presents} présent${presents > 1 ? 's' : ''} / ${sd.joueurs.length})`;
+  const presents = sd.joueurs.filter(j => j.present && !j.retire).length;
+  const actifs = sd.joueurs.filter(j => !j.retire);
+  const retires = sd.joueurs.filter(j => j.retire);
+  document.getElementById('sdJoueursCompteur').textContent = `(${presents} présent${presents > 1 ? 's' : ''} / ${actifs.length}${retires.length ? ` · ${retires.length} retiré${retires.length > 1 ? 's' : ''}` : ''})`;
   const nbMatchs = {}, nbSimples = {};
   sd.matchs.forEach(m => sdIdsMatch(m).forEach(id => {
     if (!id) return;
@@ -200,7 +202,18 @@ function renderJoueurs() {
     if (m.simple) nbSimples[id] = (nbSimples[id] || 0) + 1;
   }));
   const body = document.getElementById('sdJoueursBody');
-  body.innerHTML = sd.joueurs.length ? sd.joueurs.map(j => `
+  const liste = [...actifs, ...retires];
+  body.innerHTML = liste.length ? liste.map(j => j.retire ? `
+    <tr data-id="${j.id}" class="sd-absent sd-retire">
+      <td data-label="Joueur"><strong>${escapeHtml(j.nom)}</strong></td>
+      <td data-label="Genre">${j.genre === 'F' ? 'Femme' : j.genre === 'H' ? 'Homme' : '—'}</td>
+      <td data-label="Niveau">${escapeHtml(j.niveau || '—')}</td>
+      <td data-label="Présent"><span class="statut-badge sd-badge-retire">Retiré</span></td>
+      <td data-label="Matchs">${nbMatchs[j.id] || 0}${nbSimples[j.id] ? ` <span class="form-hint-inline">(dont ${nbSimples[j.id]} simple${nbSimples[j.id] > 1 ? 's' : ''})</span>` : ''}</td>
+      <td data-label="Actions"><div class="actions-stack">
+        <button type="button" class="btn btn-ghost btn-small sd-joueur-reintegrer">Réintégrer</button>
+      </div></td>
+    </tr>` : `
     <tr data-id="${j.id}" class="${j.present ? '' : 'sd-absent'}">
       <td data-label="Joueur"><strong>${escapeHtml(j.nom)}</strong></td>
       <td data-label="Genre">${j.genre === 'F' ? 'Femme' : j.genre === 'H' ? 'Homme' : '—'}</td>
@@ -324,7 +337,7 @@ function renderClassement() {
     const medaille = sd.tournoi.statut === 'termine' && l.joues ? ({ 1: '🥇 ', 2: '🥈 ', 3: '🥉 ' }[rang] || '') : '';
     return `<tr class="${l.id === moi ? 'sd-ligne-moi' : ''}">
       <td data-label="#">${medaille}${rang}</td>
-      <td data-label="Joueur"><strong>${escapeHtml(l.nom)}</strong></td>
+      <td data-label="Joueur"><strong>${escapeHtml(l.nom)}</strong>${(sdJoueur(l.id) || {}).retire ? ' <span class="form-hint-inline">(retiré)</span>' : ''}</td>
       <td data-label="Joués">${l.joues}</td>
       <td data-label="Victoires">${l.victoires}</td>
       <td data-label="Défaites">${l.defaites}</td>
@@ -471,7 +484,12 @@ async function enregistrerJoueur(e) {
   const donnees = { nom: form.nom.value.trim(), genre: form.genre.value || null, niveau: form.niveau.value || null };
   if (!donnees.nom) return;
   const doublon = sd.joueurs.find(j => j.nom.toLowerCase() === donnees.nom.toLowerCase() && (!sd.joueurEnEdition || j.id !== sd.joueurEnEdition));
-  if (doublon) { hint.textContent = `« ${donnees.nom} » est déjà inscrit : ajoutez une initiale pour les distinguer.`; return; }
+  if (doublon) {
+    hint.textContent = doublon.retire
+      ? `« ${donnees.nom} » a été retiré du tournoi : utilisez le bouton « Réintégrer » sur sa ligne pour qu'il reprenne avec son historique.`
+      : `« ${donnees.nom} » est déjà inscrit : ajoutez une initiale pour les distinguer.`;
+    return;
+  }
   const res = sd.joueurEnEdition
     ? await sbClient.from('salade_joueurs').update(donnees).eq('id', sd.joueurEnEdition)
     : await sbClient.from('salade_joueurs').insert({ ...donnees, tournoi_id: sd.tournoi.id });
@@ -524,6 +542,11 @@ async function clicTableJoueurs(e) {
     form.nom.focus();
   } else if (e.target.closest('.sd-joueur-supprimer')) {
     await supprimerJoueur(j);
+  } else if (e.target.closest('.sd-joueur-reintegrer')) {
+    const { error } = await sbClient.from('salade_joueurs').update({ retire: false, present: true }).eq('id', j.id);
+    if (error) { alert('Erreur : ' + error.message); return; }
+    document.getElementById('sdJoueurHint').textContent = `${j.nom} réintégré : il sera tiré dès le prochain tour.`;
+    await chargerDonnees(); renderTout();
   }
 }
 
@@ -547,17 +570,20 @@ async function supprimerJoueur(j) {
   const remplacant = matchEnCours ? enAttente.slice().sort((a, b) => (joues[a] || 0) - (joues[b] || 0))[0] : null;
   const tourSansScore = tour ? !sdMatchsDuTour(tour.id).some(sdScoreSaisi) : false;
 
-  const lignes = [`Supprimer ${j.nom} du tournoi ?`];
-  if (aJoue) lignes.push('Ses matchs déjà joués restent comptés pour ses partenaires et adversaires ; il disparaît du classement.');
+  // Un joueur ayant déjà joué est « retiré » (conservé avec son historique
+  // dans le classement) ; sinon il est réellement supprimé.
+  const retrait = sd.matchs.some(m => sdIdsMatch(m).includes(j.id) && sdScoreSaisi(m));
+  const lignes = [retrait ? `Retirer ${j.nom} du tournoi ?` : `Supprimer ${j.nom} du tournoi ?`];
+  if (retrait) lignes.push('Il ne sera plus tiré au sort, mais il reste dans le classement avec tous ses résultats (il pourra être réintégré).');
   if (matchEnCours) {
     if (remplacant) lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} : ${sdNom(remplacant)} (au repos) le remplacera.`);
     else if (tourSansScore) lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} et personne n'est au repos : le tirage du tour ${tour.numero} sera refait.`);
-    else lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} et personne n'est au repos pour le remplacer : ce match restera incomplet (supprimez ou refaites le tour si besoin).`);
+    else lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} et personne n'est au repos pour le remplacer : ce match restera ${retrait ? 'à son nom' : 'incomplet'} (saisissez un score, ou supprimez / refaites le tour si besoin).`);
   }
   lignes.push('Pour une simple pause, décochez plutôt « Présent ».');
   if (!confirm(lignes.join('\n\n'))) return;
 
-  hint.textContent = 'Suppression…';
+  hint.textContent = retrait ? 'Retrait…' : 'Suppression…';
   // 1. Remplacement sur le terrain du tour en cours
   if (matchEnCours && remplacant) {
     const champ = ['joueur_a1', 'joueur_a2', 'joueur_b1', 'joueur_b2'].find(c => matchEnCours[c] === j.id);
@@ -570,21 +596,33 @@ async function supprimerJoueur(j) {
     const r2 = await sbClient.from('salade_tours').update({ repos }).eq('id', tour.id);
     if (r2.error) { hint.textContent = 'Erreur : ' + r2.error.message; return; }
   }
-  // 3. Suppression du joueur (ses places dans les matchs passent à vide)
-  const { error } = await sbClient.from('salade_joueurs').delete().eq('id', j.id);
-  if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
-  if (sdLireMoi() === j.id) sdEcrireMoi('');
+  // 3. Retrait (conservé dans le classement) ou suppression réelle
+  if (retrait) {
+    const { error } = await sbClient.from('salade_joueurs').update({ retire: true, present: false }).eq('id', j.id);
+    if (error) {
+      hint.textContent = /retire/.test(error.message || '')
+        ? 'Retrait impossible : exécutez supabase/migration_tournoi_salade_retrait.sql dans Supabase. Message technique : ' + error.message
+        : 'Erreur : ' + error.message;
+      await chargerDonnees(); renderTout();
+      return;
+    }
+  } else {
+    const { error } = await sbClient.from('salade_joueurs').delete().eq('id', j.id);
+    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+    if (sdLireMoi() === j.id) sdEcrireMoi('');
+  }
+  const verbe = retrait ? 'retiré (conservé dans le classement)' : 'supprimé';
   await chargerDonnees();
   if (matchEnCours && !remplacant && tourSansScore) {
     const r3 = await sbClient.from('salade_tours').delete().eq('id', tour.id);
     if (r3.error) { hint.textContent = 'Erreur : ' + r3.error.message; return; }
     await chargerDonnees();
-    hint.textContent = `${j.nom} supprimé.`;
+    hint.textContent = `${j.nom} ${verbe}.`;
     renderTout();
     await tirerEtEnregistrer(tour.numero);
     return;
   }
-  hint.textContent = `${j.nom} supprimé${remplacant ? ` — remplacé sur le terrain ${matchEnCours.terrain} par ${sdNom(remplacant)}` : ''}.`;
+  hint.textContent = `${j.nom} ${verbe}${remplacant ? ` — remplacé sur le terrain ${matchEnCours.terrain} par ${sdNom(remplacant)}` : ''}.`;
   renderTout();
 }
 
@@ -599,7 +637,7 @@ async function changementPresence(e) {
 // ----- Tours -----
 async function genererTour() {
   const hint = document.getElementById('sdTourHint');
-  const presents = sd.joueurs.filter(j => j.present);
+  const presents = sd.joueurs.filter(j => j.present && !j.retire);
   if (presents.length < (sdSimplesActifs() ? 2 : 4)) { hint.textContent = `Il faut au moins ${sdSimplesActifs() ? 2 : 4} joueurs présents.`; return; }
   const dernier = sdDernierTour();
   if (dernier) {
