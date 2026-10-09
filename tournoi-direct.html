@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tournoi en direct — TBK</title>
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<link rel="manifest" href="manifest-tournoi.webmanifest">
+<meta name="theme-color" content="#006100">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TBK Tournoi">
+<link rel="apple-touch-icon" href="images/icone-tournoi-192.png">
+<script src="js/theme-init.js?v=20260927x"></script>
+<script>try { if (localStorage.getItem('tbk_td_sombre') === '1') document.documentElement.classList.add('td-sombre'); } catch (e) {}</script>
+<link rel="stylesheet" href="css/style.css?v=20260927x">
+</head>
+<body class="td-page">
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap td-main">
+  <div class="td-entete">
+    <div class="td-entete-titre">
+      <p class="section-eyebrow">Tournoi en direct</p>
+      <h1 id="tdTitre">Tournoi</h1>
+      <p class="td-sous-titre" id="tdSousTitre"></p>
+    </div>
+    <div class="td-entete-outils">
+      <button type="button" class="td-outil" id="tdActualiser" title="Actualiser maintenant">
+        <span aria-hidden="true">↻</span> <span id="tdMaj">—</span>
+      </button>
+      <button type="button" class="td-outil" id="tdTheme" title="Mode sombre / clair" aria-label="Basculer le mode sombre">🌙</button>
+      <button type="button" class="td-outil" id="tdInstaller" hidden>📲 Installer</button>
+    </div>
+  </div>
+
+  <div id="tdAppel" class="td-appel" hidden role="alert">
+    <strong id="tdAppelTexte"></strong>
+    <button type="button" class="td-appel-fermer" id="tdAppelFermer" aria-label="Fermer">✕</button>
+  </div>
+
+  <div id="tdAucun" class="status-panel" hidden>
+    <h2>Aucun tournoi en cours</h2>
+    <p>Revenez le jour du tournoi : cette page affichera vos matchs, les terrains et les résultats en direct.</p>
+  </div>
+
+  <!-- ===== Mes matchs ===== -->
+  <section class="td-vue" id="vue-mes" data-vue="mes" hidden>
+    <div class="td-carte">
+      <label class="td-label" for="tdEquipeSelect">Mon équipe</label>
+      <select id="tdEquipeSelect" class="td-select"></select>
+      <p class="td-aide">Choisissez votre équipe une fois : votre téléphone s'en souvient, et vous serez prévenu quand votre match est lancé.</p>
+      <button type="button" class="btn btn-ghost btn-small td-btn-alertes" id="tdAlertes" hidden>🔔 Activer les alertes</button>
+    </div>
+    <div id="tdMesContenu"></div>
+  </section>
+
+  <!-- ===== En direct ===== -->
+  <section class="td-vue" id="vue-direct" data-vue="direct" hidden>
+    <h2 class="td-h2">Terrains</h2>
+    <div class="td-terrains" id="tdTerrains"></div>
+    <h2 class="td-h2">Avancement</h2>
+    <div id="tdAvancement"></div>
+    <h2 class="td-h2">Prochains matchs <span class="td-aide-inline">(ordre prévu, indicatif)</span></h2>
+    <div id="tdProchains"></div>
+    <h2 class="td-h2">Derniers résultats</h2>
+    <div id="tdResultats"></div>
+    <div class="td-carte td-partage">
+      <img id="tdQr" alt="QR code de cette page" width="110" height="110">
+      <div><strong>Partager cette page</strong><p class="td-aide">À afficher ou imprimer dans la salle : chacun suit le tournoi sur son téléphone, sans compte. Astuce : « Installer » (ou « Ajouter à l'écran d'accueil ») pour l'ouvrir comme une application.</p></div>
+    </div>
+  </section>
+
+  <!-- ===== Poules ===== -->
+  <section class="td-vue" id="vue-poules" data-vue="poules" hidden>
+    <div class="td-puces" id="tdPucesPoules"></div>
+    <div id="tdPoules"></div>
+  </section>
+
+  <!-- ===== Tableau final ===== -->
+  <section class="td-vue" id="vue-tableau" data-vue="tableau" hidden>
+    <div class="td-puces" id="tdPucesTableau"></div>
+    <div class="td-puces td-puces-phase" id="tdPucesPhase"></div>
+    <div id="tdPodium"></div>
+    <div id="tdTableau"></div>
+  </section>
+</main>
+
+<nav class="td-onglets" id="tdOnglets" aria-label="Sections du tournoi" hidden>
+  <button type="button" data-vue="mes"><span aria-hidden="true">🙋</span><span>Mes matchs</span></button>
+  <button type="button" data-vue="direct"><span aria-hidden="true">🏸</span><span>En direct</span></button>
+  <button type="button" data-vue="poules"><span aria-hidden="true">📋</span><span>Poules</span></button>
+  <button type="button" data-vue="tableau"><span aria-hidden="true">🏆</span><span>Tableau</span></button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20260927x"></script>
+<script src="js/supabase-config.js?v=20260927x"></script>
+<script src="js/visite-log.js?v=20260927x"></script>
+<script src="js/auth.js?v=20260927x"></script>
+<script src="js/theme.js?v=20260927x"></script>
+<script src="js/main.js?v=20260927x"></script>
+<script src="js/tournoi-direct.js?v=20260927x"></script>
+</body>
+</html>

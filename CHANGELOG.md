@@ -1200,3 +1200,14 @@ Exécutez `supabase/migration_tournoi_sans_partenaire.sql` : colonne `equipes.ch
 ## Tournoi — joueur sans partenaire saisi par l'organisation
 
 `tournoi-inscriptions` : case « Joueur sans partenaire » dans le formulaire de saisie (double uniquement, `majChampsJoueur2`) : le joueur est enregistré en attente avec `cherche_partenaire`, sans joueur 2 ; cochée sur une équipe validée, elle la sort des poules (confirmation). Correctif : « Saisir un partenaire » affiche bien les champs du joueur 2. Version des fichiers : `?v=20260927w`.
+
+## Tournoi — interface mobile inspirée de BadZooka (lots 1 à 4)
+
+Aucune règle du tournoi modifiée ; pages PC identiques au pixel près (comparaison automatique avant / après sur toutes les pages, sauf l'accueil dont le volant est animé). Seul ajout visible sur PC : le lien « Tournoi en direct (joueurs) » dans le menu Tournoi.
+
+- **Nouvelle page `tournoi-direct.html`** (`js/tournoi-direct.js`), publique : onglets Mes matchs / En direct / Poules / Tableau ; équipe mémorisée ; alerte « C'est à vous » (bandeau, vibration, bip, notification) ; terrains, avancement, prochains matchs (ordre rotation puis numéro), résultats ; poules en cartes (même classement que `poules.js`) ; tableau un tour par écran (scroll-snap) et podium ; actualisation 15 s / 45 s et indicateur ; mode sombre (`html.td-sombre`) ; QR de partage.
+- **Installable** : `manifest-tournoi.webmanifest`, `sw-tournoi.js` (sans cache), icônes `images/icone-tournoi-192.png` / `-512.png`.
+- **Planning sur téléphone** : `js/planning-mobile.js` chargé par `planning.html`, actif uniquement ≤ 760 px (`.pm-*` masqués au-delà) : barre Lancer / Score / Terrains / Avancement / Joueurs ; saisie au pouce enregistrée via `saveMatchField` (cache local mis à jour entre deux champs) ; « Lancer » déclenche le bouton existant.
+- **Saisie du score par les joueurs** : `supabase/migration_tournoi_saisie_joueurs.sql` — tables `tournoi_arbitrage` (actif, codes par terrain) et `matchs_scores_proposes` (réservées à l'organisation), fonctions `tournoi_arbitrage_actif` et `proposer_score_match` (code du terrain, match en cours, 2 sets gagnants, 5 envois / minute) ; validation, correction ou rejet dans la fenêtre « Joueurs » du planning mobile.
+- **Pages publiques du tournoi** (classe `page-tournoi-public` sur Phase Poule, Phase finale, inscription publique, bénévoles) : zones tactiles ≥ 44 px et saisie à 16 px, sur téléphone uniquement.
+Version des fichiers : `?v=20260927x`.

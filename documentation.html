@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927w"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927w">
+<script src="js/theme-init.js?v=20260927x"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927x">
 </head>
 <body>
 
@@ -432,6 +432,30 @@
         <li><strong>Fil de discussion</strong> propre au tournoi, ouvert lui aussi sans connexion en lecture et en écriture (avec un champ "Votre nom" facultatif pour les visiteurs anonymes) : messages, réponses indentées, pièces jointes. Les réactions (👍 👎 ❤️) restent réservées aux comptes connectés, une identité stable étant nécessaire pour appliquer la règle "une seule réaction par personne".</li>
       </ul>
     
+      <h3 class="admin-subheading">6.10bis Tournoi en direct (tournoi-direct.html) et planning sur téléphone</h3>
+      <p>Une page pensée pour le téléphone, <strong>ouverte à tous sans connexion</strong>, regroupe tout ce qu'un joueur cherche le jour du tournoi. Elle ne modifie ni les règles du tournoi ni les pages PC : elle lit les mêmes données (équipes, matchs) et applique exactement le même classement que Phase Poule. Accès : QR code affiché en bas de l'onglet « En direct » (à imprimer), dans la fenêtre « Joueurs » du planning sur téléphone, ou menu Tournoi → « Tournoi en direct (joueurs) ».</p>
+      <ul>
+        <li><strong>Barre d'onglets en bas de l'écran</strong> (en haut sur PC) : Mes matchs · En direct · Poules · Tableau.</li>
+        <li><strong>Mes matchs</strong> : chacun choisit son équipe une fois (mémorisé sur son téléphone) et voit son terrain s'il joue, sinon son prochain match (adversaire, nombre approximatif de matchs avant le sien), son rang dans la poule et tous ses matchs ; son équipe est surlignée partout.</li>
+        <li><strong>« C'est à vous ! »</strong> : quand le match de l'équipe choisie est lancé, un bandeau orange s'affiche avec le terrain, le téléphone vibre et émet un bip (page ouverte), et une notification apparaît si les alertes ont été activées (bouton « 🔔 Activer les alertes »).</li>
+        <li><strong>En direct</strong> : carte de chaque terrain (libre / occupé, équipes, durée), barres d'avancement par compétition (poules, phase finale), prochains matchs dans l'ordre prévu du planning (indicatif) et derniers résultats.</li>
+        <li><strong>Poules</strong> : une carte compacte par poule (rang, équipe, joués, points, différence de sets ; ★ tête de poule), matchs de la poule dépliables ; choix de la compétition par pastilles.</li>
+        <li><strong>Tableau</strong> : Principale / Consolante, <strong>un tour par écran</strong> sur téléphone (glisser vers la gauche ou toucher le nom du tour), positionné sur le tour en cours ; <strong>podium</strong> 🥇🥈🥉 dès que la finale est jouée (3<sup>es</sup> ex æquo : les perdants des demi-finales, aucune petite finale n'étant ajoutée).</li>
+        <li><strong>Mise à jour</strong> automatique toutes les 15 secondes (45 s en arrière-plan), avec l'indication « il y a 12 s » et un bouton ↻ pour actualiser.</li>
+        <li><strong>Installable</strong> : bouton « 📲 Installer » (ou menu du navigateur → « Ajouter à l'écran d'accueil ») pour l'ouvrir comme une application, en plein écran, avec l'icône du club. Aucune donnée n'est mise en cache : tout reste lu en direct.</li>
+        <li><strong>Mode sombre</strong> au choix de chacun (bouton 🌙 / ☀️, mémorisé sur le téléphone).</li>
+      </ul>
+      <p><strong>Planning sur téléphone</strong> (page Planning ouverte sur un écran de 760 px ou moins ; la page PC est strictement inchangée) : une barre d'actions fixe en bas de l'écran.</p>
+      <ul>
+        <li><strong>▶️ Lancer</strong> : lance le premier match lançable de la liste, après confirmation (terrain et équipes) — via le bouton « Lancer » habituel, donc avec les mêmes contrôles (présence, temps de repos, terrain libre).</li>
+        <li><strong>✏️ Score</strong> : choix parmi les matchs en cours (et les derniers terminés, pour corriger), puis saisie au pouce avec de gros boutons − / + (ou en tapant le nombre). L'enregistrement passe par la même fonction que la saisie habituelle : fin du match, vainqueur inscrit au tour suivant en phase finale, rotations.</li>
+        <li><strong>🏸 Terrains</strong> (avec le nombre de terrains libres) : occupation de chaque terrain ; toucher un terrain occupé ouvre la saisie de son score.</li>
+        <li><strong>📊 Avancement</strong> : matchs joués / total, matchs en cours, terrains libres, durée moyenne, barres par compétition et par phase.</li>
+        <li><strong>📨 Joueurs</strong> (pastille rouge = scores à valider) : QR code de la page Tournoi en direct, et <strong>saisie du score par les joueurs</strong> (facultative, désactivée par défaut) : une fois activée, chaque terrain reçoit un code de 4 caractères (bouton « Imprimer » : une page par terrain, à afficher sur place). Le joueur d'un match en cours saisit dans « Mes matchs » le code de son terrain et le score ; le serveur vérifie le code, que le match est bien en cours et que le score désigne un vainqueur (2 sets gagnants). Le score n'est qu'une <strong>proposition</strong> : vous la <strong>validez</strong>, la <strong>corrigez</strong> ou la <strong>rejetez</strong> dans cette fenêtre ; rien n'est appliqué sans validation. « Nouveaux codes » rend les anciens codes inutilisables.</li>
+        <li><strong>Mise en place</strong> de la saisie par les joueurs : exécuter une fois <code>supabase/migration_tournoi_saisie_joueurs.sql</code> (nouvelles tables uniquement ; sans ce script, tout le reste fonctionne).</li>
+      </ul>
+      <p><strong>Pages publiques du tournoi sur téléphone</strong> (Phase Poule, Phase finale, inscription publique, bénévoles) : boutons et champs d'au moins 44 px de haut et texte de saisie à 16 px (plus de zoom automatique de l'iPhone).</p>
+
       <h3 class="admin-subheading">6.11 Tournoi salade (salade.html)</h3>
       <p>Tournoi à la mêlée, idéal pour les soirées et animations du club : chaque joueur s'inscrit seul et, à chaque tour, le site forme de nouveaux doubles au hasard, les place sur les terrains et tient un classement individuel. Ce module est <strong>totalement indépendant du tournoi classique</strong> (ses propres tables <code>salade_*</code>) : il peut se dérouler en même temps qu'un tournoi en cours, sans interaction.</p>
       <ul>
@@ -786,12 +810,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927w"></script>
-<script src="js/tableaux-mobile.js?v=20260927w"></script>
-<script src="js/supabase-config.js?v=20260927w"></script>
-<script src="js/auth.js?v=20260927w"></script>
-<script src="js/theme.js?v=20260927w"></script>
-<script src="js/main.js?v=20260927w"></script>
-<script src="js/documentation.js?v=20260927w"></script>
+<script src="js/menu-mobile.js?v=20260927x"></script>
+<script src="js/tableaux-mobile.js?v=20260927x"></script>
+<script src="js/supabase-config.js?v=20260927x"></script>
+<script src="js/auth.js?v=20260927x"></script>
+<script src="js/theme.js?v=20260927x"></script>
+<script src="js/main.js?v=20260927x"></script>
+<script src="js/documentation.js?v=20260927x"></script>
 </body>
 </html>
