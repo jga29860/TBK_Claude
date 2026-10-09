@@ -638,7 +638,7 @@ async function tirerEtEnregistrer(numero) {
     const r = await sbClient.from('salade_matchs').insert(lignes);
     if (r.error) {
       await sbClient.from('salade_tours').delete().eq('id', tour.id);
-      if (/simple/.test(r.error.message || '')) throw new Error('Les matchs en simple nécessitent la mise à jour de la base : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase (ou décochez l\'option « simples » du tournoi).');
+      if (/simple/.test(r.error.message || '')) throw new Error('Les matchs en simple nécessitent la mise à jour de la base : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase (ou décochez l\'option « simples » du tournoi). Message technique : ' + r.error.message);
       throw r.error;
     }
     await chargerDonnees(); renderTout();
