@@ -1196,3 +1196,7 @@ Exécutez `supabase/migration_tournoi_sans_partenaire.sql` : colonne `equipes.ch
 `tournoi-inscription-publique` : case « Je n'ai pas de partenaire » (double uniquement) masquant le joueur 2, nombre de joueurs déjà en recherche, message de confirmation adapté.
 `tournoi-inscriptions.js` : section « 🤝 Joueurs sans partenaire » (`renderSansPartenaireBlock`) avec partenaire suggéré par niveau proche (`partenairesSuggeres`), bouton « Associer » (`associerJoueursSeuls` : la demande la plus ancienne devient la paire, coordonnées réunies dans `equipes_contacts`, l'autre demande est retirée), « Saisir un partenaire » (formulaire d'édition, drapeau levé à l'enregistrement), « Refuser ». Joueurs seuls exclus des demandes en attente, des places et de la répartition automatique en poules.
 `emargement.js`, `planning.js`, `poules.js`, `phase-finale.js` : joueurs seuls ignorés au chargement. Version des fichiers : `?v=20260927v`.
+
+## Tournoi — joueur sans partenaire saisi par l'organisation
+
+`tournoi-inscriptions` : case « Joueur sans partenaire » dans le formulaire de saisie (double uniquement, `majChampsJoueur2`) : le joueur est enregistré en attente avec `cherche_partenaire`, sans joueur 2 ; cochée sur une équipe validée, elle la sort des poules (confirmation). Correctif : « Saisir un partenaire » affiche bien les champs du joueur 2. Version des fichiers : `?v=20260927w`.

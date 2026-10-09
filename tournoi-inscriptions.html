@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inscriptions tournoi — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
-<script src="js/theme-init.js?v=20260927v"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927v">
+<script src="js/theme-init.js?v=20260927w"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927w">
 </head>
 <body>
 
@@ -66,6 +66,10 @@
         </div>
         <form id="equipeForm">
           <p class="form-hint equipe-infos-demande" id="equipeInfosDemande" hidden></p>
+          <label class="sans-partenaire-case" id="sansPartenaireLabel" hidden>
+            <input type="checkbox" name="sans_partenaire" id="sansPartenaireStaff">
+            Joueur sans partenaire (il rejoindra la section « 🤝 Joueurs sans partenaire » en attendant qu'on lui en associe un)
+          </label>
           <div class="field-grid">
             <label>Nom du joueur 1
               <input type="text" name="joueur1_nom" required>
@@ -156,12 +160,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927v"></script>
-<script src="js/tableaux-mobile.js?v=20260927v"></script>
-<script src="js/supabase-config.js?v=20260927v"></script>
-<script src="js/auth.js?v=20260927v"></script>
-<script src="js/theme.js?v=20260927v"></script>
-<script src="js/main.js?v=20260927v"></script>
-<script src="js/tournoi-inscriptions.js?v=20260927v"></script>
+<script src="js/menu-mobile.js?v=20260927w"></script>
+<script src="js/tableaux-mobile.js?v=20260927w"></script>
+<script src="js/supabase-config.js?v=20260927w"></script>
+<script src="js/auth.js?v=20260927w"></script>
+<script src="js/theme.js?v=20260927w"></script>
+<script src="js/main.js?v=20260927w"></script>
+<script src="js/tournoi-inscriptions.js?v=20260927w"></script>
 </body>
 </html>

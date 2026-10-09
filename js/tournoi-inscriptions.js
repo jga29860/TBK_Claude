@@ -79,13 +79,6 @@ async function onCompetitionChange() {
   selectedCompetition = competitionsCache.find(c => c.id === id);
   panel.hidden = false;
 
-  const isDouble = selectedCompetition.format === 'double';
-  document.getElementById('joueur2NomLabel').hidden = !isDouble;
-  document.getElementById('joueur2ClubLabel').hidden = !isDouble;
-  document.getElementById('joueur2NiveauLabel').hidden = !isDouble;
-  document.getElementById('joueur2FedeLabel').hidden = !isDouble;
-  document.querySelector('#equipeForm [name="joueur2_nom"]').required = isDouble;
-
   resetEquipeForm();
   await loadEquipes();
 }
@@ -567,6 +560,9 @@ function bindEquipesRowEvents() {
   document.querySelectorAll('.saisir-partenaire-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       editEquipe(e.target.closest('tr').getAttribute('data-equipe-id'));
+      // On vient saisir le partenaire : champs du joueur 2 affichés
+      document.getElementById('sansPartenaireStaff').checked = false;
+      majChampsJoueur2();
       const champ = document.querySelector('#equipeForm [name="joueur2_nom"]');
       if (champ) setTimeout(() => champ.focus(), 300);
     });
@@ -738,6 +734,8 @@ function editEquipe(id) {
   form.joueur2_fede.value = valeurFede(eq.joueur2_fede);
   form.demandeur_email.value = eq.demandeur_email || '';
   form.demandeur_telephone.value = eq.demandeur_telephone || '';
+  document.getElementById('sansPartenaireStaff').checked = !!eq.cherche_partenaire && !eq.joueur2_nom;
+  majChampsJoueur2();
   const libellesStatut = { en_attente: '🟠 Demande en attente', validee: '✅ Validée', refusee: '⛔ Refusée' };
   const infos = document.getElementById('equipeInfosDemande');
   infos.innerHTML = [
@@ -755,6 +753,19 @@ function editEquipe(id) {
   form.scrollIntoView({ behavior: 'smooth' });
 }
 
+/** Champs du joueur 2 : visibles en double, sauf si « Joueur sans
+ *  partenaire » est coché. */
+function majChampsJoueur2() {
+  const isDouble = !!selectedCompetition && selectedCompetition.format === 'double';
+  const case_ = document.getElementById('sansPartenaireStaff');
+  if (!isDouble) case_.checked = false;
+  const seul = isDouble && case_.checked;
+  document.getElementById('sansPartenaireLabel').hidden = !isDouble;
+  ['joueur2NomLabel', 'joueur2ClubLabel', 'joueur2NiveauLabel', 'joueur2FedeLabel']
+    .forEach(id => { document.getElementById(id).hidden = !isDouble || seul; });
+  document.querySelector('#equipeForm [name="joueur2_nom"]').required = isDouble && !seul;
+}
+
 function resetEquipeForm() {
   const form = document.getElementById('equipeForm');
   form.reset();
@@ -764,6 +775,7 @@ function resetEquipeForm() {
   document.getElementById('formTitle').textContent = 'Nouvelle inscription';
   document.getElementById('submitBtn').textContent = 'Inscrire';
   document.getElementById('cancelEditBtn').hidden = true;
+  majChampsJoueur2();
   if (selectedCompetition) renderCompletStatus();
 }
 
@@ -798,6 +810,13 @@ function bindStaticEvents() {
   document.getElementById('competitionSelect').addEventListener('change', onCompetitionChange);
   document.getElementById('autoAssignBtn').addEventListener('click', autoAssignPoules);
   document.getElementById('cancelEditBtn').addEventListener('click', resetEquipeForm);
+  document.getElementById('sansPartenaireStaff').addEventListener('change', () => {
+    majChampsJoueur2();
+    if (document.getElementById('sansPartenaireStaff').checked) {
+      const form = document.getElementById('equipeForm');
+      ['joueur2_nom', 'joueur2_club', 'joueur2_niveau', 'joueur2_fede'].forEach(n => { if (form[n]) form[n].value = ''; });
+    }
+  });
 
   document.getElementById('equipeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -825,7 +844,20 @@ function bindStaticEvents() {
     payload.demandeur_telephone = telephone;
 
     const enEdition = editingEquipeId ? equipesCache.find(x => x.id === editingEquipeId) : null;
-    if (enEdition && enEdition.cherche_partenaire && payload.joueur2_nom) payload.cherche_partenaire = false;
+    const seul = isDouble && document.getElementById('sansPartenaireStaff').checked;
+    if (seul) {
+      // Joueur seul : pas d'équipe tant qu'on ne lui a pas associé de partenaire
+      payload.joueur2_nom = null; payload.joueur2_club = null;
+      payload.joueur2_niveau = null; payload.joueur2_fede = null;
+      payload.cherche_partenaire = true;
+      if (!enEdition) payload.statut = 'en_attente';
+      else if (!enEdition.cherche_partenaire) {
+        if (!confirm('Cette inscription va redevenir celle d\'un joueur sans partenaire : elle sort des poules et des places, et rejoint la section « Joueurs sans partenaire ». Continuer ?')) return;
+        payload.statut = 'en_attente'; payload.poule = null; payload.tete_de_poule = false;
+      }
+    } else if (enEdition && enEdition.cherche_partenaire && payload.joueur2_nom) {
+      payload.cherche_partenaire = false;
+    }
 
     hint.textContent = 'Enregistrement…';
     let error;
@@ -842,8 +874,15 @@ function bindStaticEvents() {
       ({ error } = await sbClient.from('equipes').insert(payload));
     }
 
-    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
-    hint.textContent = editingEquipeId ? 'Inscription mise à jour.' : 'Inscription enregistrée.';
+    if (error) {
+      hint.textContent = /cherche_partenaire/.test(error.message || '')
+        ? 'Inscription sans partenaire impossible : exécutez supabase/migration_tournoi_sans_partenaire.sql dans Supabase. Message technique : ' + error.message
+        : 'Erreur : ' + error.message;
+      return;
+    }
+    hint.textContent = seul
+      ? `${payload.joueur1_nom} enregistré sans partenaire : il apparaît dans la section « 🤝 Joueurs sans partenaire ».`
+      : (editingEquipeId ? 'Inscription mise à jour.' : 'Inscription enregistrée.');
     resetEquipeForm();
     await loadEquipes();
   });

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927v"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927v">
+<script src="js/theme-init.js?v=20260927w"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927w">
 </head>
 <body>
 
@@ -367,6 +367,7 @@
       <h3 class="admin-subheading">6.3ter Inscription sans partenaire (compétitions en double)</h3>
       <p>Sur le formulaire public d'inscription, pour une compétition en double, la case <strong>« Je n'ai pas de partenaire : je souhaite que l'organisation m'en trouve un »</strong> masque les champs du joueur 2. Le formulaire indique combien de joueurs cherchent déjà un partenaire dans la compétition (sans afficher leurs noms). La demande est enregistrée « en attente » avec la mention « sans partenaire ».</p>
       <ul>
+        <li><strong>Saisie par l'organisation</strong> : le formulaire « Nouvelle inscription » de tournoi-inscriptions.html propose la même case « Joueur sans partenaire » (compétitions en double) ; le joueur est alors enregistré seul et rejoint la section ci-dessous. Cocher la case en modifiant une équipe déjà validée la retire des poules et des places (confirmation demandée).</li>
         <li><strong>Sur tournoi-inscriptions.html</strong>, une section <strong>« 🤝 Joueurs sans partenaire »</strong> (au-dessus des demandes en attente) liste ces joueurs : coordonnées, niveau, Fédé, club et date d'inscription.</li>
         <li><strong>Associer</strong> : pour chaque joueur, une liste propose les autres joueurs seuls, le plus adapté en premier (niveau le plus proche, puis inscrit le plus tôt). Le bouton « Associer » forme la paire : la demande la plus ancienne devient la paire, l'autre est retirée, et les coordonnées des deux joueurs sont conservées (emails et téléphones réunis), pour que l'email de confirmation parte aux deux.</li>
         <li><strong>Saisir un partenaire</strong> : ouvre la demande dans le formulaire du haut ; il suffit de renseigner le joueur 2 et d'enregistrer.</li>
@@ -785,12 +786,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927v"></script>
-<script src="js/tableaux-mobile.js?v=20260927v"></script>
-<script src="js/supabase-config.js?v=20260927v"></script>
-<script src="js/auth.js?v=20260927v"></script>
-<script src="js/theme.js?v=20260927v"></script>
-<script src="js/main.js?v=20260927v"></script>
-<script src="js/documentation.js?v=20260927v"></script>
+<script src="js/menu-mobile.js?v=20260927w"></script>
+<script src="js/tableaux-mobile.js?v=20260927w"></script>
+<script src="js/supabase-config.js?v=20260927w"></script>
+<script src="js/auth.js?v=20260927w"></script>
+<script src="js/theme.js?v=20260927w"></script>
+<script src="js/main.js?v=20260927w"></script>
+<script src="js/documentation.js?v=20260927w"></script>
 </body>
 </html>
