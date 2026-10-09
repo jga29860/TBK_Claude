@@ -76,7 +76,8 @@ async function loadEquipes() {
 
   if (error) { alert('Erreur : ' + error.message); return; }
   // Joueurs inscrits sans partenaire : pas encore une équipe (voir tournoi-inscriptions)
-  equipesCache = (data || []).filter(e => !e.cherche_partenaire);
+  // Équipes engagées uniquement (ni demande en attente ou refusée, ni joueur seul)
+  equipesCache = (data || []).filter(e => !e.cherche_partenaire && e.statut !== 'en_attente' && e.statut !== 'refusee');
   renderAll();
 }
 

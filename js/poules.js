@@ -9,6 +9,13 @@ let matchsCache = [];
 let filtreCompetitionId = '';
 let filtrePouleNum = '';
 
+/** Équipe réellement engagée dans le tournoi : ni demande en attente,
+ *  ni demande refusée, ni joueur inscrit sans partenaire. Seules ces
+ *  équipes sont mises en poule, comptées et classées. */
+function estEquipeEngagee(e) {
+  return !!e && !e.cherche_partenaire && e.statut !== 'en_attente' && e.statut !== 'refusee';
+}
+
 async function initPage() {
   // Page de consultation ouverte à tous, avec ou sans connexion (utile
   // pour un accès par QR code sans authentification au site).
@@ -122,7 +129,7 @@ function matchStats(match) {
 }
 
 function computeClassement(competitionId, poule) {
-  const equipes = equipesCache.filter(e => e.tournoi_competition_id === competitionId && e.poule === poule);
+  const equipes = equipesCache.filter(e => estEquipeEngagee(e) && e.tournoi_competition_id === competitionId && e.poule === poule);
   const matchs = matchsCache.filter(m => m.tournoi_competition_id === competitionId && m.poule === poule);
 
   const stats = {};

@@ -545,7 +545,7 @@ function bindEquipesRowEvents() {
     btn.addEventListener('click', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
       if (!confirm('Refuser cette demande d\'inscription au tournoi ?')) return;
-      await updateEquipe(id, { statut: 'refusee' });
+      await updateEquipe(id, { statut: 'refusee', poule: null, tete_de_poule: false });
     });
   });
 
@@ -571,7 +571,7 @@ function bindEquipesRowEvents() {
   document.querySelectorAll('.remettre-attente-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
-      await updateEquipe(id, { statut: 'en_attente' });
+      await updateEquipe(id, { statut: 'en_attente', poule: null, tete_de_poule: false });
     });
   });
 
@@ -785,17 +785,24 @@ function resetEquipeForm() {
 
 async function autoAssignPoules() {
   if (!selectedCompetition || equipesCache.length === 0) return;
-  if (!confirm('Répartir automatiquement toutes les équipes inscrites dans les poules (remplace les affectations actuelles) ?')) return;
+  if (!confirm('Répartir automatiquement toutes les équipes validées dans les poules (remplace les affectations actuelles) ? Les demandes en attente ou refusées et les joueurs sans partenaire ne sont pas mis en poule.')) return;
 
   const hint = document.getElementById('equipesHint');
   hint.textContent = 'Répartition en cours…';
 
   const nbPoules = selectedCompetition.nb_poules;
-  // Les joueurs inscrits sans partenaire ne sont pas encore des équipes
-  const aRepartir = equipesCache.filter(e => !e.cherche_partenaire);
+  // Seules les équipes validées sont réparties : ni les demandes en
+  // attente ou refusées, ni les joueurs inscrits sans partenaire.
+  const estValidee = (e) => !e.cherche_partenaire && e.statut !== 'en_attente' && e.statut !== 'refusee';
+  const aRepartir = equipesCache.filter(estValidee);
   for (let i = 0; i < aRepartir.length; i++) {
     const poule = (i % nbPoules) + 1;
     const { error } = await sbClient.from('equipes').update({ poule }).eq('id', aRepartir[i].id);
+    if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+  }
+  // Une demande non validée ne doit jamais rester dans une poule
+  for (const e of equipesCache.filter(x => !estValidee(x) && (x.poule || x.tete_de_poule))) {
+    const { error } = await sbClient.from('equipes').update({ poule: null, tete_de_poule: false }).eq('id', e.id);
     if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
   }
   hint.textContent = 'Répartition terminée.';

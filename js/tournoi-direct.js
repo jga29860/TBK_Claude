@@ -52,7 +52,7 @@ function tdStats(m) {
   return { decided, winnerId, setsE1, setsE2, ptsE1, ptsE2 };
 }
 function tdClassement(compId, poule) {
-  const equipes = td.equipes.filter(e => e.tournoi_competition_id === compId && e.poule === poule);
+  const equipes = tdEquipesVisibles().filter(e => e.tournoi_competition_id === compId && e.poule === poule);
   const matchs = td.matchs.filter(m => m.tournoi_competition_id === compId && m.poule === poule && m.phase === 'poule');
   const stats = {};
   equipes.forEach(e => { stats[e.id] = { equipe: e, joues: 0, points: 0, setsPour: 0, setsContre: 0, ptsPour: 0, ptsContre: 0 }; });
@@ -453,7 +453,7 @@ function tdPuces(conteneurId, choix, actif, attribut) {
 
 function tdRendrePoules() {
   const moi = tdLireEquipe();
-  const comps = td.competitions.filter(c => td.equipes.some(e => e.tournoi_competition_id === c.id && e.poule));
+  const comps = td.competitions.filter(c => tdEquipesVisibles().some(e => e.tournoi_competition_id === c.id && e.poule));
   if (!comps.find(c => c.id === td.compPoules)) {
     const mienne = moi && tdEquipe(moi);
     td.compPoules = (mienne && comps.find(c => c.id === mienne.tournoi_competition_id) ? mienne.tournoi_competition_id : (comps[0] || {}).id) || '';
@@ -463,7 +463,7 @@ function tdRendrePoules() {
   const zone = document.getElementById('tdPoules');
   if (!comp) { zone.innerHTML = '<p class="td-vide">Les poules ne sont pas encore constituées.</p>'; return; }
   const ouvertes = new Set([...zone.querySelectorAll('details[open]')].map(d => d.dataset.poule));
-  const poules = [...new Set(td.equipes.filter(e => e.tournoi_competition_id === comp.id && e.poule).map(e => e.poule))].sort((a, b) => a - b);
+  const poules = [...new Set(tdEquipesVisibles().filter(e => e.tournoi_competition_id === comp.id && e.poule).map(e => e.poule))].sort((a, b) => a - b);
   zone.innerHTML = poules.map(p => {
     const cl = tdClassement(comp.id, p);
     const matchs = td.matchs.filter(m => m.tournoi_competition_id === comp.id && m.poule === p && m.phase === 'poule').sort(tdOrdre);

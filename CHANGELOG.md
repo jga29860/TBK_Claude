@@ -1211,3 +1211,11 @@ Aucune règle du tournoi modifiée ; pages PC identiques au pixel près (compara
 - **Saisie du score par les joueurs** : `supabase/migration_tournoi_saisie_joueurs.sql` — tables `tournoi_arbitrage` (actif, codes par terrain) et `matchs_scores_proposes` (réservées à l'organisation), fonctions `tournoi_arbitrage_actif` et `proposer_score_match` (code du terrain, match en cours, 2 sets gagnants, 5 envois / minute) ; validation, correction ou rejet dans la fenêtre « Joueurs » du planning mobile.
 - **Pages publiques du tournoi** (classe `page-tournoi-public` sur Phase Poule, Phase finale, inscription publique, bénévoles) : zones tactiles ≥ 44 px et saisie à 16 px, sur téléphone uniquement.
 Version des fichiers : `?v=20260927x`.
+
+## Lot A de l'audit — corrections du tournoi
+
+- **T1** `tournoi-inscriptions.js` : « Répartir automatiquement en poules » ne répartit que les équipes validées et retire de leur poule les demandes non validées ; « Refuser » et « Remettre en attente » retirent aussi l'équipe de sa poule (et de la tête de poule). `planning.js`, `poules.js`, `tournoi-direct.js` : génération des matchs, classements et listes limités aux équipes engagées (`estEquipeEngagee`). `emargement.js` : liste et compteurs limités aux équipes engagées.
+- **T2** `planning.js` : nombre d'équipes par compétition (prorata des créneaux, poids des rotations), avertissement « équipes non affectées » et top 5 limités aux équipes engagées.
+- **T3** `planning.js` (`saveMatchField`) : le match en mémoire est mis à jour avant l'envoi de chaque case ; une saisie très rapide détecte bien la fin du match et le vainqueur de phase finale. En cas d'erreur d'enregistrement, rechargement des données.
+- `supabase/controle_equipes_non_validees_en_poule.sql` : liste (et correction facultative) des demandes non validées placées en poule par l'ancienne répartition.
+Tests avant / après : les trois anomalies reproduites sur la version x, corrigées sur la version y ; pages PC identiques au pixel. Version des fichiers : `?v=20260927y`.

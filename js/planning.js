@@ -13,6 +13,13 @@ let filtreEquipeId = null;  // équipe sélectionnée via le top 5, ou null
 let pollTimer = null;
 let rotationsRepliees = null; // null = auto (repliées si toutes les poules sont terminées)
 
+/** Équipe réellement engagée dans le tournoi : ni demande en attente,
+ *  ni demande refusée, ni joueur inscrit sans partenaire. Seules ces
+ *  équipes sont mises en poule, comptées et classées. */
+function estEquipeEngagee(e) {
+  return !!e && !e.cherche_partenaire && e.statut !== 'en_attente' && e.statut !== 'refusee';
+}
+
 async function initPage() {
   const access = await getCurrentAccess();
   const deniedPanel = document.getElementById('deniedPanel');
@@ -124,7 +131,7 @@ async function loadAll(tournoiId, silent) {
     format: c.types_competition ? c.types_competition.format : 'simple',
     nb_poules: c.nb_poules,
     taille_poule: c.taille_poule,
-    nbEquipes: equipesCache.filter(e => e.tournoi_competition_id === c.id).length,
+    nbEquipes: equipesCache.filter(e => estEquipeEngagee(e) && e.tournoi_competition_id === c.id).length,
   }));
 
   // Génère automatiquement la phase finale des compétitions dont les poules
@@ -232,7 +239,7 @@ async function generateMatchs() {
   const hint = document.getElementById('planningHint');
   if (competitionsCache.length === 0) { hint.textContent = 'Aucune compétition dans ce tournoi.'; return; }
 
-  const missing = equipesCache.filter(e => !e.poule).length;
+  const missing = equipesCache.filter(e => estEquipeEngagee(e) && !e.poule).length;
   const warn = missing > 0 ? `\n\nAttention : ${missing} équipe(s) non affectée(s) à une poule seront ignorées.` : '';
 
   if (!confirm(`Régénérer tout le planning pour l'intégralité du tournoi (toutes les compétitions) ? Cela efface DÉFINITIVEMENT tous les matchs de poule ET de phase finale existants (scores déjà saisis inclus).${warn}`)) return;
@@ -250,7 +257,7 @@ async function generateMatchs() {
   for (const comp of competitionsCache) {
     const equipesParPoule = {};
     for (let p = 1; p <= comp.nb_poules; p++) {
-      equipesParPoule[p] = equipesCache.filter(e => e.tournoi_competition_id === comp.id && e.poule === p);
+      equipesParPoule[p] = equipesCache.filter(e => estEquipeEngagee(e) && e.tournoi_competition_id === comp.id && e.poule === p);
     }
     let numero = 1;
     for (let p = 1; p <= comp.nb_poules; p++) {
@@ -510,7 +517,7 @@ function matchStatsDetail(match) {
 }
 
 function computeClassement(competitionId, poule) {
-  const equipes = equipesCache.filter(e => e.tournoi_competition_id === competitionId && e.poule === poule);
+  const equipes = equipesCache.filter(e => estEquipeEngagee(e) && e.tournoi_competition_id === competitionId && e.poule === poule);
   const matchs = matchsCache.filter(m => m.tournoi_competition_id === competitionId && m.poule === poule && m.phase === 'poule');
 
   const stats = {};
@@ -619,7 +626,7 @@ function renderTop5() {
   const now = Date.now();
 
   const html = competitionsCache.map(comp => {
-    const equipesComp = equipesCache.filter(e => e.tournoi_competition_id === comp.id);
+    const equipesComp = equipesCache.filter(e => estEquipeEngagee(e) && e.tournoi_competition_id === comp.id);
     const attentes = equipesComp
       .filter(e => !equipeEnCours(e.id))
       .map(e => {
@@ -844,7 +851,7 @@ async function persisterRotations(matches, groupKeyFn, poidsGroupeFn, competitio
 /** Poids d'un match de poule = nombre total d'équipes de sa compétition
  *  (compétitions plus grandes avancent proportionnellement plus vite). */
 function poidsParEquipesCompetition(m) {
-  return equipesCache.filter(e => e.tournoi_competition_id === m.tournoi_competition_id).length;
+  return equipesCache.filter(e => estEquipeEngagee(e) && e.tournoi_competition_id === m.tournoi_competition_id).length;
 }
 
 /** Poids d'un match de phase finale = nombre total de matchs de SON
@@ -1328,10 +1335,15 @@ async function saveMatchField(matchId, field, value) {
     if (!match.heure_fin && matchDecided(updated)) {
       patch.heure_fin = new Date().toISOString();
     }
+    // Match en mémoire mis à jour AVANT l'envoi : une saisie rapide (Tab)
+    // enchaîne plusieurs cases plus vite que les allers-retours réseau ;
+    // chaque case doit partir du score complet déjà saisi pour détecter la
+    // fin du match et le vainqueur (sinon le match restait « en cours »).
+    Object.assign(match, patch);
   }
 
   const { error } = await sbClient.from('matchs').update(patch).eq('id', matchId);
-  if (error) { alert('Erreur : ' + error.message); return; }
+  if (error) { alert('Erreur : ' + error.message); await loadAll(tournoi.id, true); return; }
 
   // Propagation automatique du vainqueur vers le tour suivant (phase finale)
   if (match && field.startsWith('set') && matchDecided(updated) && match.match_suivant_id && match.slot_suivant) {
