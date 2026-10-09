@@ -1782,3 +1782,4 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   #sdClassementTable th:nth-child(9), #sdClassementTable td:nth-child(9){ display:none; }
   #sdClassementTable th{ font-size:0.65rem; letter-spacing:0; }
 }
+.sd-badge-simple{ display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; font-size:0.68rem; font-family: var(--font-body); letter-spacing:0.02em; background: var(--c-fond-attente); color: var(--c-texte-attente); vertical-align:middle; }

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tournoi salade — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
-<script src="js/theme-init.js?v=20260927q"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927q">
+<script src="js/theme-init.js?v=20260927r"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927r">
 </head>
 <body>
 
@@ -72,6 +72,10 @@
           <input type="checkbox" name="equilibrer_niveaux" checked>
           Équilibrer les niveaux entre les deux paires
         </label>
+        <label class="sd-case">
+          <input type="checkbox" name="simples" checked>
+          Match en simple quand 2 ou 3 joueurs devraient passer leur tour (si un terrain est libre)
+        </label>
       </div>
       <p class="inscriptions-actions">
         <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
@@ -114,6 +118,7 @@
     <!-- Joueurs (organisation) -->
     <section class="admin-section" id="sdJoueursSection" hidden data-repliable-mobile>
       <h2>Joueurs <span class="count-badge" id="sdJoueursCompteur"></span></h2>
+      <p class="form-hint">Ajout et suppression possibles à tout moment, même en cours de tournoi : un joueur ajouté joue dès le tour suivant ; un joueur supprimé attendu sur un terrain est remplacé par un joueur au repos. Pour une simple pause, décochez « Présent ».</p>
       <form id="sdJoueurForm" class="inline-form">
         <label>Nom et prénom
           <input type="text" name="nom" required maxlength="80" placeholder="Ex. Camille Martin">
@@ -173,7 +178,7 @@
     <!-- Classement -->
     <section class="admin-section" id="sdClassementSection">
       <h2>Classement individuel</h2>
-      <p class="form-hint">Classement par nombre de victoires, puis différence de points, puis points marqués. Un joueur au repos ne perd rien : le tirage fait tourner les repos pour que chacun joue autant que possible.</p>
+      <p class="form-hint">Classement par nombre de victoires, puis différence de points, puis points marqués. Les matchs en simple comptent comme les doubles. Un joueur au repos ne perd rien : le tirage fait tourner les repos (et les simples) pour que chacun joue autant que possible.</p>
       <div class="table-wrap">
         <table class="schedule" id="sdClassementTable">
           <thead><tr><th>#</th><th>Joueur</th><th title="Matchs joués">Joués</th><th title="Victoires">Vict.</th><th title="Défaites">Déf.</th><th>Points marqués</th><th>Points encaissés</th><th title="Différence de points">Diff.</th><th>Repos</th></tr></thead>
@@ -198,15 +203,15 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927q"></script>
-<script src="js/tableaux-mobile.js?v=20260927q"></script>
-<script src="js/sections-repliables.js?v=20260927q"></script>
-<script src="js/supabase-config.js?v=20260927q"></script>
-<script src="js/visite-log.js?v=20260927q"></script>
-<script src="js/auth.js?v=20260927q"></script>
-<script src="js/theme.js?v=20260927q"></script>
-<script src="js/main.js?v=20260927q"></script>
-<script src="js/salade-tirage.js?v=20260927q"></script>
-<script src="js/salade.js?v=20260927q"></script>
+<script src="js/menu-mobile.js?v=20260927r"></script>
+<script src="js/tableaux-mobile.js?v=20260927r"></script>
+<script src="js/sections-repliables.js?v=20260927r"></script>
+<script src="js/supabase-config.js?v=20260927r"></script>
+<script src="js/visite-log.js?v=20260927r"></script>
+<script src="js/auth.js?v=20260927r"></script>
+<script src="js/theme.js?v=20260927r"></script>
+<script src="js/main.js?v=20260927r"></script>
+<script src="js/salade-tirage.js?v=20260927r"></script>
+<script src="js/salade.js?v=20260927r"></script>
 </body>
 </html>

@@ -29,6 +29,15 @@ function sdJoueur(id) { return sd.joueurs.find(j => j.id === id); }
 function sdNom(id) { const j = sdJoueur(id); return j ? j.nom : '(joueur retiré)'; }
 function sdDernierTour() { return sd.tours.length ? sd.tours[sd.tours.length - 1] : null; }
 function sdMatchsDuTour(tourId) { return sd.matchs.filter(m => m.tour_id === tourId).sort((a, b) => a.terrain - b.terrain); }
+function sdSimplesActifs() { return !!sd.tournoi && sd.tournoi.simples !== false; }
+function sdIdsMatch(m) { return [m.joueur_a1, m.joueur_a2, m.joueur_b1, m.joueur_b2]; }
+/** Matchs et repos prévus par tour pour n joueurs présents (même règle que le tirage). */
+function sdPrevision(n) {
+  const t = sd.tournoi.nb_terrains;
+  const doubles = Math.min(t, Math.floor(n / 4));
+  const simples = (sdSimplesActifs() && n - 4 * doubles >= 2 && doubles < t) ? 1 : 0;
+  return { doubles, simples, repos: n - 4 * doubles - 2 * simples };
+}
 function sdScoreSaisi(m) { return m.score_a !== null && m.score_a !== undefined && m.score_b !== null && m.score_b !== undefined; }
 function sdCleMoi() { return sd.tournoi ? `tbk_salade_moi_${sd.tournoi.id}` : ''; }
 function sdLireMoi() { try { return localStorage.getItem(sdCleMoi()) || ''; } catch (e) { return ''; } }
@@ -158,6 +167,7 @@ function renderBandeau() {
     `matchs en ${t.points_par_match} points`,
     t.formation === 'mixte' ? 'doubles mixtes' : 'doubles tirés au hasard',
     t.equilibrer_niveaux ? 'niveaux équilibrés' : '',
+    t.simples !== false ? 'simple si 2 ou 3 joueurs au repos' : '',
     `${presents} joueur${presents > 1 ? 's' : ''} présent${presents > 1 ? 's' : ''}`,
     `${sd.tours.length} tour${sd.tours.length > 1 ? 's' : ''} joué${sd.tours.length > 1 ? 's' : ''}`
   ].filter(Boolean).join(' · ');
@@ -183,8 +193,12 @@ function renderJoueurs() {
   if (!sd.gestion) return;
   const presents = sd.joueurs.filter(j => j.present).length;
   document.getElementById('sdJoueursCompteur').textContent = `(${presents} présent${presents > 1 ? 's' : ''} / ${sd.joueurs.length})`;
-  const nbMatchs = {};
-  sd.matchs.forEach(m => [m.joueur_a1, m.joueur_a2, m.joueur_b1, m.joueur_b2].forEach(id => { if (id) nbMatchs[id] = (nbMatchs[id] || 0) + 1; }));
+  const nbMatchs = {}, nbSimples = {};
+  sd.matchs.forEach(m => sdIdsMatch(m).forEach(id => {
+    if (!id) return;
+    nbMatchs[id] = (nbMatchs[id] || 0) + 1;
+    if (m.simple) nbSimples[id] = (nbSimples[id] || 0) + 1;
+  }));
   const body = document.getElementById('sdJoueursBody');
   body.innerHTML = sd.joueurs.length ? sd.joueurs.map(j => `
     <tr data-id="${j.id}" class="${j.present ? '' : 'sd-absent'}">
@@ -192,7 +206,7 @@ function renderJoueurs() {
       <td data-label="Genre">${j.genre === 'F' ? 'Femme' : j.genre === 'H' ? 'Homme' : '—'}</td>
       <td data-label="Niveau">${escapeHtml(j.niveau || '—')}</td>
       <td data-label="Présent"><label class="sd-case"><input type="checkbox" class="sd-present" ${j.present ? 'checked' : ''}> ${j.present ? 'Présent' : 'Absent'}</label></td>
-      <td data-label="Matchs">${nbMatchs[j.id] || 0}</td>
+      <td data-label="Matchs">${nbMatchs[j.id] || 0}${nbSimples[j.id] ? ` <span class="form-hint-inline">(dont ${nbSimples[j.id]} simple${nbSimples[j.id] > 1 ? 's' : ''})</span>` : ''}</td>
       <td data-label="Actions"><div class="actions-stack">
         <button type="button" class="btn btn-ghost btn-small sd-joueur-modifier">Modifier</button>
         <button type="button" class="btn btn-danger btn-small sd-joueur-supprimer">Supprimer</button>
@@ -210,17 +224,17 @@ function renderCarteMatch(m, editable, numeroTour) {
   const gagneB = fini && m.score_b > m.score_a;
   const score = editable
     ? `<div class="sd-score-saisie">
-        <input type="number" min="0" max="99" inputmode="numeric" class="sd-score-a" value="${fini ? m.score_a : ''}" aria-label="Score paire 1">
+        <input type="number" min="0" max="99" inputmode="numeric" class="sd-score-a" value="${fini ? m.score_a : ''}" aria-label="${m.simple ? 'Score joueur 1' : 'Score paire 1'}">
         <span>–</span>
-        <input type="number" min="0" max="99" inputmode="numeric" class="sd-score-b" value="${fini ? m.score_b : ''}" aria-label="Score paire 2">
+        <input type="number" min="0" max="99" inputmode="numeric" class="sd-score-b" value="${fini ? m.score_b : ''}" aria-label="${m.simple ? 'Score joueur 2' : 'Score paire 2'}">
         <button type="button" class="btn btn-primary btn-small sd-score-valider">${fini ? 'Corriger' : 'Valider'}</button>
       </div>`
     : `<div class="sd-score">${fini ? `${m.score_a} – ${m.score_b}` : '<span class="sd-en-attente">à jouer</span>'}</div>`;
   return `<div class="sd-terrain ${fini ? 'sd-terrain-fini' : ''}" data-match="${m.id}">
-    <div class="sd-terrain-titre">Terrain ${m.terrain}${numeroTour ? ` · tour ${numeroTour}` : ''}</div>
-    <div class="sd-paire ${gagneA ? 'sd-gagnant' : ''}">${nomJ(m.joueur_a1)} &amp; ${nomJ(m.joueur_a2)}</div>
+    <div class="sd-terrain-titre">Terrain ${m.terrain}${numeroTour ? ` · tour ${numeroTour}` : ''}${m.simple ? ' <span class="sd-badge-simple">Simple</span>' : ''}</div>
+    <div class="sd-paire ${gagneA ? 'sd-gagnant' : ''}">${m.simple ? nomJ(m.joueur_a1) : `${nomJ(m.joueur_a1)} &amp; ${nomJ(m.joueur_a2)}`}</div>
     <div class="sd-contre">contre</div>
-    <div class="sd-paire ${gagneB ? 'sd-gagnant' : ''}">${nomJ(m.joueur_b1)} &amp; ${nomJ(m.joueur_b2)}</div>
+    <div class="sd-paire ${gagneB ? 'sd-gagnant' : ''}">${m.simple ? nomJ(m.joueur_b1) : `${nomJ(m.joueur_b1)} &amp; ${nomJ(m.joueur_b2)}`}</div>
     ${score}
     <p class="form-hint sd-score-hint"></p>
   </div>`;
@@ -242,9 +256,12 @@ function renderTourCourant() {
   const presents = sd.joueurs.filter(j => j.present).length;
   if (!tour) {
     hint.textContent = sd.gestion
-      ? (presents >= 4
-        ? `${presents} joueurs présents : ${Math.min(sd.tournoi.nb_terrains, Math.floor(presents / 4))} match(s) par tour, ${presents - 4 * Math.min(sd.tournoi.nb_terrains, Math.floor(presents / 4))} au repos.`
-        : 'Ajoutez au moins 4 joueurs présents pour générer le premier tour.')
+      ? (presents >= (sdSimplesActifs() ? 2 : 4)
+        ? (() => {
+          const pr = sdPrevision(presents);
+          return `${presents} joueurs présents : ${pr.doubles} double${pr.doubles > 1 ? 's' : ''}${pr.simples ? ' et 1 simple' : ''} par tour, ${pr.repos} au repos.`;
+        })()
+        : `Ajoutez au moins ${sdSimplesActifs() ? 2 : 4} joueurs présents pour générer le premier tour.`)
       : 'Le premier tour n\'a pas encore été tiré.';
   } else {
     const restants = matchsTour.filter(m => !sdScoreSaisi(m)).length;
@@ -278,7 +295,10 @@ function renderMesMatchs() {
       const dansA = [m.joueur_a1, m.joueur_a2].includes(moi);
       const partenaire = dansA ? (m.joueur_a1 === moi ? m.joueur_a2 : m.joueur_a1) : (m.joueur_b1 === moi ? m.joueur_b2 : m.joueur_b1);
       const adv = dansA ? [m.joueur_b1, m.joueur_b2] : [m.joueur_a1, m.joueur_a2];
-      actuel = `<strong>Tour ${tour.numero} : terrain ${m.terrain}</strong>, avec ${escapeHtml(sdNom(partenaire))}, contre ${escapeHtml(sdNom(adv[0]))} &amp; ${escapeHtml(sdNom(adv[1]))}${sdScoreSaisi(m) ? ` — score ${dansA ? m.score_a : m.score_b} – ${dansA ? m.score_b : m.score_a}` : ''}`;
+      const scoreTxt = sdScoreSaisi(m) ? ` — score ${dansA ? m.score_a : m.score_b} – ${dansA ? m.score_b : m.score_a}` : '';
+      actuel = m.simple
+        ? `<strong>Tour ${tour.numero} : terrain ${m.terrain}, en simple</strong> contre ${escapeHtml(sdNom(adv[0]))}${scoreTxt}`
+        : `<strong>Tour ${tour.numero} : terrain ${m.terrain}</strong>, avec ${escapeHtml(sdNom(partenaire))}, contre ${escapeHtml(sdNom(adv[0]))} &amp; ${escapeHtml(sdNom(adv[1]))}${scoreTxt}`;
     } else if ((tour.repos || []).includes(moi)) {
       actuel = `<strong>Tour ${tour.numero} : au repos.</strong>`;
     } else {
@@ -374,6 +394,7 @@ function ouvrirFormTournoi(t) {
   form.points_par_match.value = t ? t.points_par_match : 21;
   form.formation.value = t ? t.formation : 'aleatoire';
   form.equilibrer_niveaux.checked = t ? !!t.equilibrer_niveaux : true;
+  form.simples.checked = t ? t.simples !== false : true;
   document.getElementById('sdTournoiFormHint').textContent = t ? 'Les changements s\'appliquent aux prochains tours tirés.' : '';
   form.scrollIntoView({ behavior: 'smooth', block: 'center' });
   form.nom.focus();
@@ -389,7 +410,8 @@ async function enregistrerTournoi(e) {
     nb_terrains: parseInt(form.nb_terrains.value, 10),
     points_par_match: parseInt(form.points_par_match.value, 10),
     formation: form.formation.value,
-    equilibrer_niveaux: form.equilibrer_niveaux.checked
+    equilibrer_niveaux: form.equilibrer_niveaux.checked,
+    simples: form.simples.checked
   };
   if (!donnees.nom) { hint.textContent = 'Le nom est obligatoire.'; return; }
   hint.textContent = 'Enregistrement…';
@@ -399,6 +421,10 @@ async function enregistrerTournoi(e) {
   } else {
     const { data: { session } } = await sbClient.auth.getSession();
     res = await sbClient.from('salade_tournois').insert({ ...donnees, created_by: session ? session.user.id : null }).select().single();
+  }
+  if (res.error && /simples/.test(res.error.message || '')) {
+    hint.textContent = 'Option « simples » non enregistrée : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase.';
+    return;
   }
   if (res.error) { hint.textContent = 'Erreur : ' + res.error.message; return; }
   form.hidden = true;
@@ -450,7 +476,7 @@ async function enregistrerJoueur(e) {
     ? await sbClient.from('salade_joueurs').update(donnees).eq('id', sd.joueurEnEdition)
     : await sbClient.from('salade_joueurs').insert({ ...donnees, tournoi_id: sd.tournoi.id });
   if (res.error) { hint.textContent = 'Erreur : ' + res.error.message; return; }
-  hint.textContent = sd.joueurEnEdition ? 'Joueur modifié.' : `${donnees.nom} ajouté.`;
+  hint.textContent = sd.joueurEnEdition ? 'Joueur modifié.' : `${donnees.nom} ajouté${sd.tours.length ? ' : il jouera dès le prochain tour (priorité aux joueurs ayant le moins joué)' : ''}.`;
   annulerEditionJoueur();
   await chargerDonnees(); renderTout();
   form.nom.focus();
@@ -497,16 +523,69 @@ async function clicTableJoueurs(e) {
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     form.nom.focus();
   } else if (e.target.closest('.sd-joueur-supprimer')) {
-    const aJoue = sd.matchs.some(m => [m.joueur_a1, m.joueur_a2, m.joueur_b1, m.joueur_b2].includes(j.id));
-    if (aJoue) {
-      alert(`${j.nom} a déjà joué : il ne peut pas être supprimé sans fausser les scores. Décochez « Présent » pour qu'il ne soit plus tiré aux prochains tours.`);
-      return;
-    }
-    if (!confirm(`Supprimer ${j.nom} ?`)) return;
-    const { error } = await sbClient.from('salade_joueurs').delete().eq('id', j.id);
-    if (error) { alert('Erreur : ' + error.message); return; }
-    await chargerDonnees(); renderTout();
+    await supprimerJoueur(j);
   }
+}
+
+/**
+ * Suppression d'un joueur, y compris en cours de tournoi :
+ * - ses matchs déjà joués restent comptés pour les autres joueurs (lui
+ *   disparaît du classement, son nom devient « joueur retiré ») ;
+ * - s'il est attendu sur un terrain du tour en cours (match sans score),
+ *   il est remplacé par un joueur au repos de ce tour (celui qui a le
+ *   moins joué) ; sans remplaçant possible, le tirage du tour est refait
+ *   s'il n'a encore aucun score, sinon l'organisateur est prévenu.
+ */
+async function supprimerJoueur(j) {
+  const hint = document.getElementById('sdJoueurHint');
+  const tour = sdDernierTour();
+  const aJoue = sd.matchs.some(m => sdIdsMatch(m).includes(j.id) && sdScoreSaisi(m));
+  const matchEnCours = tour ? sdMatchsDuTour(tour.id).find(m => sdIdsMatch(m).includes(j.id) && !sdScoreSaisi(m)) : null;
+  const enAttente = tour && sd.tournoi.statut !== 'termine' ? (tour.repos || []).filter(id => id !== j.id && (sdJoueur(id) || {}).present) : [];
+  const joues = {};
+  sd.matchs.forEach(m => sdIdsMatch(m).forEach(id => { if (id) joues[id] = (joues[id] || 0) + 1; }));
+  const remplacant = matchEnCours ? enAttente.slice().sort((a, b) => (joues[a] || 0) - (joues[b] || 0))[0] : null;
+  const tourSansScore = tour ? !sdMatchsDuTour(tour.id).some(sdScoreSaisi) : false;
+
+  const lignes = [`Supprimer ${j.nom} du tournoi ?`];
+  if (aJoue) lignes.push('Ses matchs déjà joués restent comptés pour ses partenaires et adversaires ; il disparaît du classement.');
+  if (matchEnCours) {
+    if (remplacant) lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} : ${sdNom(remplacant)} (au repos) le remplacera.`);
+    else if (tourSansScore) lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} et personne n'est au repos : le tirage du tour ${tour.numero} sera refait.`);
+    else lignes.push(`Il est attendu sur le terrain ${matchEnCours.terrain} et personne n'est au repos pour le remplacer : ce match restera incomplet (supprimez ou refaites le tour si besoin).`);
+  }
+  lignes.push('Pour une simple pause, décochez plutôt « Présent ».');
+  if (!confirm(lignes.join('\n\n'))) return;
+
+  hint.textContent = 'Suppression…';
+  // 1. Remplacement sur le terrain du tour en cours
+  if (matchEnCours && remplacant) {
+    const champ = ['joueur_a1', 'joueur_a2', 'joueur_b1', 'joueur_b2'].find(c => matchEnCours[c] === j.id);
+    const r1 = await sbClient.from('salade_matchs').update({ [champ]: remplacant }).eq('id', matchEnCours.id);
+    if (r1.error) { hint.textContent = 'Erreur : ' + r1.error.message; return; }
+  }
+  // 2. Liste des joueurs au repos du tour en cours
+  if (tour && ((tour.repos || []).includes(j.id) || remplacant)) {
+    const repos = (tour.repos || []).filter(id => id !== j.id && id !== remplacant);
+    const r2 = await sbClient.from('salade_tours').update({ repos }).eq('id', tour.id);
+    if (r2.error) { hint.textContent = 'Erreur : ' + r2.error.message; return; }
+  }
+  // 3. Suppression du joueur (ses places dans les matchs passent à vide)
+  const { error } = await sbClient.from('salade_joueurs').delete().eq('id', j.id);
+  if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+  if (sdLireMoi() === j.id) sdEcrireMoi('');
+  await chargerDonnees();
+  if (matchEnCours && !remplacant && tourSansScore) {
+    const r3 = await sbClient.from('salade_tours').delete().eq('id', tour.id);
+    if (r3.error) { hint.textContent = 'Erreur : ' + r3.error.message; return; }
+    await chargerDonnees();
+    hint.textContent = `${j.nom} supprimé.`;
+    renderTout();
+    await tirerEtEnregistrer(tour.numero);
+    return;
+  }
+  hint.textContent = `${j.nom} supprimé${remplacant ? ` — remplacé sur le terrain ${matchEnCours.terrain} par ${sdNom(remplacant)}` : ''}.`;
+  renderTout();
 }
 
 async function changementPresence(e) {
@@ -521,7 +600,7 @@ async function changementPresence(e) {
 async function genererTour() {
   const hint = document.getElementById('sdTourHint');
   const presents = sd.joueurs.filter(j => j.present);
-  if (presents.length < 4) { hint.textContent = 'Il faut au moins 4 joueurs présents.'; return; }
+  if (presents.length < (sdSimplesActifs() ? 2 : 4)) { hint.textContent = `Il faut au moins ${sdSimplesActifs() ? 2 : 4} joueurs présents.`; return; }
   const dernier = sdDernierTour();
   if (dernier) {
     const restants = sdMatchsDuTour(dernier.id).filter(m => !sdScoreSaisi(m)).length;
@@ -545,22 +624,27 @@ async function tirerEtEnregistrer(numero) {
       tours: anciens,
       nbTerrains: sd.tournoi.nb_terrains,
       formation: sd.tournoi.formation,
-      equilibrer: sd.tournoi.equilibrer_niveaux
+      equilibrer: sd.tournoi.equilibrer_niveaux,
+      simples: sdSimplesActifs()
     });
     const { data: tour, error } = await sbClient.from('salade_tours')
       .insert({ tournoi_id: sd.tournoi.id, numero, repos: tirage.repos }).select().single();
     if (error) throw error;
     const lignes = tirage.matchs.map(m => ({
       tournoi_id: sd.tournoi.id, tour_id: tour.id, terrain: m.terrain,
-      joueur_a1: m.a[0], joueur_a2: m.a[1], joueur_b1: m.b[0], joueur_b2: m.b[1]
+      joueur_a1: m.a[0], joueur_a2: m.a[1] || null, joueur_b1: m.b[0], joueur_b2: m.b[1] || null,
+      ...(m.simple ? { simple: true } : {})
     }));
     const r = await sbClient.from('salade_matchs').insert(lignes);
     if (r.error) {
       await sbClient.from('salade_tours').delete().eq('id', tour.id);
+      if (/simple/.test(r.error.message || '')) throw new Error('Les matchs en simple nécessitent la mise à jour de la base : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase (ou décochez l\'option « simples » du tournoi).');
       throw r.error;
     }
     await chargerDonnees(); renderTout();
-    document.getElementById('sdTourHint').textContent = `Tour ${numero} tiré : ${tirage.matchs.length} match${tirage.matchs.length > 1 ? 's' : ''}${tirage.repos.length ? `, ${tirage.repos.length} au repos` : ''}.${tirage.cout >= 100 ? ' Certains joueurs retrouvent un ancien partenaire (impossible de l\'éviter avec ce nombre de joueurs).' : ''}`;
+    const nbS = tirage.matchs.filter(m => m.simple).length;
+    const nbD = tirage.matchs.length - nbS;
+    document.getElementById('sdTourHint').textContent = `Tour ${numero} tiré : ${nbD} double${nbD > 1 ? 's' : ''}${nbS ? ` et ${nbS} simple` : ''}${tirage.repos.length ? `, ${tirage.repos.length} au repos` : ''}.${tirage.partenairesRepetes ? ' Certains joueurs retrouvent un ancien partenaire (impossible de l\'éviter avec ce nombre de joueurs).' : ''}`;
   } catch (err) {
     hint.textContent = 'Erreur : ' + (err.message || err);
   } finally {
