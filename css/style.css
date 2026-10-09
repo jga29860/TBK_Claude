@@ -1723,3 +1723,62 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 .uf-fichier-pdf{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:140px; border:1px dashed var(--c-bordure-champ); border-radius:8px; background:var(--pale); text-decoration:none; font-weight:700; color:var(--dark); padding:16px; text-align:center; }
 .uf-fichier-pdf span{ font-weight:400; font-size:0.8rem; color:var(--ink-soft); overflow-wrap:anywhere; }
 .uf-fichier-pdf:hover{ border-color:var(--green); }
+
+/* ============================================================
+   Tournoi salade (salade.html)
+   ============================================================ */
+.sd-choix{ align-items:flex-end; }
+.sd-form{ margin-top:16px; padding:16px; border:1px solid var(--border); border-radius:10px; background: var(--pale); }
+.sd-form-grille{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px 16px; margin-bottom:12px; }
+.sd-form-grille label{ display:flex; flex-direction:column; gap:4px; font-size:0.85rem; font-weight:600; }
+.sd-form-grille input[type="text"], .sd-form-grille input[type="date"], .sd-form-grille input[type="number"], .sd-form-grille select{
+  padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-family: var(--font-body); font-size:0.9rem; background: var(--white);
+}
+.sd-form-grille label.sd-case, label.sd-case{ flex-direction:row; align-items:center; gap:8px; font-weight:400; }
+.sd-bandeau-ligne{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+.sd-bandeau h2{ margin-bottom:4px; }
+.sd-badge-en-cours{ background: var(--c-fond-valide); color: var(--c-vert-statut); vertical-align:middle; }
+.sd-badge-termine{ background: var(--c-fond-cloture); color: var(--c-texte-cloture); vertical-align:middle; }
+.sd-qr{ display:flex; gap:14px; align-items:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--c-filet); }
+.sd-qr img{ border:1px solid var(--border); border-radius:8px; background:#fff; flex-shrink:0; }
+.sd-qr p{ margin:4px 0; }
+.sd-ajout-rapide{ margin:12px 0; }
+.sd-ajout-rapide summary{ cursor:pointer; font-weight:600; color: var(--green-dark, var(--green)); }
+.sd-ajout-rapide textarea{ width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-family: var(--font-body); font-size:0.9rem; }
+#sdJoueursTable tr.sd-absent td{ color: var(--c-desactive-texte); }
+.sd-terrains{ display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:12px; margin-top:12px; }
+.sd-terrain{ border:1px solid var(--border); border-radius:12px; padding:12px 14px; background: var(--white); display:flex; flex-direction:column; gap:4px; }
+.sd-terrain-fini{ background: var(--pale); }
+.sd-terrain-titre{ font-family: var(--font-display); font-weight:800; color: var(--green); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.03em; }
+.sd-paire{ font-weight:600; padding:4px 8px; border-radius:6px; }
+.sd-paire.sd-gagnant{ background: var(--c-fond-valide); color: var(--c-vert-statut); }
+.sd-contre{ font-size:0.75rem; color: var(--ink-soft); padding-left:8px; }
+.sd-score{ font-family: var(--font-mono); font-size:1.15rem; font-weight:700; margin-top:4px; }
+.sd-en-attente{ font-family: var(--font-body); font-size:0.85rem; font-weight:400; color: var(--ink-soft); font-style:italic; }
+.sd-score-saisie{ display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.sd-score-saisie input{ width:56px; padding:8px 4px; text-align:center; font-size:1rem; border:1px solid var(--border); border-radius:6px; }
+.sd-score-hint{ margin:0; min-height:0; }
+.sd-score-hint:empty{ display:none; }
+.sd-moi{ background: var(--c-fond-champ-actif); border-radius:4px; padding:0 3px; }
+.sd-repos{ margin-top:12px; font-size:0.9rem; }
+.sd-mes-matchs{ margin:12px 0; padding:12px 14px; border:2px solid var(--green); border-radius:12px; background: var(--pale); }
+.sd-mes-matchs label{ display:flex; flex-direction:column; gap:4px; font-weight:700; max-width:320px; }
+.sd-mes-matchs select{ padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:1rem; background: var(--white); }
+.sd-moi-actuel{ margin:10px 0 4px; font-size:1rem; }
+#sdClassementTable tr.sd-ligne-moi td{ background: var(--c-fond-champ-actif); }
+.sd-tour-ancien{ border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:10px; }
+.sd-tour-ancien summary{ cursor:pointer; font-weight:700; }
+@media (max-width: 760px){
+  .sd-terrains{ grid-template-columns: 1fr; }
+  .sd-qr img{ width:90px; height:90px; }
+  .sd-mes-matchs label{ max-width:none; }
+}
+@media (max-width: 760px){
+  /* Classement salade : tableau compact (colonnes essentielles) plutôt qu'en cartes */
+  #sdClassementTable{ min-width:0 !important; width:100%; font-size:0.85rem; }
+  #sdClassementTable th, #sdClassementTable td{ padding:8px 6px; }
+  #sdClassementTable th:nth-child(6), #sdClassementTable td:nth-child(6),
+  #sdClassementTable th:nth-child(7), #sdClassementTable td:nth-child(7),
+  #sdClassementTable th:nth-child(9), #sdClassementTable td:nth-child(9){ display:none; }
+  #sdClassementTable th{ font-size:0.65rem; letter-spacing:0; }
+}

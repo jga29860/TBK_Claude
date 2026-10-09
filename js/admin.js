@@ -15,6 +15,7 @@ const PAGE_CATALOG = [
   { key: 'tournois_inscriptions', label: 'Tournois - Inscriptions' },
   { key: 'tournois_emargement', label: 'Tournois - Émargement' },
   { key: 'tournois_courses', label: 'Tournois - Courses/Achats' },
+  { key: 'tournoi_salade', label: 'Tournoi salade (mêlée) — gestion' },
   { key: 'benevoles', label: 'Bénévoles tournoi' },
   { key: 'agenda', label: 'Agenda et boîte mail' },
   { key: 'helloasso', label: 'Paiements HelloAsso' },

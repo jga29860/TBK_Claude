@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournoi salade — TBK</title>
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<script src="js/theme-init.js?v=20260927q"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927q">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section page-section--wide">
+  <p class="section-eyebrow">Tournoi à la mêlée — partenaires tirés au sort à chaque tour</p>
+  <h1 id="pageTitle">Tournoi salade</h1>
+
+  <div id="erreurPanel" class="status-panel" hidden>
+    <h2>Module non disponible</h2>
+    <p id="erreurTexte">Les tables du tournoi salade n'existent pas encore : exécutez <code>supabase/migration_tournoi_salade.sql</code> dans Supabase.</p>
+  </div>
+
+  <!-- ===== Choix / création du tournoi (organisation) ===== -->
+  <section class="admin-section" id="sdChoixSection" hidden>
+    <h2>Tournois salade</h2>
+    <div class="inline-form sd-choix">
+      <label>Tournoi
+        <select id="sdTournoiSelect"></select>
+      </label>
+      <button type="button" class="btn btn-primary btn-small" id="sdNouveauBtn">+ Nouveau tournoi salade</button>
+    </div>
+    <p class="form-hint" id="sdChoixHint"></p>
+
+    <form id="sdTournoiForm" class="sd-form" hidden>
+      <h3 class="admin-subheading" id="sdTournoiFormTitre">Nouveau tournoi salade</h3>
+      <div class="sd-form-grille">
+        <label>Nom
+          <input type="text" name="nom" required maxlength="120" placeholder="Ex. Salade de Noël">
+        </label>
+        <label>Date
+          <input type="date" name="date_tournoi">
+        </label>
+        <label>Nombre de terrains
+          <input type="number" name="nb_terrains" min="1" max="40" value="4" required>
+        </label>
+        <label>Points par match
+          <input type="number" name="points_par_match" min="1" max="99" value="21" required>
+        </label>
+        <label>Formation des doubles
+          <select name="formation">
+            <option value="aleatoire">Au hasard</option>
+            <option value="mixte">Mixte (une femme et un homme par paire, si possible)</option>
+          </select>
+        </label>
+        <label class="sd-case">
+          <input type="checkbox" name="equilibrer_niveaux" checked>
+          Équilibrer les niveaux entre les deux paires
+        </label>
+      </div>
+      <p class="inscriptions-actions">
+        <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+        <button type="button" class="btn btn-ghost btn-small" id="sdTournoiAnnulerBtn">Annuler</button>
+      </p>
+      <p class="form-hint" id="sdTournoiFormHint"></p>
+    </form>
+  </section>
+
+  <div id="sdAucunTournoi" class="status-panel" hidden>
+    <h2>Aucun tournoi salade</h2>
+    <p>Aucun tournoi salade n'est en cours pour le moment.</p>
+  </div>
+
+  <div id="sdContenu" hidden>
+
+    <!-- Bandeau du tournoi sélectionné -->
+    <section class="admin-section sd-bandeau">
+      <div class="sd-bandeau-ligne">
+        <div>
+          <h2 id="sdTitre"></h2>
+          <p class="form-hint" id="sdResume"></p>
+        </div>
+        <div class="inscriptions-actions" id="sdActionsTournoi" hidden>
+          <button type="button" class="btn btn-ghost btn-small" id="sdModifierBtn">Modifier</button>
+          <button type="button" class="btn btn-ghost btn-small" id="sdStatutBtn"></button>
+          <button type="button" class="btn btn-danger btn-small" id="sdSupprimerBtn">Supprimer</button>
+        </div>
+      </div>
+      <div class="sd-qr" id="sdQr" hidden>
+        <img id="sdQrImg" alt="QR code de la page publique du tournoi salade" width="110" height="110">
+        <div>
+          <strong>Suivi en direct pour les joueurs</strong>
+          <p class="form-hint">À afficher dans la salle : tour en cours, terrains, classement et « mes matchs », sans connexion.</p>
+          <a id="sdLienPublic" href="#" target="_blank" rel="noopener">Ouvrir la page publique</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Joueurs (organisation) -->
+    <section class="admin-section" id="sdJoueursSection" hidden data-repliable-mobile>
+      <h2>Joueurs <span class="count-badge" id="sdJoueursCompteur"></span></h2>
+      <form id="sdJoueurForm" class="inline-form">
+        <label>Nom et prénom
+          <input type="text" name="nom" required maxlength="80" placeholder="Ex. Camille Martin">
+        </label>
+        <label>Genre
+          <select name="genre">
+            <option value="">—</option>
+            <option value="F">Femme</option>
+            <option value="H">Homme</option>
+          </select>
+        </label>
+        <label>Niveau
+          <select name="niveau">
+            <option value="">—</option>
+            <option>Débutant</option>
+            <option>Intermédiaire</option>
+            <option>Confirmé</option>
+          </select>
+        </label>
+        <button type="submit" class="btn btn-primary btn-small" id="sdJoueurSubmit">Ajouter</button>
+        <button type="button" class="btn btn-ghost btn-small" id="sdJoueurAnnuler" hidden>Annuler</button>
+      </form>
+      <details class="sd-ajout-rapide">
+        <summary>Ajout rapide de plusieurs joueurs</summary>
+        <p class="form-hint">Un joueur par ligne. Facultatif, après le nom : « ; F » ou « ; H », puis « ; Débutant », « ; Intermédiaire » ou « ; Confirmé ». Exemple : <code>Camille Martin ; F ; Confirmé</code></p>
+        <textarea id="sdAjoutRapideTexte" rows="5" placeholder="Camille Martin ; F ; Confirmé&#10;Yann Le Gall ; H&#10;Léa Morvan"></textarea>
+        <p><button type="button" class="btn btn-ghost btn-small" id="sdAjoutRapideBtn">Ajouter ces joueurs</button></p>
+      </details>
+      <p class="form-hint" id="sdJoueurHint"></p>
+      <div class="table-wrap">
+        <table class="schedule" id="sdJoueursTable">
+          <thead><tr><th>Joueur</th><th>Genre</th><th>Niveau</th><th>Présent</th><th>Matchs</th><th></th></tr></thead>
+          <tbody id="sdJoueursBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tour en cours -->
+    <section class="admin-section" id="sdTourSection">
+      <h2 id="sdTourTitre">Tour en cours</h2>
+      <div class="inscriptions-actions" id="sdTourActions" hidden>
+        <button type="button" class="btn btn-primary btn-small" id="sdGenererBtn">Générer le tour suivant</button>
+        <button type="button" class="btn btn-ghost btn-small" id="sdRegenererBtn" hidden>Refaire le tirage de ce tour</button>
+        <button type="button" class="btn btn-danger btn-small" id="sdSupprimerTourBtn" hidden>Supprimer ce tour</button>
+      </div>
+      <p class="form-hint" id="sdTourHint"></p>
+      <div class="sd-mes-matchs" id="sdMesMatchsBloc" hidden>
+        <label>Mes matchs
+          <select id="sdMoiSelect"><option value="">Choisir mon nom…</option></select>
+        </label>
+        <div id="sdMesMatchs"></div>
+      </div>
+      <div class="sd-terrains" id="sdTerrains"></div>
+      <p class="sd-repos" id="sdRepos"></p>
+    </section>
+
+    <!-- Classement -->
+    <section class="admin-section" id="sdClassementSection">
+      <h2>Classement individuel</h2>
+      <p class="form-hint">Classement par nombre de victoires, puis différence de points, puis points marqués. Un joueur au repos ne perd rien : le tirage fait tourner les repos pour que chacun joue autant que possible.</p>
+      <div class="table-wrap">
+        <table class="schedule" id="sdClassementTable">
+          <thead><tr><th>#</th><th>Joueur</th><th title="Matchs joués">Joués</th><th title="Victoires">Vict.</th><th title="Défaites">Déf.</th><th>Points marqués</th><th>Points encaissés</th><th title="Différence de points">Diff.</th><th>Repos</th></tr></thead>
+          <tbody id="sdClassementBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tours précédents -->
+    <section class="admin-section" id="sdHistoriqueSection" hidden data-repliable-mobile>
+      <h2>Tours précédents</h2>
+      <div id="sdHistorique"></div>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20260927q"></script>
+<script src="js/tableaux-mobile.js?v=20260927q"></script>
+<script src="js/sections-repliables.js?v=20260927q"></script>
+<script src="js/supabase-config.js?v=20260927q"></script>
+<script src="js/visite-log.js?v=20260927q"></script>
+<script src="js/auth.js?v=20260927q"></script>
+<script src="js/theme.js?v=20260927q"></script>
+<script src="js/main.js?v=20260927q"></script>
+<script src="js/salade-tirage.js?v=20260927q"></script>
+<script src="js/salade.js?v=20260927q"></script>
+</body>
+</html>

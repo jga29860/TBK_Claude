@@ -32,6 +32,10 @@ const TABLES = [
   { key: 'paiements_en_ligne_journal', label: 'Journal des paiements en ligne', description: 'Paiements en ligne (boutique, cotisation) : demande, confirmation par le widget et par HelloAsso.' },
   { key: 'notifications_helloasso', label: 'Notifications HelloAsso', description: 'Notifications de paiement reçues de HelloAsso et résultat de leur traitement.' },
   { key: 'tournoi_courses', label: 'Courses du tournoi', description: 'Achats effectués pour le tournoi (libellé, quantité, prix).' },
+  { key: 'salade_tournois', label: 'Tournois salade', description: 'Tournois à la mêlée (nom, terrains, formation des doubles, statut).' },
+  { key: 'salade_joueurs', label: 'Joueurs des tournois salade', description: 'Joueurs inscrits aux tournois salade (nom, genre, niveau, présence).' },
+  { key: 'salade_tours', label: 'Tours des tournois salade', description: 'Tours tirés et joueurs au repos.' },
+  { key: 'salade_matchs', label: 'Matchs des tournois salade', description: 'Doubles tirés, terrains et scores.' },
 ];
 
 let rowCounts = {};

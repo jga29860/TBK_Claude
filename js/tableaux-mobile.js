@@ -12,7 +12,7 @@
 // ============================================================
 (function () {
   const DEJA_ADAPTES = '#inscriptionsTable, #tournoisTable, #rolesTable, #usersTable, '
-    + '.equipes-table, .poule-fiche-table, .match-table, .table-emargement, .cal-grid';
+    + '.equipes-table, .poule-fiche-table, .match-table, .table-emargement, .cal-grid, #sdClassementTable';
 
   function titresColonnes(table) {
     const ligne = table.tHead && table.tHead.rows[0];

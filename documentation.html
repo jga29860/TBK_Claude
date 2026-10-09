@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927p"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927p">
+<script src="js/theme-init.js?v=20260927q"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927q">
 </head>
 <body>
 
@@ -419,6 +419,20 @@
         <li><strong>Gestion complète par les organisateurs</strong> : ajout manuel d'un bénévole (même sans compte), modification du nom affiché, suppression de n'importe quelle inscription.</li>
         <li><strong>Fil de discussion</strong> propre au tournoi, ouvert lui aussi sans connexion en lecture et en écriture (avec un champ "Votre nom" facultatif pour les visiteurs anonymes) : messages, réponses indentées, pièces jointes. Les réactions (👍 👎 ❤️) restent réservées aux comptes connectés, une identité stable étant nécessaire pour appliquer la règle "une seule réaction par personne".</li>
       </ul>
+    
+      <h3 class="admin-subheading">6.11 Tournoi salade (salade.html)</h3>
+      <p>Tournoi à la mêlée, idéal pour les soirées et animations du club : chaque joueur s'inscrit seul et, à chaque tour, le site forme de nouveaux doubles au hasard, les place sur les terrains et tient un classement individuel. Ce module est <strong>totalement indépendant du tournoi classique</strong> (ses propres tables <code>salade_*</code>) : il peut se dérouler en même temps qu'un tournoi en cours, sans interaction.</p>
+      <ul>
+        <li><strong>Droits</strong> : gestion réservée au droit « Tournoi salade (mêlée) — gestion » (<code>tournoi_salade</code>), aux droits Tournois - Administration / Gestion et à l'administrateur. Consultation ouverte à tous, sans connexion.</li>
+        <li><strong>Créer un tournoi</strong> : nom, date, nombre de terrains, points par match (indicatif, affiché aux joueurs), formation des doubles (au hasard ou mixte : une femme et un homme par paire dès que possible), équilibrage des niveaux entre les deux paires (case à cocher). Plusieurs tournois salade peuvent exister ; on choisit celui à afficher dans la liste. Boutons Modifier, Terminer / Rouvrir, Supprimer.</li>
+        <li><strong>Joueurs</strong> : ajout un par un (nom, genre et niveau facultatifs) ou ajout rapide de plusieurs joueurs, un par ligne (« Camille Martin ; F ; Confirmé »). Les doublons de nom sont refusés. La case « Présent » retire un joueur des prochains tirages (départ, pause) sans toucher à ses scores ; un retardataire peut être ajouté à tout moment. Un joueur ayant déjà joué ne peut pas être supprimé (il suffit de décocher « Présent »).</li>
+        <li><strong>Tirage d'un tour</strong> (« Générer le tour suivant ») : nombre de matchs = nombre de terrains, limité par le nombre de joueurs présents ÷ 4 ; les autres se reposent. Ceux qui ont le plus joué se reposent en premier, ce qui donne à tous le même nombre de matchs (à un près) et fait jouer immédiatement un retardataire. Parmi plusieurs milliers de tirages possibles, le site retient celui qui évite le mieux : de rejouer avec un même partenaire, puis de retrouver les mêmes adversaires, puis un écart de niveau entre les paires (si l'option est cochée) et, en formation mixte, une paire mixte opposée à une paire non mixte. Si un partenaire déjà rencontré est inévitable (peu de joueurs, beaucoup de tours), le site le signale.</li>
+        <li><strong>Refaire le tirage</strong> d'un tour : possible tant qu'aucun score n'y est saisi. <strong>Supprimer ce tour</strong> : retire le dernier tour (et ses scores, après confirmation) ; le classement est recalculé.</li>
+        <li><strong>Scores</strong> : saisis sur la carte de chaque terrain (touche Entrée ou bouton Valider), corrigeables, y compris dans les tours précédents (section « Tours précédents ») ; un match nul est refusé. La paire gagnante est surlignée en vert. Le site prévient si l'on génère le tour suivant alors que des scores manquent.</li>
+        <li><strong>Classement individuel</strong> : victoires, puis différence de points, puis points marqués ; colonnes Joués, Victoires, Défaites, Points marqués / encaissés, Différence et nombre de repos. Médailles 🥇🥈🥉 une fois le tournoi terminé. Sur téléphone, tableau compact (colonnes essentielles).</li>
+        <li><strong>Page publique et QR code</strong> : le bandeau du tournoi affiche un QR code et un lien « Ouvrir la page publique » (à afficher dans la salle ou sur un écran). Sans connexion, on y voit le tour en cours (terrains, doubles, scores, joueurs au repos) et le classement, rafraîchis toutes les 20 secondes. Le bloc <strong>« Mes matchs »</strong> permet à chacun de choisir son nom : il voit son terrain, son partenaire et ses adversaires du tour en cours (ou « au repos ») et son rang ; son nom est surligné partout. Ce choix est mémorisé sur son téléphone. Un organisateur qui ouvre ce lien voit la vue publique, avec un lien pour revenir à la gestion.</li>
+        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_salade.sql</code>, puis cocher le droit « Tournoi salade (mêlée) — gestion » sur les profils concernés (Administration → Profils) si les profils Tournois ne suffisent pas. Les 4 tables figurent dans la page Sauvegarde. Les visites de la page sont comptées dans le journal des visites publiques.</li>
+      </ul>
     </section>
 
     <!-- ===== 7. ADMINISTRATION ===== -->
@@ -758,12 +772,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927p"></script>
-<script src="js/tableaux-mobile.js?v=20260927p"></script>
-<script src="js/supabase-config.js?v=20260927p"></script>
-<script src="js/auth.js?v=20260927p"></script>
-<script src="js/theme.js?v=20260927p"></script>
-<script src="js/main.js?v=20260927p"></script>
-<script src="js/documentation.js?v=20260927p"></script>
+<script src="js/menu-mobile.js?v=20260927q"></script>
+<script src="js/tableaux-mobile.js?v=20260927q"></script>
+<script src="js/supabase-config.js?v=20260927q"></script>
+<script src="js/auth.js?v=20260927q"></script>
+<script src="js/theme.js?v=20260927q"></script>
+<script src="js/main.js?v=20260927q"></script>
+<script src="js/documentation.js?v=20260927q"></script>
 </body>
 </html>
