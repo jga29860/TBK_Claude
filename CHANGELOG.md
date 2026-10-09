@@ -1180,3 +1180,7 @@ Exécutez `supabase/migration_tournoi_salade_simples.sql` : colonnes `salade_tou
 
 `salade-tirage.js` : un simple est ajouté quand 2 ou 3 joueurs resteraient au repos et qu'un terrain est libre ; coût du simple (adversaires répétés, simples déjà joués, écart de niveau, homme contre femme) ; en mixte, pénalité pour paire non mixte ; `partenairesRepetes` renvoyé ; nombre de simples dans l'historique et le classement ; minimum 2 joueurs si simples activés.
 `salade.js` : option dans le formulaire du tournoi, prévision « n doubles et 1 simple », cartes « Simple », « Mes matchs » en simple, colonne Matchs « dont n simples » ; suppression d'un joueur à tout moment (`supprimerJoueur`) avec remplacement automatique par un joueur au repos sur le tour en cours, ou nouveau tirage du tour s'il n'a aucun score ; messages explicites si la migration n'est pas exécutée. Version des fichiers : `?v=20260927r`.
+
+## Correctif — tournoi salade : « null value in column "simple" »
+
+`salade.js` : chaque match envoyé porte désormais `simple: true/false` (lors d'un envoi groupé, Supabase complète les champs absents par une valeur vide, refusée par la colonne `simple`). Le message « exécutez la migration » ne s'affiche plus que si la colonne est réellement absente. Version des fichiers : `?v=20260927t`.

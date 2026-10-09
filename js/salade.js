@@ -422,7 +422,7 @@ async function enregistrerTournoi(e) {
     const { data: { session } } = await sbClient.auth.getSession();
     res = await sbClient.from('salade_tournois').insert({ ...donnees, created_by: session ? session.user.id : null }).select().single();
   }
-  if (res.error && /simples/.test(res.error.message || '')) {
+  if (res.error && /column .*simples|simples.*schema cache/i.test(res.error.message || '')) {
     hint.textContent = 'Option « simples » non enregistrée : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase.';
     return;
   }
@@ -633,12 +633,12 @@ async function tirerEtEnregistrer(numero) {
     const lignes = tirage.matchs.map(m => ({
       tournoi_id: sd.tournoi.id, tour_id: tour.id, terrain: m.terrain,
       joueur_a1: m.a[0], joueur_a2: m.a[1] || null, joueur_b1: m.b[0], joueur_b2: m.b[1] || null,
-      ...(m.simple ? { simple: true } : {})
+      simple: !!m.simple
     }));
     const r = await sbClient.from('salade_matchs').insert(lignes);
     if (r.error) {
       await sbClient.from('salade_tours').delete().eq('id', tour.id);
-      if (/simple/.test(r.error.message || '')) throw new Error('Les matchs en simple nécessitent la mise à jour de la base : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase (ou décochez l\'option « simples » du tournoi). Message technique : ' + r.error.message);
+      if (/column .*simple|simple.*schema cache/i.test(r.error.message || '')) throw new Error('Les matchs en simple nécessitent la mise à jour de la base : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase (ou décochez l\'option « simples » du tournoi). Message technique : ' + r.error.message);
       throw r.error;
     }
     await chargerDonnees(); renderTout();
