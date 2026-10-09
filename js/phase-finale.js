@@ -56,7 +56,8 @@ async function chargerDonnees(tournoiId) {
   ]);
   if (eqError || mError) { console.error((eqError && eqError.message) || (mError && mError.message)); return; }
 
-  equipesCache = equipes || [];
+  // Joueurs inscrits sans partenaire : pas encore une équipe (voir tournoi-inscriptions)
+  equipesCache = (equipes || []).filter(e => !e.cherche_partenaire);
   matchsCache = matchs || [];
 
   renderTout();

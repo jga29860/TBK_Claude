@@ -1189,3 +1189,10 @@ Exécutez `supabase/migration_tournoi_salade_simples.sql` : colonnes `salade_tou
 
 Exécutez `supabase/migration_tournoi_salade_retrait.sql` : colonne `salade_joueurs.retire` (aussi intégrée à `migration_tournoi_salade.sql` pour une installation neuve).
 `salade.js` : un joueur ayant au moins un score est « retiré » (`retire = true`, `present = false`) au lieu d'être effacé — exclu des tirages, affiché en bas de la liste des joueurs avec un bouton « Réintégrer », conservé dans le classement avec la mention « (retiré) ». Un joueur sans aucun score est toujours supprimé. Remplacement sur le terrain du tour en cours inchangé. Re-saisie du nom d'un joueur retiré : invitation à le réintégrer. Version des fichiers : `?v=20260927u`.
+
+## Tournoi — inscription sans partenaire (compétitions en double)
+
+Exécutez `supabase/migration_tournoi_sans_partenaire.sql` : colonne `equipes.cherche_partenaire` (aucune autre modification, règles d'accès inchangées).
+`tournoi-inscription-publique` : case « Je n'ai pas de partenaire » (double uniquement) masquant le joueur 2, nombre de joueurs déjà en recherche, message de confirmation adapté.
+`tournoi-inscriptions.js` : section « 🤝 Joueurs sans partenaire » (`renderSansPartenaireBlock`) avec partenaire suggéré par niveau proche (`partenairesSuggeres`), bouton « Associer » (`associerJoueursSeuls` : la demande la plus ancienne devient la paire, coordonnées réunies dans `equipes_contacts`, l'autre demande est retirée), « Saisir un partenaire » (formulaire d'édition, drapeau levé à l'enregistrement), « Refuser ». Joueurs seuls exclus des demandes en attente, des places et de la répartition automatique en poules.
+`emargement.js`, `planning.js`, `poules.js`, `phase-finale.js` : joueurs seuls ignorés au chargement. Version des fichiers : `?v=20260927v`.

@@ -6,8 +6,8 @@
 <title>Inscription au tournoi — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <meta name="description" content="Inscrivez-vous ou votre équipe au tournoi du club TBK (badminton et tennis de table).">
-<script src="js/theme-init.js?v=20260927u"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927u">
+<script src="js/theme-init.js?v=20260927v"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927v">
 </head>
 <body>
 
@@ -40,7 +40,7 @@
 
   <div id="successPanel" class="status-panel" hidden>
     <h2>Demande envoyée</h2>
-    <p>Merci ! Votre demande d'inscription au tournoi a bien été transmise à l'organisation, qui va l'examiner sous peu.</p>
+    <p id="successTexte">Merci ! Votre demande d'inscription au tournoi a bien été transmise à l'organisation, qui va l'examiner sous peu.</p>
   </div>
 
   <form id="tournoiInscriptionForm" hidden>
@@ -89,7 +89,12 @@
 
     <div id="joueur2Bloc" hidden>
       <h3 class="admin-subheading">Joueur 2 (compétition en double)</h3>
-      <div class="field-grid">
+      <label class="sans-partenaire-case">
+        <input type="checkbox" name="sans_partenaire" id="sansPartenaireCase">
+        Je n'ai pas de partenaire : je souhaite que l'organisation m'en trouve un
+      </label>
+      <p class="form-hint" id="sansPartenaireInfo" hidden></p>
+      <div class="field-grid" id="joueur2Champs">
         <label>Nom
           <input type="text" name="joueur2_nom_famille">
         </label>
@@ -130,13 +135,13 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927u"></script>
-<script src="js/tableaux-mobile.js?v=20260927u"></script>
-<script src="js/supabase-config.js?v=20260927u"></script>
-<script src="js/theme.js?v=20260927u"></script>
-<script src="js/anti-spam.js?v=20260927u"></script>
-<script src="js/tournoi-inscription-publique.js?v=20260927u"></script>
-<script src="js/visite-log.js?v=20260927u"></script>
+<script src="js/menu-mobile.js?v=20260927v"></script>
+<script src="js/tableaux-mobile.js?v=20260927v"></script>
+<script src="js/supabase-config.js?v=20260927v"></script>
+<script src="js/theme.js?v=20260927v"></script>
+<script src="js/anti-spam.js?v=20260927v"></script>
+<script src="js/tournoi-inscription-publique.js?v=20260927v"></script>
+<script src="js/visite-log.js?v=20260927v"></script>
 <script>
   // Email de contact dans l'en-tête, paramétrable depuis admin.html
   (async () => {

@@ -163,12 +163,16 @@ function renderEquipesTable() {
   const container = document.getElementById('poulesContainer');
   const isDouble = selectedCompetition.format === 'double';
 
-  const enAttente = equipesCache.filter(e => e.statut === 'en_attente');
+  const sansPartenaire = equipesCache.filter(e => e.statut === 'en_attente' && e.cherche_partenaire);
+  const enAttente = equipesCache.filter(e => e.statut === 'en_attente' && !e.cherche_partenaire);
   const refusees = equipesCache.filter(e => e.statut === 'refusee');
   const validees = equipesCache.filter(e => e.statut !== 'en_attente' && e.statut !== 'refusee');
 
   let html = '';
 
+  if (sansPartenaire.length > 0) {
+    html += renderSansPartenaireBlock(sansPartenaire);
+  }
   if (enAttente.length > 0) {
     html += renderDemandesBlock('🟠 Demandes en attente', enAttente, isDouble, 'attente');
   }
@@ -176,7 +180,7 @@ function renderEquipesTable() {
     html += renderDemandesBlock('⛔ Demandes refusées', refusees, isDouble, 'refusee');
   }
 
-  if (validees.length === 0 && enAttente.length === 0 && refusees.length === 0) {
+  if (validees.length === 0 && enAttente.length === 0 && refusees.length === 0 && sansPartenaire.length === 0) {
     container.innerHTML = '<p class="section-lead">Aucune équipe inscrite.</p>';
     return;
   }
@@ -197,6 +201,105 @@ function renderEquipesTable() {
 
   container.innerHTML = html;
   bindEquipesRowEvents();
+}
+
+// ============================================================
+// Joueurs inscrits sans partenaire (formulaire public, double)
+// ============================================================
+
+const NIVEAU_RANG = { 'Débutant': 1, 'Intermédiaire': 2, 'Confirmé': 3 };
+
+/** Partenaires possibles pour un joueur seul, du plus adapté au moins
+ *  adapté : niveau le plus proche, puis inscrit le plus tôt. */
+function partenairesSuggeres(joueur, seuls) {
+  const rang = (e) => NIVEAU_RANG[e.joueur1_niveau] || 2;
+  return seuls
+    .filter(e => e.id !== joueur.id)
+    .sort((a, b) => (Math.abs(rang(a) - rang(joueur)) - Math.abs(rang(b) - rang(joueur)))
+      || String(a.created_at || '').localeCompare(String(b.created_at || '')));
+}
+
+function renderSansPartenaireBlock(seuls) {
+  const fedeTexte = (val) => val === true ? 'Oui' : val === false ? 'Non' : '—';
+  const tries = seuls.slice().sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')));
+  return `
+    <div class="poule-block demandes-block sans-partenaire-block">
+      <h3 class="poule-block-title">🤝 Joueurs sans partenaire <span class="poule-count">(${seuls.length})</span></h3>
+      <p class="form-hint">Inscrits seuls via le formulaire public. Associez deux joueurs pour former une paire (le partenaire proposé en premier est celui de niveau le plus proche), ou saisissez un partenaire : la paire rejoint alors les demandes en attente, à valider comme d'habitude. Ces joueurs ne comptent pas dans les places et ne sont jamais mis en poule.</p>
+      <div class="table-wrap">
+        <table class="schedule equipes-table">
+          <thead>
+            <tr><th>Joueur</th><th>Contact</th><th>Niveau / Fédé / Club</th><th>Inscrit le</th><th>Former une paire</th><th></th></tr>
+          </thead>
+          <tbody>
+            ${tries.map(e => {
+              const options = partenairesSuggeres(e, seuls);
+              return `
+                <tr data-equipe-id="${e.id}">
+                  <td class="cell-nom">
+                    <span class="cell-nom-chevron">▸</span>
+                    <span class="cell-nom-texte">${escapeHtml(e.joueur1_nom)}</span>
+                  </td>
+                  <td data-label="Contact">${escapeHtml(e.demandeur_email || '—')}${e.demandeur_telephone ? `<br>${escapeHtml(e.demandeur_telephone)}` : ''}</td>
+                  <td data-label="Niveau / Fédé / Club">${escapeHtml(e.joueur1_niveau || '—')} · Fédé : ${fedeTexte(e.joueur1_fede)} · ${escapeHtml(e.joueur1_club || '—')}</td>
+                  <td data-label="Inscrit le">${e.created_at ? escapeHtml(new Date(e.created_at).toLocaleDateString('fr-FR')) : '—'}</td>
+                  <td data-label="Former une paire">
+                    ${options.length ? `<div class="associer-ligne">
+                      <select class="associer-select" aria-label="Partenaire pour ${escapeHtml(e.joueur1_nom)}">
+                        ${options.map(o => `<option value="${o.id}">${escapeHtml(o.joueur1_nom)} — ${escapeHtml(o.joueur1_niveau || '?')}</option>`).join('')}
+                      </select>
+                      <button type="button" class="btn btn-primary btn-small associer-btn">Associer</button>
+                    </div>` : '<span class="form-hint-inline">Aucun autre joueur seul pour le moment</span>'}
+                  </td>
+                  <td data-label="Actions">
+                    <button type="button" class="btn btn-ghost btn-small saisir-partenaire-btn">Saisir un partenaire</button>
+                    <button type="button" class="btn btn-danger btn-small refuser-demande-btn">Refuser</button>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/** Forme une paire à partir de deux joueurs inscrits seuls : la demande la
+ *  plus ancienne devient la paire (en attente de validation), l'autre est
+ *  supprimée ; les coordonnées des deux demandeurs sont conservées. */
+async function associerJoueursSeuls(idA, idB) {
+  const hint = document.getElementById('equipesHint');
+  const a0 = equipesCache.find(e => e.id === idA);
+  const b0 = equipesCache.find(e => e.id === idB);
+  if (!a0 || !b0) return;
+  const [garde, autre] = String(a0.created_at || '') <= String(b0.created_at || '') ? [a0, b0] : [b0, a0];
+  if (!confirm(`Former la paire ${garde.joueur1_nom} / ${autre.joueur1_nom} ?\n\nElle rejoindra les demandes en attente, à valider comme d'habitude. Les coordonnées des deux joueurs sont conservées pour l'email de confirmation.`)) return;
+
+  hint.textContent = 'Association…';
+  const { error } = await sbClient.from('equipes').update({
+    joueur2_nom: autre.joueur1_nom,
+    joueur2_club: autre.joueur1_club,
+    joueur2_niveau: autre.joueur1_niveau,
+    joueur2_fede: autre.joueur1_fede,
+    cherche_partenaire: false
+  }).eq('id', garde.id);
+  if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
+
+  const unir = (x, y, sep) => {
+    const vals = [x, y].map(v => (v || '').trim()).filter(Boolean);
+    return [...new Set(vals)].join(sep) || null;
+  };
+  const { error: errContact } = await sbClient.from('equipes_contacts').upsert({
+    equipe_id: garde.id,
+    demandeur_email: unir(garde.demandeur_email, autre.demandeur_email, ', '),
+    demandeur_telephone: unir(garde.demandeur_telephone, autre.demandeur_telephone, ' / '),
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'equipe_id' });
+  if (errContact) console.warn('[Contacts équipes]', errContact.message);
+
+  const { error: errSuppr } = await sbClient.from('equipes').delete().eq('id', autre.id);
+  if (errSuppr) { hint.textContent = `Paire formée, mais la demande de ${autre.joueur1_nom} n'a pas pu être retirée : ${errSuppr.message}`; await loadEquipes(); return; }
+  hint.textContent = `Paire ${garde.joueur1_nom} / ${autre.joueur1_nom} formée : elle est dans les demandes en attente.`;
+  await loadEquipes();
 }
 
 /** Section "Demandes en attente" ou "Demandes refusées" — issues du
@@ -224,7 +327,9 @@ function renderDemandesBlock(titre, equipes, isDouble, type) {
           <tbody>
             ${equipes.map(e => {
               const nomEquipe = isDouble
-                ? `${escapeHtml(e.joueur1_nom)} / ${escapeHtml(e.joueur2_nom || '?')}`
+                ? (e.cherche_partenaire && !e.joueur2_nom
+                  ? `${escapeHtml(e.joueur1_nom)} <span class="form-hint-inline">(sans partenaire)</span>`
+                  : `${escapeHtml(e.joueur1_nom)} / ${escapeHtml(e.joueur2_nom || '?')}`)
                 : escapeHtml(e.joueur1_nom);
               return `
                 <tr data-equipe-id="${e.id}">
@@ -451,6 +556,22 @@ function bindEquipesRowEvents() {
     });
   });
 
+  document.querySelectorAll('.associer-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const tr = e.target.closest('tr');
+      const select = tr.querySelector('.associer-select');
+      if (select && select.value) await associerJoueursSeuls(tr.getAttribute('data-equipe-id'), select.value);
+    });
+  });
+
+  document.querySelectorAll('.saisir-partenaire-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      editEquipe(e.target.closest('tr').getAttribute('data-equipe-id'));
+      const champ = document.querySelector('#equipeForm [name="joueur2_nom"]');
+      if (champ) setTimeout(() => champ.focus(), 300);
+    });
+  });
+
   document.querySelectorAll('.remettre-attente-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const id = e.target.closest('tr').getAttribute('data-equipe-id');
@@ -624,6 +745,7 @@ function editEquipe(id) {
     eq.created_at ? `inscription du ${escapeHtml(new Date(eq.created_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}` : '',
     eq.poule ? `poule ${escapeHtml(String(eq.poule))}` : 'pas encore en poule',
     eq.tete_de_poule ? 'tête de poule' : '',
+    eq.cherche_partenaire ? '🤝 inscrit sans partenaire : saisissez le joueur 2 pour former la paire' : '',
   ].filter(Boolean).join(' · ');
   infos.hidden = false;
 
@@ -657,9 +779,11 @@ async function autoAssignPoules() {
   hint.textContent = 'Répartition en cours…';
 
   const nbPoules = selectedCompetition.nb_poules;
-  for (let i = 0; i < equipesCache.length; i++) {
+  // Les joueurs inscrits sans partenaire ne sont pas encore des équipes
+  const aRepartir = equipesCache.filter(e => !e.cherche_partenaire);
+  for (let i = 0; i < aRepartir.length; i++) {
     const poule = (i % nbPoules) + 1;
-    const { error } = await sbClient.from('equipes').update({ poule }).eq('id', equipesCache[i].id);
+    const { error } = await sbClient.from('equipes').update({ poule }).eq('id', aRepartir[i].id);
     if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
   }
   hint.textContent = 'Répartition terminée.';
@@ -699,6 +823,9 @@ function bindStaticEvents() {
     const telephone = (fd.get('demandeur_telephone') || '').trim() || null;
     payload.demandeur_email = email;
     payload.demandeur_telephone = telephone;
+
+    const enEdition = editingEquipeId ? equipesCache.find(x => x.id === editingEquipeId) : null;
+    if (enEdition && enEdition.cherche_partenaire && payload.joueur2_nom) payload.cherche_partenaire = false;
 
     hint.textContent = 'Enregistrement…';
     let error;

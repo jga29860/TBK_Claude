@@ -114,7 +114,8 @@ async function loadAll(tournoiId, silent) {
   ]);
   if (eqError || mError) { if (!silent) alert('Erreur : ' + ((eqError && eqError.message) || (mError && mError.message))); return; }
 
-  equipesCache = equipes || [];
+  // Joueurs inscrits sans partenaire : pas encore une équipe (voir tournoi-inscriptions)
+  equipesCache = (equipes || []).filter(e => !e.cherche_partenaire);
   matchsCache = matchs || [];
 
   competitionsCache = (comps || []).map(c => ({

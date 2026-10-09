@@ -1784,3 +1784,10 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 }
 .sd-badge-simple{ display:inline-block; margin-left:6px; padding:2px 8px; border-radius:999px; font-size:0.68rem; font-family: var(--font-body); letter-spacing:0.02em; background: var(--c-fond-attente); color: var(--c-texte-attente); vertical-align:middle; }
 .sd-badge-retire{ background: var(--c-fond-neutre); color: var(--c-texte-neutre); }
+
+/* Inscription au tournoi sans partenaire */
+.sans-partenaire-case{ display:flex; align-items:center; gap:8px; margin:4px 0 10px; font-weight:600; cursor:pointer; }
+.sans-partenaire-case input{ width:18px; height:18px; flex-shrink:0; }
+.associer-ligne{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.associer-select{ max-width:220px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; font-family: var(--font-body); font-size:0.82rem; background: var(--white); }
+@media (max-width: 760px){ .associer-select{ max-width:100%; flex:1; } }

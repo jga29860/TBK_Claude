@@ -75,7 +75,8 @@ async function loadEquipes() {
     .order('joueur1_nom');
 
   if (error) { alert('Erreur : ' + error.message); return; }
-  equipesCache = data || [];
+  // Joueurs inscrits sans partenaire : pas encore une équipe (voir tournoi-inscriptions)
+  equipesCache = (data || []).filter(e => !e.cherche_partenaire);
   renderAll();
 }
 

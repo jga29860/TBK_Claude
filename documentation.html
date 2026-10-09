@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927u"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927u">
+<script src="js/theme-init.js?v=20260927v"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927v">
 </head>
 <body>
 
@@ -363,6 +363,17 @@
       <p><strong>Contenu de l'email de confirmation</strong> (administrateur) : en bas de tournoi-inscriptions.html, la section repliable "Email de confirmation d'inscription" permet de modifier l'objet et le texte. Variables remplacées automatiquement : {equipe} (joueur 1, ou "joueur 1 / joueur 2" en double), {joueur1}, {joueur2}, {competition}, {tournoi}, {date_tournoi}. Boutons Aperçu (équipe fictive) et Rétablir le texte par défaut. Sans personnalisation, le texte d'origine est utilisé.</p>
       <p><strong>Modifier une équipe</strong> : le formulaire en haut de page affiche toutes les informations saisies lors de la demande — joueurs (nom, club, niveau, licencié en club), email et téléphone du demandeur — ainsi qu'un rappel du statut (en attente, validée, refusée), de la date d'inscription, de la poule et de la tête de poule. Tout est modifiable ; un email ou un téléphone effacé est bien effacé.</p>
       <p><strong>Protection des coordonnées</strong> : les pages Phase Poule et Phase finale étant consultables sans connexion (QR code), la liste des équipes est publique. L'email et le téléphone du demandeur sont donc conservés à part, dans une table non publique, et n'apparaissent que sur tournoi-inscriptions.html pour les profils autorisés — aucune différence pour le demandeur ni pour l'organisation.</p>
+
+      <h3 class="admin-subheading">6.3ter Inscription sans partenaire (compétitions en double)</h3>
+      <p>Sur le formulaire public d'inscription, pour une compétition en double, la case <strong>« Je n'ai pas de partenaire : je souhaite que l'organisation m'en trouve un »</strong> masque les champs du joueur 2. Le formulaire indique combien de joueurs cherchent déjà un partenaire dans la compétition (sans afficher leurs noms). La demande est enregistrée « en attente » avec la mention « sans partenaire ».</p>
+      <ul>
+        <li><strong>Sur tournoi-inscriptions.html</strong>, une section <strong>« 🤝 Joueurs sans partenaire »</strong> (au-dessus des demandes en attente) liste ces joueurs : coordonnées, niveau, Fédé, club et date d'inscription.</li>
+        <li><strong>Associer</strong> : pour chaque joueur, une liste propose les autres joueurs seuls, le plus adapté en premier (niveau le plus proche, puis inscrit le plus tôt). Le bouton « Associer » forme la paire : la demande la plus ancienne devient la paire, l'autre est retirée, et les coordonnées des deux joueurs sont conservées (emails et téléphones réunis), pour que l'email de confirmation parte aux deux.</li>
+        <li><strong>Saisir un partenaire</strong> : ouvre la demande dans le formulaire du haut ; il suffit de renseigner le joueur 2 et d'enregistrer.</li>
+        <li>Dans les deux cas, la paire rejoint les <strong>« 🟠 Demandes en attente »</strong>, à valider comme d'habitude (email de confirmation proposé). <strong>Refuser</strong> fonctionne comme pour une demande ; « Remettre en attente » la renvoie dans la section des joueurs sans partenaire.</li>
+        <li>Tant qu'il n'a pas de partenaire, un joueur seul n'est <strong>jamais compté dans les places</strong>, jamais mis en poule (y compris par « Répartir automatiquement en poules ») et n'apparaît ni à l'émargement, ni au planning, ni sur Phase Poule / Phase finale.</li>
+        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_sans_partenaire.sql</code>.</li>
+      </ul>
 
       <h3 class="admin-subheading">6.4 Émargement (emargement.html)</h3>
       <p>Bandeau du haut fixe : cotisation, recherche instantanée, compteur de présents / inscrits, montant réglé — recalculés en direct.</p>
@@ -774,12 +785,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927u"></script>
-<script src="js/tableaux-mobile.js?v=20260927u"></script>
-<script src="js/supabase-config.js?v=20260927u"></script>
-<script src="js/auth.js?v=20260927u"></script>
-<script src="js/theme.js?v=20260927u"></script>
-<script src="js/main.js?v=20260927u"></script>
-<script src="js/documentation.js?v=20260927u"></script>
+<script src="js/menu-mobile.js?v=20260927v"></script>
+<script src="js/tableaux-mobile.js?v=20260927v"></script>
+<script src="js/supabase-config.js?v=20260927v"></script>
+<script src="js/auth.js?v=20260927v"></script>
+<script src="js/theme.js?v=20260927v"></script>
+<script src="js/main.js?v=20260927v"></script>
+<script src="js/documentation.js?v=20260927v"></script>
 </body>
 </html>
