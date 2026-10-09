@@ -565,23 +565,61 @@ function classeCouleurLigne(record) {
   return 'ligne-adulte';
 }
 
-function renderInscriptionsTableBody(columns) {
-  const tbody = document.getElementById('inscriptionsTableBody');
+/* ----- Liste découpée en 3 blocs : Bad, Ping, Jeune -----
+ * Jeune : toutes les inscriptions de catégorie Jeune (quel que soit le sport).
+ * Bad / Ping : les adultes ; une personne inscrite "Bad et Ping" apparaît
+ * dans les deux blocs (même logique que les compteurs du titre).
+ * Un bloc "Autres" n'apparaît que si une inscription ne rentre dans aucun
+ * des trois (sport non renseigné…), pour que personne ne disparaisse. */
+const BLOCS_INSCRITS = [
+  { cle: 'bad', titre: '🏸 Bad', libelle: 'Adultes badminton' },
+  { cle: 'ping', titre: '🏓 Ping', libelle: 'Adultes tennis de table' },
+  { cle: 'jeune', titre: '🧒 Jeune', libelle: 'Toutes les inscriptions Jeune' }
+];
+const blocsInscritsReplies = new Set();
 
-  if (inscriptionsCache.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription pour le moment.</td></tr>`;
-    return;
-  }
+function repartirEnBlocs(liste) {
+  const pratique = (i, sport) => i.bad_ping === sport || i.bad_ping === 'Bad et Ping';
+  const jeune = liste.filter(i => i.categorie === 'Jeune');
+  const adultes = liste.filter(i => i.categorie !== 'Jeune');
+  const bad = adultes.filter(i => pratique(i, 'Bad'));
+  const ping = adultes.filter(i => pratique(i, 'Ping'));
+  const autres = adultes.filter(i => !pratique(i, 'Bad') && !pratique(i, 'Ping'));
+  const blocs = [
+    { ...BLOCS_INSCRITS[0], liste: bad },
+    { ...BLOCS_INSCRITS[1], liste: ping },
+    { ...BLOCS_INSCRITS[2], liste: jeune }
+  ];
+  if (autres.length) blocs.push({ cle: 'autres', titre: 'Autres', libelle: 'Sport non renseigné', liste: autres });
+  return blocs;
+}
 
-  const liste = inscriptionsCache.filter(i => inscriptionCorrespondFiltres(i, columns));
-  afficherTotalCotisations(liste);
-  if (liste.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription ne correspond aux filtres.</td></tr>`;
-    return;
-  }
+function renderTitreBloc(bloc, nbColonnes, replie) {
+  const euros = (n) => n.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+  const total = bloc.liste.reduce((t, i) => t + (Number(i.cotisation) || 0), 0);
+  const paye = bloc.liste.filter(i => estValeurAffirmative((i.champs || {}).cotisation_payee))
+    .reduce((t, i) => t + (Number(i.cotisation) || 0), 0);
+  const nbDeux = (bloc.cle === 'bad' || bloc.cle === 'ping')
+    ? bloc.liste.filter(i => i.bad_ping === 'Bad et Ping').length : 0;
+  const details = [
+    `${bloc.liste.length} inscrit${bloc.liste.length > 1 ? 's' : ''}`,
+    nbDeux ? `dont ${nbDeux} Bad et Ping` : '',
+    bloc.liste.length ? `cotisations ${euros(total)} (payé ${euros(paye)})` : ''
+  ].filter(Boolean).join(' · ');
+  return `<tr class="bloc-inscrits-titre bloc-inscrits-${bloc.cle}">
+    <td colspan="${nbColonnes}">
+      <button type="button" class="bloc-inscrits-bascule" data-bloc="${bloc.cle}" aria-expanded="${replie ? 'false' : 'true'}" title="${replie ? 'Déplier' : 'Replier'} le bloc">
+        <span class="bloc-inscrits-chevron">${replie ? '▸' : '▾'}</span>
+        <span class="bloc-inscrits-nom">${escapeHtml(bloc.titre)}</span>
+        <span class="bloc-inscrits-details">${escapeHtml(details)}</span>
+      </button>
+    </td>
+  </tr>`;
+}
 
-  tbody.innerHTML = liste.map(i => `
-    <tr data-id="${i.id}" class="${classeCouleurLigne(i)}">
+function renderLigneInscription(i, columns, cleBloc) {
+  return `
+    <tr data-id="${i.id}" data-bloc="${cleBloc}" class="${classeCouleurLigne(i)}">
       <td class="cell-nom">
         <span class="cell-nom-chevron">▸</span>
         <span class="cell-nom-texte">${escapeHtml(i.nom)} ${escapeHtml(i.prenom || '')}</span>
@@ -597,7 +635,41 @@ function renderInscriptionsTableBody(columns) {
         </div>
       </td>
     </tr>
-  `).join('');
+  `;
+}
+
+function renderInscriptionsTableBody(columns) {
+  const tbody = document.getElementById('inscriptionsTableBody');
+
+  if (inscriptionsCache.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription pour le moment.</td></tr>`;
+    return;
+  }
+
+  const liste = inscriptionsCache.filter(i => inscriptionCorrespondFiltres(i, columns));
+  afficherTotalCotisations(liste);
+  if (liste.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription ne correspond aux filtres.</td></tr>`;
+    return;
+  }
+
+  const nbColonnes = columns.length + 4;
+  tbody.innerHTML = repartirEnBlocs(liste).map(bloc => {
+    const replie = blocsInscritsReplies.has(bloc.cle);
+    return renderTitreBloc(bloc, nbColonnes, replie)
+      + (replie ? '' : bloc.liste.length
+        ? bloc.liste.map(i => renderLigneInscription(i, columns, bloc.cle)).join('')
+        : `<tr class="bloc-inscrits-vide"><td colspan="${nbColonnes}">Aucun inscrit dans ce bloc${liste.length < inscriptionsCache.length ? ' (filtres appliqués)' : ''}.</td></tr>`);
+  }).join('');
+
+  tbody.querySelectorAll('.bloc-inscrits-bascule').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cle = btn.getAttribute('data-bloc');
+      if (blocsInscritsReplies.has(cle)) blocsInscritsReplies.delete(cle);
+      else blocsInscritsReplies.add(cle);
+      renderInscriptionsTableBody(columns);
+    });
+  });
 
   tbody.querySelectorAll('.cell-nom').forEach(cell => {
     cell.addEventListener('click', () => {

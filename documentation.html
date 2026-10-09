@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927o"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927o">
+<script src="js/theme-init.js?v=20260927p"></script>
+<link rel="stylesheet" href="css/style.css?v=20260927p">
 </head>
 <body>
 
@@ -316,6 +316,15 @@
 
       <h3 class="admin-subheading">5.17 Suivi de la dernière modification</h3>
       <p>Chaque inscription enregistre automatiquement qui l'a modifiée en dernier et à quelle date — quelle que soit l'origine du changement (formulaire, validation, envoi d'un email de relance qui fait évoluer le statut...). Cette information est visible en haut du panneau "Actions pour cette inscription" (voir 5.4), et peut aussi être ajoutée comme colonne du tableau depuis "Colonnes affichées" (5.5).</p>
+
+      <h3 class="admin-subheading">5.18 Liste des inscrits en 3 blocs : Bad, Ping, Jeune</h3>
+      <p>La liste des inscrits est présentée en trois blocs successifs, chacun avec son titre, son nombre d'inscrits et le total de ses cotisations (avec la part déjà payée) :</p>
+      <ul>
+        <li><strong>🏸 Bad</strong> : les adultes inscrits en « Bad » ou « Bad et Ping » ;</li>
+        <li><strong>🏓 Ping</strong> : les adultes inscrits en « Ping » ou « Bad et Ping » ;</li>
+        <li><strong>🧒 Jeune</strong> : toutes les inscriptions de catégorie Jeune, quel que soit le sport.</li>
+      </ul>
+      <p>Un adulte inscrit « Bad et Ping » apparaît donc dans les deux blocs Bad et Ping (le titre du bloc précise combien) ; le total général des cotisations, sous le titre de la liste, ne le compte qu'une fois. Si une inscription adulte n'a pas de sport renseigné, un bloc « Autres » apparaît pour qu'elle reste visible. Un clic sur le titre d'un bloc le replie ou le déplie. Les filtres par colonne (5.12, 5.16) s'appliquent aux trois blocs à la fois, et les boutons Modifier / Supprimer fonctionnent comme avant ; sur téléphone, les blocs s'enchaînent avec leurs fiches dépliables.</p>
     </section>
 
     <!-- ===== 6. TOURNOIS ===== -->
@@ -749,12 +758,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927o"></script>
-<script src="js/tableaux-mobile.js?v=20260927o"></script>
-<script src="js/supabase-config.js?v=20260927o"></script>
-<script src="js/auth.js?v=20260927o"></script>
-<script src="js/theme.js?v=20260927o"></script>
-<script src="js/main.js?v=20260927o"></script>
-<script src="js/documentation.js?v=20260927o"></script>
+<script src="js/menu-mobile.js?v=20260927p"></script>
+<script src="js/tableaux-mobile.js?v=20260927p"></script>
+<script src="js/supabase-config.js?v=20260927p"></script>
+<script src="js/auth.js?v=20260927p"></script>
+<script src="js/theme.js?v=20260927p"></script>
+<script src="js/main.js?v=20260927p"></script>
+<script src="js/documentation.js?v=20260927p"></script>
 </body>
 </html>

@@ -727,6 +727,31 @@ select.filtre-colonne-input{ background: var(--white); cursor:pointer; }
 .couleurs-legende-item{ display:flex; align-items:center; gap:6px; font-size:0.82rem; color: var(--ink-soft); }
 .couleurs-legende-pastille{ width:14px; height:14px; border-radius:4px; border:1px solid rgba(0,0,0,0.1); display:inline-block; }
 
+/* Liste des inscrits découpée en blocs Bad / Ping / Jeune */
+#inscriptionsTable tr.bloc-inscrits-titre td{
+  padding:0 !important; background: var(--pale); border-top:2px solid var(--green);
+}
+#inscriptionsTable tbody tr.bloc-inscrits-titre:first-child td{ border-top:none; }
+.bloc-inscrits-bascule{
+  display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px; width:100%;
+  padding:12px 14px; border:none; background:none; cursor:pointer; text-align:left;
+  font-family: var(--font-body); color: var(--ink);
+}
+.bloc-inscrits-bascule:focus-visible{ outline:2px solid var(--green); outline-offset:-2px; }
+.bloc-inscrits-chevron{ color: var(--green); font-weight:900; width:1em; }
+.bloc-inscrits-nom{ font-family: var(--font-display); font-weight:800; font-size:1.05rem; }
+.bloc-inscrits-details{ font-size:0.82rem; color: var(--ink-soft); }
+#inscriptionsTable tr.bloc-inscrits-vide td{ font-size:0.85rem; color: var(--ink-soft); font-style:italic; }
+@media (max-width: 760px){
+  #inscriptionsTable tr.bloc-inscrits-titre,
+  #inscriptionsTable tr.bloc-inscrits-vide{ border:none; border-radius:0; background:none; margin:16px 0 8px; }
+  #inscriptionsTable tbody tr.bloc-inscrits-titre:first-child{ margin-top:0; }
+  #inscriptionsTable tr.bloc-inscrits-titre td,
+  #inscriptionsTable tr.bloc-inscrits-vide td{ display:block; }
+  #inscriptionsTable tr.bloc-inscrits-titre td{ border-top:none; border-radius:10px; border-left:4px solid var(--green); }
+  #inscriptionsTable tr.bloc-inscrits-vide td{ padding:4px 14px; }
+}
+
 .filtres-groupe-grid{
   display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px; margin-top:10px;
 }
