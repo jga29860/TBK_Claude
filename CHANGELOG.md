@@ -1219,3 +1219,7 @@ Version des fichiers : `?v=20260927x`.
 - **T3** `planning.js` (`saveMatchField`) : le match en mémoire est mis à jour avant l'envoi de chaque case ; une saisie très rapide détecte bien la fin du match et le vainqueur de phase finale. En cas d'erreur d'enregistrement, rechargement des données.
 - `supabase/controle_equipes_non_validees_en_poule.sql` : liste (et correction facultative) des demandes non validées placées en poule par l'ancienne répartition.
 Tests avant / après : les trois anomalies reproduites sur la version x, corrigées sur la version y ; pages PC identiques au pixel. Version des fichiers : `?v=20260927y`.
+
+## Inscriptions saison — blocs Bad / Ping / Jeune repliés par défaut
+
+`inscriptions.js` : blocs repliés au chargement (`blocsOuverts`), dépliés d'un clic ; ouverture automatique pendant un filtre de colonne (`blocsFermesPendantFiltre` pour refermer un bloc pendant le filtrage) ; bouton « Tout déplier / Tout replier » (`#basculerBlocsBtn`). Mention « — afficher » sur un bloc replié. Version des fichiers : `?v=20260927z`.

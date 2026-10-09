@@ -1995,3 +1995,9 @@ html.td-sombre .td-select, html.td-sombre .td-set, html.td-sombre .td-saisie-jou
 html.td-sombre .btn-ghost{ color: var(--c-vert-statut); border-color: var(--c-vert-statut); background:transparent; }
 html.td-sombre .section-eyebrow{ color: var(--c-vert-statut); }
 html.td-sombre .td-puce.actif{ color:#fff; }
+
+/* Inscriptions : blocs Bad / Ping / Jeune repliés par défaut */
+.blocs-inscrits-aide{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.blocs-inscrits-aide span{ flex:1 1 320px; }
+.bloc-inscrits-bascule:hover{ background: var(--c-fond-champ-actif); }
+.bloc-inscrits-bascule[aria-expanded="false"] .bloc-inscrits-nom::after{ content:' — afficher'; font-family: var(--font-body); font-weight:400; font-size:0.78rem; color: var(--ink-soft); }

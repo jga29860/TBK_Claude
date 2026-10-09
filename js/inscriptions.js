@@ -576,7 +576,34 @@ const BLOCS_INSCRITS = [
   { cle: 'ping', titre: '🏓 Ping', libelle: 'Adultes tennis de table' },
   { cle: 'jeune', titre: '🧒 Jeune', libelle: 'Toutes les inscriptions Jeune' }
 ];
-const blocsInscritsReplies = new Set();
+// Blocs repliés par défaut : seuls les blocs ouverts d'un clic sont dépliés.
+// Quand un filtre de colonne est actif, les blocs s'ouvrent d'eux-mêmes pour
+// montrer les résultats (sauf ceux refermés d'un clic pendant le filtrage).
+const blocsOuverts = new Set();
+const blocsFermesPendantFiltre = new Set();
+function filtreColonneActif() { return Object.values(filtresColonnes).some(v => v); }
+function blocEstReplie(cle) {
+  return filtreColonneActif() ? blocsFermesPendantFiltre.has(cle) : !blocsOuverts.has(cle);
+}
+function basculerBloc(cle) {
+  const ens = filtreColonneActif() ? blocsFermesPendantFiltre : blocsOuverts;
+  if (ens.has(cle)) ens.delete(cle); else ens.add(cle);
+}
+function majBoutonToutDeplier(cles) {
+  const btn = document.getElementById('basculerBlocsBtn');
+  if (!btn) return;
+  btn.hidden = !cles.length;
+  const toutOuvert = cles.length && cles.every(c => !blocEstReplie(c));
+  btn.textContent = toutOuvert ? '▸ Tout replier' : '▾ Tout déplier';
+  btn.onclick = () => {
+    cles.forEach(c => {
+      const replie = blocEstReplie(c);
+      if (toutOuvert ? !replie : replie) basculerBloc(c);
+    });
+    const columns = getAvailableColumns().filter(col => colonnesCache.includes(col.key));
+    renderInscriptionsTableBody(columns);
+  };
+}
 
 function repartirEnBlocs(liste) {
   const pratique = (i, sport) => i.bad_ping === sport || i.bad_ping === 'Bad et Ping';
@@ -650,12 +677,15 @@ function renderInscriptionsTableBody(columns) {
   afficherTotalCotisations(liste);
   if (liste.length === 0) {
     tbody.innerHTML = `<tr><td colspan="${columns.length + 4}">Aucune inscription ne correspond aux filtres.</td></tr>`;
+    majBoutonToutDeplier([]);
     return;
   }
 
   const nbColonnes = columns.length + 4;
-  tbody.innerHTML = repartirEnBlocs(liste).map(bloc => {
-    const replie = blocsInscritsReplies.has(bloc.cle);
+  const blocs = repartirEnBlocs(liste);
+  majBoutonToutDeplier(blocs.map(b => b.cle));
+  tbody.innerHTML = blocs.map(bloc => {
+    const replie = blocEstReplie(bloc.cle);
     return renderTitreBloc(bloc, nbColonnes, replie)
       + (replie ? '' : bloc.liste.length
         ? bloc.liste.map(i => renderLigneInscription(i, columns, bloc.cle)).join('')
@@ -664,9 +694,7 @@ function renderInscriptionsTableBody(columns) {
 
   tbody.querySelectorAll('.bloc-inscrits-bascule').forEach(btn => {
     btn.addEventListener('click', () => {
-      const cle = btn.getAttribute('data-bloc');
-      if (blocsInscritsReplies.has(cle)) blocsInscritsReplies.delete(cle);
-      else blocsInscritsReplies.add(cle);
+      basculerBloc(btn.getAttribute('data-bloc'));
       renderInscriptionsTableBody(columns);
     });
   });
