@@ -9,23 +9,21 @@
 alter table public.benevoles_inscriptions alter column user_id drop not null;
 
 -- 2. Postes : lecture ouverte à tous, y compris sans connexion.
-grant select on public.benevoles_postes to anon;
+grant select on public.benevoles_postes to anon, authenticated;
 drop policy if exists "benevoles_postes_lecture_anon" on public.benevoles_postes;
 create policy "benevoles_postes_lecture_anon"
   on public.benevoles_postes for select
-  to anon
   using (true);
 
 -- 3. Inscriptions : lecture ouverte à tous ; création ouverte à tous
 -- (avec ou sans compte) tant qu'aucun user_id n'est usurpé ; modification/
 -- suppression réservées à la personne elle-même (si connectée) ou à un
 -- organisateur (dans tous les cas, y compris les entrées anonymes).
-grant select, insert on public.benevoles_inscriptions to anon;
+grant select, insert on public.benevoles_inscriptions to anon, authenticated;
 
 drop policy if exists "benevoles_inscriptions_lecture_anon" on public.benevoles_inscriptions;
 create policy "benevoles_inscriptions_lecture_anon"
   on public.benevoles_inscriptions for select
-  to anon
   using (true);
 
 drop policy if exists "benevoles_inscriptions_creation_anon" on public.benevoles_inscriptions;
@@ -63,12 +61,11 @@ create policy "benevoles_inscriptions_maj"
 
 -- 4. Messages du tournoi (chat) : lecture et écriture ouvertes à tous,
 -- avec ou sans compte (created_by = null pour un visiteur anonyme).
-grant select, insert on public.tournoi_messages to anon;
+grant select, insert on public.tournoi_messages to anon, authenticated;
 
 drop policy if exists "tournoi_messages_lecture_anon" on public.tournoi_messages;
 create policy "tournoi_messages_lecture_anon"
   on public.tournoi_messages for select
-  to anon
   using (true);
 
 drop policy if exists "tournoi_messages_creation_anon" on public.tournoi_messages;
@@ -95,11 +92,9 @@ create policy "tournoi_messages_creation"
 drop policy if exists "annonces_fichiers_lecture_anon_tournoi" on storage.objects;
 create policy "annonces_fichiers_lecture_anon_tournoi"
   on storage.objects for select
-  to anon
   using (bucket_id = 'annonces-fichiers' and name like 'tournoi-%');
 
 drop policy if exists "annonces_fichiers_ecriture_anon_tournoi" on storage.objects;
 create policy "annonces_fichiers_ecriture_anon_tournoi"
   on storage.objects for insert
-  to anon
   with check (bucket_id = 'annonces-fichiers' and name like 'tournoi-%');
