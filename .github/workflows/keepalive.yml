@@ -17,12 +17,12 @@ jobs:
     steps:
       - name: Vérifier la fréquence puis pinguer Supabase si nécessaire
         env:
-          # ⚠️ À REMPLACER par vos vraies valeurs, identiques à celles de
-          # js/supabase-config.js (Project Settings → API dans Supabase).
+          # Valeurs identiques à celles de js/supabase-config.js
+          # (Project Settings → API dans Supabase).
           # La clé "anon public" n'est pas un secret : elle est déjà
           # visible par n'importe qui dans le code du site.
-          SUPABASE_URL: "https://VOTRE-PROJET.supabase.co"
-          SUPABASE_ANON_KEY: "VOTRE_CLE_ANON_PUBLIQUE"
+          SUPABASE_URL: "https://cuwxfqltruqvtoqqcejw.supabase.co"
+          SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1d3hmcWx0cnVxdnRvcXFjZWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5Nzg4NTIsImV4cCI6MjEwMjU1NDg1Mn0.ynd6v8c2Sy1-q7u_Mfe94Lk8qNLKrF-YE-TtqWDCaJI"
         run: |
           set -e
 
