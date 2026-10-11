@@ -1,5 +1,9 @@
 // ============================================================
-// TBK — Tournoi salade (mêlée) : page salade.html
+// TBK — Tournoi TBK : page salade.html
+// Deux types de tournoi (colonne format) : « Tournoi Salade » (mêlée,
+// ce fichier) et « Tournoi Simple / Poules » (js/tournoi-poules.js).
+// Ci-dessous : choix / création des tournois, bandeau, et tout le
+// fonctionnement du tournoi salade.
 //
 // Module indépendant du tournoi classique (tables salade_*).
 // - Organisation (droit "tournoi_salade", "tournois_admin",
@@ -24,6 +28,8 @@ const sd = {
   minuterie: null
 };
 
+const SD_TYPES = { salade: 'Tournoi Salade', poules: 'Tournoi Simple / Poules' };
+function sdFormat(t) { return (t && t.format) === 'poules' ? 'poules' : 'salade'; }
 function sdParams() { return new URLSearchParams(window.location.search); }
 function sdJoueur(id) { return sd.joueurs.find(j => j.id === id); }
 function sdNom(id) { const j = sdJoueur(id); return j ? j.nom : '(joueur retiré)'; }
@@ -90,7 +96,7 @@ async function initSalade() {
   renderChoixTournoi(visibles, choisi);
   if (!choisi) {
     document.getElementById('sdAucunTournoi').hidden = false;
-    if (sd.gestion) document.getElementById('sdAucunTournoi').querySelector('p').textContent = 'Créez votre premier tournoi salade avec le bouton « Nouveau tournoi salade ».';
+    if (sd.gestion) document.getElementById('sdAucunTournoi').querySelector('p').textContent = 'Créez votre premier tournoi avec le bouton « Nouveau tournoi » (Tournoi Salade ou Tournoi Simple / Poules).';
     return;
   }
   await selectionnerTournoi(choisi.id);
@@ -106,8 +112,8 @@ function renderChoixTournoi(visibles, choisi) {
   section.hidden = !(sd.gestion || visibles.length > 1);
   document.getElementById('sdNouveauBtn').hidden = !sd.gestion;
   select.innerHTML = visibles.length
-    ? visibles.map(t => `<option value="${t.id}" ${choisi && t.id === choisi.id ? 'selected' : ''}>${escapeHtml(t.nom)}${t.date_tournoi ? ' — ' + escapeHtml(new Date(t.date_tournoi).toLocaleDateString('fr-FR')) : ''}${t.statut === 'termine' ? ' (terminé)' : ''}</option>`).join('')
-    : '<option value="">Aucun tournoi salade</option>';
+    ? visibles.map(t => `<option value="${t.id}" ${choisi && t.id === choisi.id ? 'selected' : ''}>${escapeHtml(t.nom)} · ${escapeHtml(SD_TYPES[sdFormat(t)])}${t.date_tournoi ? ' — ' + escapeHtml(new Date(t.date_tournoi).toLocaleDateString('fr-FR')) : ''}${t.statut === 'termine' ? ' (terminé)' : ''}</option>`).join('')
+    : '<option value="">Aucun tournoi</option>';
   select.disabled = !visibles.length;
 }
 
@@ -149,6 +155,10 @@ async function chargerDonnees() {
 function renderTout() {
   if (!sd.tournoi) return;
   renderBandeau();
+  const poules = sdFormat(sd.tournoi) === 'poules';
+  document.getElementById('sdSaladeZone').hidden = poules;
+  document.getElementById('tpContenu').hidden = !poules;
+  if (poules) { tpRendre(); return; }
   renderJoueurs();
   renderTourCourant();
   renderMesMatchs();
@@ -158,10 +168,22 @@ function renderTout() {
 
 function renderBandeau() {
   const t = sd.tournoi;
-  document.getElementById('pageTitle').textContent = `Tournoi salade — ${t.nom}`;
-  document.getElementById('sdTitre').innerHTML = `${escapeHtml(t.nom)} ${t.statut === 'termine' ? '<span class="statut-badge sd-badge-termine">Terminé</span>' : '<span class="statut-badge sd-badge-en-cours">En cours</span>'}`;
+  document.getElementById('pageTitle').textContent = `Tournoi TBK — ${t.nom}`;
+  document.getElementById('pageSurtitre').textContent = sdFormat(t) === 'poules'
+    ? 'Tournoi Simple / Poules — chaque joueur rencontre une fois chaque adversaire de sa poule'
+    : 'Tournoi Salade — partenaires tirés au sort à chaque tour';
+  document.getElementById('sdTitre').innerHTML = `${escapeHtml(t.nom)} <span class="statut-badge sd-badge-type">${escapeHtml(SD_TYPES[sdFormat(t)])}</span> ${t.statut === 'termine' ? '<span class="statut-badge sd-badge-termine">Terminé</span>' : '<span class="statut-badge sd-badge-en-cours">En cours</span>'}`;
   const presents = sd.joueurs.filter(j => j.present).length;
-  document.getElementById('sdResume').textContent = [
+  if (sdFormat(t) === 'poules') {
+    const joues = sd.matchs.filter(sdScoreSaisi).length;
+    document.getElementById('sdResume').textContent = [
+      t.date_tournoi ? sdDateLisible(t.date_tournoi) : '',
+      `${t.nb_poules} poule${t.nb_poules > 1 ? 's' : ''}`,
+      `${sd.joueurs.length} participant${sd.joueurs.length > 1 ? 's' : ''}`,
+      `matchs en simple, en ${t.points_par_match} points`,
+      sd.matchs.length ? `${joues}/${sd.matchs.length} matchs joués` : ''
+    ].filter(Boolean).join(' · ');
+  } else document.getElementById('sdResume').textContent = [
     t.date_tournoi ? sdDateLisible(t.date_tournoi) : '',
     `${t.nb_terrains} terrain${t.nb_terrains > 1 ? 's' : ''}`,
     `matchs en ${t.points_par_match} points`,
@@ -366,6 +388,7 @@ function renderHistorique() {
 function bindSalade() {
   document.getElementById('sdTournoiSelect').addEventListener('change', (e) => selectionnerTournoi(e.target.value));
   document.getElementById('sdNouveauBtn').addEventListener('click', () => ouvrirFormTournoi(null));
+  document.getElementById('sdFormatSelect').addEventListener('change', sdMajChampsFormat);
   document.getElementById('sdTournoiAnnulerBtn').addEventListener('click', () => { document.getElementById('sdTournoiForm').hidden = true; });
   document.getElementById('sdTournoiForm').addEventListener('submit', enregistrerTournoi);
   document.getElementById('sdModifierBtn').addEventListener('click', () => ouvrirFormTournoi(sd.tournoi));
@@ -396,11 +419,24 @@ function bindSalade() {
   });
 }
 
+/** Formulaire : champs propres au type de tournoi choisi. */
+function sdMajChampsFormat() {
+  const form = document.getElementById('sdTournoiForm');
+  const poules = form.format.value === 'poules';
+  form.querySelectorAll('.sd-champ-salade').forEach(el => { el.hidden = poules; });
+  form.querySelectorAll('.sd-champ-poules').forEach(el => { el.hidden = !poules; });
+  form.nom.placeholder = poules ? 'Ex. Tournoi simple du jeudi' : 'Ex. Salade de Noël';
+}
+
 function ouvrirFormTournoi(t) {
   const form = document.getElementById('sdTournoiForm');
   sd.tournoiEnEdition = t;
   form.hidden = false;
-  document.getElementById('sdTournoiFormTitre').textContent = t ? `Modifier « ${t.nom} »` : 'Nouveau tournoi salade';
+  document.getElementById('sdTournoiFormTitre').textContent = t ? `Modifier « ${t.nom} »` : 'Nouveau tournoi';
+  form.format.value = sdFormat(t);
+  form.format.disabled = !!t; // le type ne change plus une fois le tournoi créé
+  form.nb_poules.value = t && t.nb_poules ? t.nb_poules : 2;
+  sdMajChampsFormat();
   form.nom.value = t ? t.nom : '';
   form.date_tournoi.value = t && t.date_tournoi ? t.date_tournoi : '';
   form.nb_terrains.value = t ? t.nb_terrains : 4;
@@ -426,6 +462,10 @@ async function enregistrerTournoi(e) {
     equilibrer_niveaux: form.equilibrer_niveaux.checked,
     simples: form.simples.checked
   };
+  if (form.format.value === 'poules') {
+    donnees.nb_poules = Math.min(16, Math.max(1, parseInt(form.nb_poules.value, 10) || 1));
+  }
+  if (!sd.tournoiEnEdition && form.format.value === 'poules') donnees.format = 'poules';
   if (!donnees.nom) { hint.textContent = 'Le nom est obligatoire.'; return; }
   hint.textContent = 'Enregistrement…';
   let res;
@@ -434,6 +474,10 @@ async function enregistrerTournoi(e) {
   } else {
     const { data: { session } } = await sbClient.auth.getSession();
     res = await sbClient.from('salade_tournois').insert({ ...donnees, created_by: session ? session.user.id : null }).select().single();
+  }
+  if (res.error && /column .*(format|nb_poules)|(format|nb_poules).*schema cache/i.test(res.error.message || '')) {
+    hint.textContent = 'Le Tournoi Simple / Poules nécessite la mise à jour de la base : exécutez supabase/migration_tournoi_tbk_poules.sql dans Supabase.';
+    return;
   }
   if (res.error && /column .*simples|simples.*schema cache/i.test(res.error.message || '')) {
     hint.textContent = 'Option « simples » non enregistrée : exécutez supabase/migration_tournoi_salade_simples.sql dans Supabase.';
@@ -461,7 +505,7 @@ async function basculerStatut() {
 
 async function supprimerTournoi() {
   const t = sd.tournoi;
-  if (!confirm(`Supprimer définitivement le tournoi salade « ${t.nom} », ses joueurs, ses tours et ses scores ?`)) return;
+  if (!confirm(`Supprimer définitivement le tournoi « ${t.nom} », ses joueurs, ses matchs et ses scores ?`)) return;
   const { error } = await sbClient.from('salade_tournois').delete().eq('id', t.id);
   if (error) { alert('Erreur : ' + error.message); return; }
   sd.tournois = sd.tournois.filter(x => x.id !== t.id);
@@ -472,7 +516,7 @@ async function supprimerTournoi() {
     sd.tournoi = null;
     document.getElementById('sdContenu').hidden = true;
     document.getElementById('sdAucunTournoi').hidden = false;
-    document.getElementById('pageTitle').textContent = 'Tournoi salade';
+    document.getElementById('pageTitle').textContent = 'Tournoi TBK';
   }
 }
 

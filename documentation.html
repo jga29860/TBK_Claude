@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260927z"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927z">
+<script src="js/theme-init.js?v=20260928a"></script>
+<link rel="stylesheet" href="css/style.css?v=20260928a">
 </head>
 <body>
 
@@ -458,7 +458,9 @@
       </ul>
       <p><strong>Pages publiques du tournoi sur téléphone</strong> (Phase Poule, Phase finale, inscription publique, bénévoles) : boutons et champs d'au moins 44 px de haut et texte de saisie à 16 px (plus de zoom automatique de l'iPhone).</p>
 
-      <h3 class="admin-subheading">6.11 Tournoi salade (salade.html)</h3>
+      <h3 class="admin-subheading">6.11 Tournoi TBK (salade.html) — Tournoi Salade et Tournoi Simple / Poules</h3>
+      <p>La page <strong>Tournoi TBK</strong> (menu Tournoi → « Tournoi TBK (salade, simple / poules) », ancienne page « Tournoi salade », même adresse : les QR codes déjà imprimés restent valables) regroupe deux types de tournois internes, choisis à la création avec « + Nouveau tournoi » → <strong>Type de tournoi</strong> : <strong>Tournoi Salade</strong> (ci-dessous) ou <strong>Tournoi Simple / Poules</strong> (6.11bis). Le type est affiché dans la liste des tournois et dans le bandeau ; il ne peut plus être changé une fois le tournoi créé. Les tournois salade existants restent des Tournois Salade.</p>
+      <h4>Tournoi Salade</h4>
       <p>Tournoi à la mêlée, idéal pour les soirées et animations du club : chaque joueur s'inscrit seul et, à chaque tour, le site forme de nouveaux doubles au hasard, les place sur les terrains et tient un classement individuel. Ce module est <strong>totalement indépendant du tournoi classique</strong> (ses propres tables <code>salade_*</code>) : il peut se dérouler en même temps qu'un tournoi en cours, sans interaction.</p>
       <ul>
         <li><strong>Droits</strong> : gestion réservée au droit « Tournoi salade (mêlée) — gestion » (<code>tournoi_salade</code>), aux droits Tournois - Administration / Gestion et à l'administrateur. Consultation ouverte à tous, sans connexion.</li>
@@ -488,6 +490,19 @@
         <li><strong>Profils</strong> — création, modification des pages accessibles, suppression.</li>
         <li><strong>Utilisateurs</strong> — changement de profil, réinitialisation de mot de passe, suppression.</li>
         <li><strong>Invitations</strong> — pré-attribution d'un profil à un email.</li>
+      </ul>
+
+      <h3 class="admin-subheading">6.11bis Tournoi Simple / Poules (Tournoi TBK)</h3>
+      <p>Tournoi en <strong>simple</strong>, joueurs répartis en poules ; chaque joueur rencontre <strong>une seule fois</strong> chacun des autres joueurs de sa poule ; classement par poule.</p>
+      <ul>
+        <li><strong>Création</strong> : « + Nouveau tournoi » → type « Tournoi Simple / Poules », nom, date, <strong>nombre de poules</strong> (1 à 16), points par match. Le nombre de poules reste modifiable (bouton Modifier).</li>
+        <li><strong>Participants</strong> (prénom uniquement) : dans chaque carte « Poule n », saisir un prénom, ou plusieurs séparés par des virgules, puis Entrée ou « Ajouter ». Deux participants ne peuvent pas avoir le même prénom (ajouter une initiale : « Julien B. »). Liste « — déplacer — » pour changer un joueur de poule, ✕ pour le retirer. Si le nombre de poules est réduit, les joueurs des poules supprimées apparaissent dans une carte « Sans poule », à replacer.</li>
+        <li><strong>Matchs</strong> : « Générer les matchs » crée, pour chaque poule, toutes les rencontres (méthode du cercle), organisées en <strong>rondes</strong> où personne ne joue deux fois (avec un nombre impair de joueurs, un joueur est exempt à chaque ronde). Exemple : 4 joueurs → 6 matchs en 3 rondes ; 5 joueurs → 10 matchs en 5 rondes. Après l'ajout ou le déplacement d'un joueur, le bouton devient « Compléter les matchs » et n'ajoute que les rencontres manquantes : <strong>jamais de doublon</strong>, les scores déjà saisis sont conservés.</li>
+        <li><strong>Déplacer ou retirer un joueur</strong> qui a des matchs : ses matchs dans sa poule sont supprimés (confirmation, avec le nombre de matchs déjà joués) et le classement recalculé ; pensez ensuite à « Compléter les matchs ».</li>
+        <li><strong>Scores</strong> : un score par match (en N points, comme réglé), saisi directement sous la poule (touche Entrée ou bouton OK, « Corriger » ensuite) ; match nul refusé ; effacer les deux cases pour annuler un score.</li>
+        <li><strong>Classement par poule</strong> : matchs joués, victoires, défaites, points marqués / encaissés, différence ; tri par victoires, puis différence de points, puis points marqués. Médailles 🥇🥈🥉 quand tous les matchs de la poule sont joués. Sur téléphone, tableau compact.</li>
+        <li><strong>Page publique</strong> (QR code du bandeau, sans connexion) : classements et matchs de chaque poule, rafraîchis toutes les 20 secondes, et <strong>« Mes matchs »</strong> : chacun choisit son prénom pour voir sa poule, son rang et ses matchs (joués et à jouer) ; son prénom est surligné partout.</li>
+        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_tbk_poules.sql</code> (ajoute le type de tournoi et les colonnes de poule ; aucune donnée existante modifiée).</li>
       </ul>
 
       <h3 class="admin-subheading">7.1 Anti-pause Supabase (keepalive)</h3>
@@ -812,12 +827,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927z"></script>
-<script src="js/tableaux-mobile.js?v=20260927z"></script>
-<script src="js/supabase-config.js?v=20260927z"></script>
-<script src="js/auth.js?v=20260927z"></script>
-<script src="js/theme.js?v=20260927z"></script>
-<script src="js/main.js?v=20260927z"></script>
-<script src="js/documentation.js?v=20260927z"></script>
+<script src="js/menu-mobile.js?v=20260928a"></script>
+<script src="js/tableaux-mobile.js?v=20260928a"></script>
+<script src="js/supabase-config.js?v=20260928a"></script>
+<script src="js/auth.js?v=20260928a"></script>
+<script src="js/theme.js?v=20260928a"></script>
+<script src="js/main.js?v=20260928a"></script>
+<script src="js/documentation.js?v=20260928a"></script>
 </body>
 </html>

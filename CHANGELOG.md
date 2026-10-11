@@ -1223,3 +1223,11 @@ Tests avant / après : les trois anomalies reproduites sur la version x, corrig�
 ## Inscriptions saison — blocs Bad / Ping / Jeune repliés par défaut
 
 `inscriptions.js` : blocs repliés au chargement (`blocsOuverts`), dépliés d'un clic ; ouverture automatique pendant un filtre de colonne (`blocsFermesPendantFiltre` pour refermer un bloc pendant le filtrage) ; bouton « Tout déplier / Tout replier » (`#basculerBlocsBtn`). Mention « — afficher » sur un bloc replié. Version des fichiers : `?v=20260927z`.
+
+## Tournoi TBK — choix du type de tournoi et « Tournoi Simple / Poules »
+
+Exécutez `supabase/migration_tournoi_tbk_poules.sql` : `salade_tournois.format` ('salade' | 'poules', défaut 'salade') et `nb_poules`, `salade_joueurs.poule`, `salade_matchs.poule` / `ronde`, `tour_id` et `terrain` facultatifs ; reprend aussi les colonnes des migrations salade précédentes si absentes. `migration_tournoi_salade.sql` mis à jour pour une installation neuve.
+- Renommage : page « Tournoi TBK » (même fichier `salade.html`), menu « Tournoi TBK (salade, simple / poules) », droit « Tournoi TBK (salade, simple / poules) — gestion » (clé inchangée `tournoi_salade`).
+- `salade.js` : type de tournoi dans le formulaire (verrouillé après création), champs selon le type (`sdMajChampsFormat`), type affiché dans la liste et le bandeau, bandeau propre au type ; `renderTout` bascule entre la zone salade (`#sdSaladeZone`) et la zone poules (`#tpContenu`).
+- Nouveau `js/tournoi-poules.js` : participants (prénom) par poule avec ajout multiple, déplacement, retrait ; génération / complément des matchs (round-robin méthode du cercle, rondes sans double participation, aucun doublon) ; saisie des scores ; classement par poule ; vue publique « Mes matchs ».
+- `tableaux-mobile.js` : classement de poule (`table.tp-classement`) en tableau compact sur mobile. Styles `.tp-*`. Version des fichiers : `?v=20260928a`.

@@ -2001,3 +2001,62 @@ html.td-sombre .td-puce.actif{ color:#fff; }
 .blocs-inscrits-aide span{ flex:1 1 320px; }
 .bloc-inscrits-bascule:hover{ background: var(--c-fond-champ-actif); }
 .bloc-inscrits-bascule[aria-expanded="false"] .bloc-inscrits-nom::after{ content:' — afficher'; font-family: var(--font-body); font-weight:400; font-size:0.78rem; color: var(--ink-soft); }
+
+/* ============================================================
+   Tournoi TBK — type « Tournoi Simple / Poules » (js/tournoi-poules.js)
+   ============================================================ */
+.sd-badge-type{ background: var(--c-fond-neutre); color: var(--c-texte-neutre); vertical-align:middle; }
+.tp-poules-grille{ display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px; margin-top:12px; }
+.tp-poule-carte{ border:1px solid var(--border); border-radius:12px; padding:12px 14px; background: var(--white); display:flex; flex-direction:column; gap:8px; }
+.tp-poule-carte h3{ margin:0; font-size:1.05rem; }
+.tp-sans-poule{ border-style:dashed; background: var(--c-fond-attente); }
+.tp-participants{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.tp-participants li{ display:flex; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid var(--c-filet); }
+.tp-participants li:last-child{ border-bottom:none; }
+.tp-prenom{ flex:1; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.tp-vide{ color: var(--ink-soft); font-style:italic; font-size:0.85rem; }
+.tp-deplacer{ max-width:118px; padding:4px 6px; border:1px solid var(--border); border-radius:6px; font-size:0.78rem; background: var(--white); }
+.tp-retirer{ min-width:32px; min-height:32px; border:1px solid var(--border); border-radius:8px; background: var(--white); color: var(--c-rouge); cursor:pointer; }
+.tp-ajout{ display:flex; gap:6px; align-items:center; }
+.tp-ajout input{ flex:1; min-width:0; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-family: var(--font-body); font-size:0.9rem; }
+.tp-actions{ margin-top:12px; }
+.tp-moi label{ display:flex; flex-direction:column; gap:6px; font-weight:700; max-width:340px; }
+.tp-moi select{ padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:1rem; background: var(--white); }
+.tp-classement td:first-child{ white-space:nowrap; }
+.tp-matchs{ margin-top:12px; }
+.tp-matchs summary{ cursor:pointer; font-weight:700; color: var(--green); min-height:40px; display:flex; align-items:center; }
+.tp-ronde{ margin:8px 0 12px; }
+.tp-ronde-titre{ font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color: var(--ink-soft); margin-bottom:6px; }
+.tp-match{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:8px 12px; border:1px solid var(--border); border-radius:10px; margin-bottom:6px; background: var(--white); }
+.tp-match-fini{ background: var(--pale); }
+.tp-affiche{ font-size:0.95rem; }
+.tp-contre{ font-size:0.75rem; color: var(--ink-soft); margin:0 4px; }
+.tp-joueur{ font-weight:600; padding:2px 6px; border-radius:6px; }
+.tp-gagnant{ background: var(--c-fond-valide); color: var(--c-vert-statut); }
+.tp-score{ font-family: var(--font-mono); font-weight:700; }
+.tp-saisie{ display:flex; align-items:center; gap:6px; }
+.tp-saisie input{ width:56px; padding:6px 4px; text-align:center; font-size:1rem; border:1px solid var(--border); border-radius:6px; }
+.tp-match-hint:empty{ display:none; }
+.tp-match-hint{ flex-basis:100%; margin:0; }
+@media (max-width: 760px){
+  .tp-poules-grille{ grid-template-columns:1fr; }
+  .tp-match{ flex-direction:column; align-items:flex-start; }
+  .tp-saisie input{ width:64px; min-height:44px; font-size:1.1rem; }
+  .tp-saisie .btn{ min-height:44px; }
+  .tp-retirer{ min-width:44px; min-height:44px; }
+  .tp-deplacer{ min-height:44px; max-width:130px; }
+  .tp-ajout input{ min-height:44px; font-size:16px; }
+  .tp-moi label{ max-width:none; }
+}
+.tp-poules-grille{ grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+.tp-poule-carte{ min-width:0; }
+@media (max-width: 760px){
+  .tp-poules-grille{ grid-template-columns: minmax(0, 1fr); }
+  .tp-deplacer{ max-width:104px; }
+  /* Classement de poule : tableau compact plutôt qu'en cartes */
+  table.tp-classement{ min-width:0 !important; width:100%; font-size:0.85rem; }
+  table.tp-classement th, table.tp-classement td{ padding:8px 5px; }
+  table.tp-classement th:nth-child(6), table.tp-classement td:nth-child(6),
+  table.tp-classement th:nth-child(7), table.tp-classement td:nth-child(7){ display:none; }
+  table.tp-classement th{ font-size:0.65rem; letter-spacing:0; }
+}

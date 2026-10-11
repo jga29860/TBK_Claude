@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tournoi salade — TBK</title>
+<title>Tournoi TBK — TBK</title>
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
-<script src="js/theme-init.js?v=20260927z"></script>
-<link rel="stylesheet" href="css/style.css?v=20260927z">
+<script src="js/theme-init.js?v=20260928a"></script>
+<link rel="stylesheet" href="css/style.css?v=20260928a">
 </head>
 <body>
 
@@ -28,51 +28,60 @@
 </header>
 
 <main class="wrap page-section page-section--wide">
-  <p class="section-eyebrow">Tournoi à la mêlée — partenaires tirés au sort à chaque tour</p>
-  <h1 id="pageTitle">Tournoi salade</h1>
+  <p class="section-eyebrow" id="pageSurtitre">Tournoi Salade · Tournoi Simple / Poules</p>
+  <h1 id="pageTitle">Tournoi TBK</h1>
 
   <div id="erreurPanel" class="status-panel" hidden>
     <h2>Module non disponible</h2>
-    <p id="erreurTexte">Les tables du tournoi salade n'existent pas encore : exécutez <code>supabase/migration_tournoi_salade.sql</code> dans Supabase.</p>
+    <p id="erreurTexte">Les tables du Tournoi TBK n'existent pas encore : exécutez <code>supabase/migration_tournoi_salade.sql</code> dans Supabase.</p>
   </div>
 
   <!-- ===== Choix / création du tournoi (organisation) ===== -->
   <section class="admin-section" id="sdChoixSection" hidden>
-    <h2>Tournois salade</h2>
+    <h2>Tournois TBK</h2>
     <div class="inline-form sd-choix">
       <label>Tournoi
         <select id="sdTournoiSelect"></select>
       </label>
-      <button type="button" class="btn btn-primary btn-small" id="sdNouveauBtn">+ Nouveau tournoi salade</button>
+      <button type="button" class="btn btn-primary btn-small" id="sdNouveauBtn">+ Nouveau tournoi</button>
     </div>
     <p class="form-hint" id="sdChoixHint"></p>
 
     <form id="sdTournoiForm" class="sd-form" hidden>
-      <h3 class="admin-subheading" id="sdTournoiFormTitre">Nouveau tournoi salade</h3>
+      <h3 class="admin-subheading" id="sdTournoiFormTitre">Nouveau tournoi</h3>
       <div class="sd-form-grille">
+        <label>Type de tournoi
+          <select name="format" id="sdFormatSelect">
+            <option value="salade">Tournoi Salade (doubles tirés au sort à chaque tour)</option>
+            <option value="poules">Tournoi Simple / Poules (simples, classement par poule)</option>
+          </select>
+        </label>
         <label>Nom
           <input type="text" name="nom" required maxlength="120" placeholder="Ex. Salade de Noël">
         </label>
         <label>Date
           <input type="date" name="date_tournoi">
         </label>
-        <label>Nombre de terrains
+        <label class="sd-champ-poules" hidden>Nombre de poules
+          <input type="number" name="nb_poules" min="1" max="16" value="2">
+        </label>
+        <label class="sd-champ-salade">Nombre de terrains
           <input type="number" name="nb_terrains" min="1" max="40" value="4" required>
         </label>
         <label>Points par match
           <input type="number" name="points_par_match" min="1" max="99" value="21" required>
         </label>
-        <label>Formation des doubles
+        <label class="sd-champ-salade">Formation des doubles
           <select name="formation">
             <option value="aleatoire">Au hasard</option>
             <option value="mixte">Mixte (une femme et un homme par paire, si possible)</option>
           </select>
         </label>
-        <label class="sd-case">
+        <label class="sd-case sd-champ-salade">
           <input type="checkbox" name="equilibrer_niveaux" checked>
           Équilibrer les niveaux entre les deux paires
         </label>
-        <label class="sd-case">
+        <label class="sd-case sd-champ-salade">
           <input type="checkbox" name="simples" checked>
           Match en simple quand 2 ou 3 joueurs devraient passer leur tour (si un terrain est libre)
         </label>
@@ -86,8 +95,8 @@
   </section>
 
   <div id="sdAucunTournoi" class="status-panel" hidden>
-    <h2>Aucun tournoi salade</h2>
-    <p>Aucun tournoi salade n'est en cours pour le moment.</p>
+    <h2>Aucun tournoi</h2>
+    <p>Aucun Tournoi TBK n'est en cours pour le moment.</p>
   </div>
 
   <div id="sdContenu" hidden>
@@ -106,15 +115,20 @@
         </div>
       </div>
       <div class="sd-qr" id="sdQr" hidden>
-        <img id="sdQrImg" alt="QR code de la page publique du tournoi salade" width="110" height="110">
+        <img id="sdQrImg" alt="QR code de la page publique du tournoi" width="110" height="110">
         <div>
           <strong>Suivi en direct pour les joueurs</strong>
-          <p class="form-hint">À afficher dans la salle : tour en cours, terrains, classement et « mes matchs », sans connexion.</p>
+          <p class="form-hint">À afficher dans la salle : matchs, classement et « mes matchs », sans connexion.</p>
           <a id="sdLienPublic" href="#" target="_blank" rel="noopener">Ouvrir la page publique</a>
         </div>
       </div>
     </section>
 
+    <!-- ===== Tournoi Simple / Poules (js/tournoi-poules.js) ===== -->
+    <div id="tpContenu" hidden></div>
+
+    <!-- ===== Tournoi Salade ===== -->
+    <div id="sdSaladeZone">
     <!-- Joueurs (organisation) -->
     <section class="admin-section" id="sdJoueursSection" hidden data-repliable-mobile>
       <h2>Joueurs <span class="count-badge" id="sdJoueursCompteur"></span></h2>
@@ -192,6 +206,7 @@
       <h2>Tours précédents</h2>
       <div id="sdHistorique"></div>
     </section>
+    </div>
   </div>
 </main>
 
@@ -203,15 +218,16 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260927z"></script>
-<script src="js/tableaux-mobile.js?v=20260927z"></script>
-<script src="js/sections-repliables.js?v=20260927z"></script>
-<script src="js/supabase-config.js?v=20260927z"></script>
-<script src="js/visite-log.js?v=20260927z"></script>
-<script src="js/auth.js?v=20260927z"></script>
-<script src="js/theme.js?v=20260927z"></script>
-<script src="js/main.js?v=20260927z"></script>
-<script src="js/salade-tirage.js?v=20260927z"></script>
-<script src="js/salade.js?v=20260927z"></script>
+<script src="js/menu-mobile.js?v=20260928a"></script>
+<script src="js/tableaux-mobile.js?v=20260928a"></script>
+<script src="js/sections-repliables.js?v=20260928a"></script>
+<script src="js/supabase-config.js?v=20260928a"></script>
+<script src="js/visite-log.js?v=20260928a"></script>
+<script src="js/auth.js?v=20260928a"></script>
+<script src="js/theme.js?v=20260928a"></script>
+<script src="js/main.js?v=20260928a"></script>
+<script src="js/salade-tirage.js?v=20260928a"></script>
+<script src="js/tournoi-poules.js?v=20260928a"></script>
+<script src="js/salade.js?v=20260928a"></script>
 </body>
 </html>
