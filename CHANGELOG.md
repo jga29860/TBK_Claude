@@ -1231,3 +1231,10 @@ Exécutez `supabase/migration_tournoi_tbk_poules.sql` : `salade_tournois.format`
 - `salade.js` : type de tournoi dans le formulaire (verrouillé après création), champs selon le type (`sdMajChampsFormat`), type affiché dans la liste et le bandeau, bandeau propre au type ; `renderTout` bascule entre la zone salade (`#sdSaladeZone`) et la zone poules (`#tpContenu`).
 - Nouveau `js/tournoi-poules.js` : participants (prénom) par poule avec ajout multiple, déplacement, retrait ; génération / complément des matchs (round-robin méthode du cercle, rondes sans double participation, aucun doublon) ; saisie des scores ; classement par poule ; vue publique « Mes matchs ».
 - `tableaux-mobile.js` : classement de poule (`table.tp-classement`) en tableau compact sur mobile. Styles `.tp-*`. Version des fichiers : `?v=20260928a`.
+
+## Tournoi Simple / Poules — forfait et ordre des matchs
+
+Exécutez `supabase/migration_tournoi_poules_forfait.sql` : colonne `salade_matchs.forfait` (et `salade_joueurs.retire` si absente).
+- `tournoi-poules.js` : retrait d'un joueur ayant déjà joué = forfait (`tpRetirer`) : historique conservé, joueur classé avec la mention « (forfait) », matchs non joués perdus 0 – points du match (`tpScoreForfait`) ; réintégration (`tpReintegrer`) ; rencontres générées contre un joueur forfait = forfait d'office ; score corrigé à la main = forfait levé. Joueur sans match joué : suppression définitive comme avant.
+- Ordre des matchs toutes poules : `tpPlanifier` (créneaux de N terrains, remplissage maximal, évite les enchaînements, respecte les rondes, équilibre les poules — nombre minimal de créneaux sur les configurations testées) et `tpOrdre` (« À jouer maintenant » recalculé après chaque score, stable pour les matchs en cours ; « Ensuite » ; « Terminés ») ; section « Ordre des matchs » sous les poules avec saisie des scores ; listes de matchs par poule repliées.
+- « Mes matchs » : prochain match (maintenant / nombre de matchs avant) et matchs dans l'ordre de passage. Nombre de terrains demandé aussi pour ce type de tournoi. Version des fichiers : `?v=20260928c`.

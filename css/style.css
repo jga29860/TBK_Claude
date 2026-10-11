@@ -2060,3 +2060,15 @@ html.td-sombre .td-puce.actif{ color:#fff; }
   table.tp-classement th:nth-child(7), table.tp-classement td:nth-child(7){ display:none; }
   table.tp-classement th{ font-size:0.65rem; letter-spacing:0; }
 }
+/* Tournoi Simple / Poules : forfait et ordre des matchs */
+.tp-badge-forfait{ background: var(--c-fond-erreur); color: var(--c-texte-erreur); font-size:0.7rem; padding:2px 8px; margin-right:6px; }
+.tp-li-forfait .tp-prenom{ color: var(--ink-soft); text-decoration: line-through; }
+.tp-forfait-mention{ font-size:0.78rem; font-weight:400; color: var(--c-texte-erreur); }
+.tp-tag{ display:inline-block; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px; background: var(--c-fond-neutre); color: var(--c-texte-neutre); margin-right:6px; vertical-align:middle; }
+.tp-tag-terrain{ background: var(--green); color:#fff; }
+.tp-maintenant{ border:2px solid var(--green); border-radius:14px; padding:12px 14px; background: var(--pale); margin:10px 0 14px; }
+.tp-maintenant h3, .tp-ensuite h3{ margin:0 0 10px; font-size:1.05rem; }
+.tp-match-moi{ box-shadow: inset 4px 0 0 var(--green); }
+.tp-tout-joue{ font-weight:700; color: var(--c-vert-statut); }
+.tp-prochain{ padding:10px 12px; border-radius:10px; background: var(--c-fond-attente); margin:8px 0; }
+.tp-prochain-maintenant{ background: var(--c-fond-valide); }

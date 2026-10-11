@@ -179,6 +179,7 @@ function renderBandeau() {
     document.getElementById('sdResume').textContent = [
       t.date_tournoi ? sdDateLisible(t.date_tournoi) : '',
       `${t.nb_poules} poule${t.nb_poules > 1 ? 's' : ''}`,
+      `${t.nb_terrains} terrain${t.nb_terrains > 1 ? 's' : ''}`,
       `${sd.joueurs.length} participant${sd.joueurs.length > 1 ? 's' : ''}`,
       `matchs en simple, en ${t.points_par_match} points`,
       sd.matchs.length ? `${joues}/${sd.matchs.length} matchs joués` : ''

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260928a"></script>
-<link rel="stylesheet" href="css/style.css?v=20260928a">
+<script src="js/theme-init.js?v=20260928c"></script>
+<link rel="stylesheet" href="css/style.css?v=20260928c">
 </head>
 <body>
 
@@ -495,14 +495,25 @@
       <h3 class="admin-subheading">6.11bis Tournoi Simple / Poules (Tournoi TBK)</h3>
       <p>Tournoi en <strong>simple</strong>, joueurs répartis en poules ; chaque joueur rencontre <strong>une seule fois</strong> chacun des autres joueurs de sa poule ; classement par poule.</p>
       <ul>
-        <li><strong>Création</strong> : « + Nouveau tournoi » → type « Tournoi Simple / Poules », nom, date, <strong>nombre de poules</strong> (1 à 16), points par match. Le nombre de poules reste modifiable (bouton Modifier).</li>
-        <li><strong>Participants</strong> (prénom uniquement) : dans chaque carte « Poule n », saisir un prénom, ou plusieurs séparés par des virgules, puis Entrée ou « Ajouter ». Deux participants ne peuvent pas avoir le même prénom (ajouter une initiale : « Julien B. »). Liste « — déplacer — » pour changer un joueur de poule, ✕ pour le retirer. Si le nombre de poules est réduit, les joueurs des poules supprimées apparaissent dans une carte « Sans poule », à replacer.</li>
+        <li><strong>Création</strong> : « + Nouveau tournoi » → type « Tournoi Simple / Poules », nom, date, <strong>nombre de poules</strong> (1 à 16), <strong>nombre de terrains</strong>, points par match. Le nombre de poules reste modifiable (bouton Modifier).</li>
+        <li><strong>Participants</strong> (prénom uniquement) : dans chaque carte « Poule n », saisir un prénom, ou plusieurs séparés par des virgules, puis Entrée ou « Ajouter ». Deux participants ne peuvent pas avoir le même prénom (ajouter une initiale : « Julien B. »). Liste « — déplacer — » pour changer un joueur de poule, ✕ pour le retirer (voir « Forfait » ci-dessous). Si le nombre de poules est réduit, les joueurs des poules supprimées apparaissent dans une carte « Sans poule », à replacer.</li>
         <li><strong>Matchs</strong> : « Générer les matchs » crée, pour chaque poule, toutes les rencontres (méthode du cercle), organisées en <strong>rondes</strong> où personne ne joue deux fois (avec un nombre impair de joueurs, un joueur est exempt à chaque ronde). Exemple : 4 joueurs → 6 matchs en 3 rondes ; 5 joueurs → 10 matchs en 5 rondes. Après l'ajout ou le déplacement d'un joueur, le bouton devient « Compléter les matchs » et n'ajoute que les rencontres manquantes : <strong>jamais de doublon</strong>, les scores déjà saisis sont conservés.</li>
-        <li><strong>Déplacer ou retirer un joueur</strong> qui a des matchs : ses matchs dans sa poule sont supprimés (confirmation, avec le nombre de matchs déjà joués) et le classement recalculé ; pensez ensuite à « Compléter les matchs ».</li>
+        <li><strong>Retirer un joueur (✕)</strong> :
+          <ul>
+            <li>s'il n'a encore joué aucun match : il est supprimé, avec ses matchs prévus ;</li>
+            <li>s'il a déjà joué : <strong>forfait</strong>. Il garde son historique (matchs joués conservés) et reste dans le classement avec la mention « (forfait) » ; ses matchs non joués sont enregistrés <strong>perdus par forfait, 0 – 21</strong> (selon les points du tournoi), marqués « Forfait », et sortent de l'ordre des matchs. Un joueur ajouté plus tard gagne d'office par forfait contre lui. Le bouton <strong>« Réintégrer »</strong> annule le forfait : ses matchs perdus par forfait redeviennent « à jouer ». Corriger à la main le score d'un match forfait lève la mention.</li>
+          </ul></li>
+        <li><strong>Déplacer un joueur</strong> qui a des matchs : ses matchs dans sa poule sont supprimés (confirmation) et le classement recalculé ; pensez ensuite à « Compléter les matchs ».</li>
+        <li><strong>Ordre des matchs</strong> (sous l'ensemble des poules) : tous les matchs, toutes poules confondues, rangés en <strong>créneaux</strong> d'autant de matchs que de terrains, un joueur ne jouant qu'une fois par créneau. Chaque créneau est rempli au maximum (le nombre de créneaux est le plus petit possible), en évitant si possible qu'un joueur enchaîne deux créneaux, en respectant les rondes et en faisant avancer les poules au même rythme. Exemple : 2 poules de 4 sur 3 terrains → 12 matchs en 4 créneaux pleins.
+          <ul>
+            <li><strong>« ▶ À jouer maintenant »</strong> (Terrain 1, 2…) : les matchs à lancer. Recalculé après chaque score : quand un match se termine, le premier match suivant dont les deux joueurs sont libres remonte pour occuper le terrain, sans déplacer les matchs en cours.</li>
+            <li><strong>« Ensuite »</strong> (créneaux suivants) et <strong>« Matchs terminés »</strong> (repliés).</li>
+            <li>Les scores se saisissent directement dans cette liste (ou dans la liste repliée de chaque poule).</li>
+          </ul></li>
         <li><strong>Scores</strong> : un score par match (en N points, comme réglé), saisi directement sous la poule (touche Entrée ou bouton OK, « Corriger » ensuite) ; match nul refusé ; effacer les deux cases pour annuler un score.</li>
         <li><strong>Classement par poule</strong> : matchs joués, victoires, défaites, points marqués / encaissés, différence ; tri par victoires, puis différence de points, puis points marqués. Médailles 🥇🥈🥉 quand tous les matchs de la poule sont joués. Sur téléphone, tableau compact.</li>
-        <li><strong>Page publique</strong> (QR code du bandeau, sans connexion) : classements et matchs de chaque poule, rafraîchis toutes les 20 secondes, et <strong>« Mes matchs »</strong> : chacun choisit son prénom pour voir sa poule, son rang et ses matchs (joués et à jouer) ; son prénom est surligné partout.</li>
-        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_tbk_poules.sql</code> (ajoute le type de tournoi et les colonnes de poule ; aucune donnée existante modifiée).</li>
+        <li><strong>Page publique</strong> (QR code du bandeau, sans connexion) : classements et matchs de chaque poule, rafraîchis toutes les 20 secondes, l'ordre des matchs, et <strong>« Mes matchs »</strong> : chacun choisit son prénom pour voir sa poule, son rang, « ▶ À jouer maintenant (terrain n) » ou « Prochain match — environ n matchs avant le vôtre », et ses matchs dans l'ordre de passage ; son prénom est surligné partout.</li>
+        <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_tbk_poules.sql</code> (type de tournoi et colonnes de poule), puis <code>supabase/migration_tournoi_poules_forfait.sql</code> (mention forfait) ; aucune donnée existante modifiée.</li>
       </ul>
 
       <h3 class="admin-subheading">7.1 Anti-pause Supabase (keepalive)</h3>
@@ -827,12 +838,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260928a"></script>
-<script src="js/tableaux-mobile.js?v=20260928a"></script>
-<script src="js/supabase-config.js?v=20260928a"></script>
-<script src="js/auth.js?v=20260928a"></script>
-<script src="js/theme.js?v=20260928a"></script>
-<script src="js/main.js?v=20260928a"></script>
-<script src="js/documentation.js?v=20260928a"></script>
+<script src="js/menu-mobile.js?v=20260928c"></script>
+<script src="js/tableaux-mobile.js?v=20260928c"></script>
+<script src="js/supabase-config.js?v=20260928c"></script>
+<script src="js/auth.js?v=20260928c"></script>
+<script src="js/theme.js?v=20260928c"></script>
+<script src="js/main.js?v=20260928c"></script>
+<script src="js/documentation.js?v=20260928c"></script>
 </body>
 </html>
