@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260928d"></script>
-<link rel="stylesheet" href="css/style.css?v=20260928d">
+<script src="js/theme-init.js?v=20261011a"></script>
+<link rel="stylesheet" href="css/style.css?v=20261011a">
 </head>
 <body>
 
@@ -280,6 +280,7 @@
         <li>Si elle n'en a pas encore : le rattachement se fait automatiquement le jour où elle crée son compte avec la même adresse email, sans action supplémentaire de personne.</li>
         <li><strong>Aucun compte de connexion n'est créé à la place de la personne</strong> — ce serait techniquement impossible sans clé secrète serveur, et pas souhaitable : la personne doit toujours choisir elle-même son mot de passe.</li>
         <li>Bouton "Relier automatiquement les comptes existants" sur la page Inscriptions : rattrapage ponctuel pour les inscriptions déjà validées avant la mise en place de cette fonctionnalité.</li>
+        <li>Le rattachement (automatique, groupé ou manuel) fonctionne pour tout profil ayant accès à la page Inscriptions, administrateur ou non (profil Bureau par exemple) : il ne peut faire passer un compte que de "visiteur" à "membre", toute autre modification de profil restant réservée à l'administrateur (migration <code>supabase/migration_rattachement_par_bureau.sql</code>).</li>
       </ul>
       <p><strong>Rattachement manuel</strong> — mode plus simple, ne dépendant pas d'une correspondance par email : sur chaque demande, le bureau/admin peut choisir un compte existant dans une liste déroulante et cliquer "Rattacher" (élève aussi le profil à "membre"). Un bouton "Délier" permet d'annuler un rattachement fait par erreur.</p>
       <p>Une fois relié (automatiquement ou manuellement), sur membres.html, la personne voit ses informations d'inscription (saison, statut, catégorie, pratique, cotisation, validité du certificat médical) directement sous "Mon compte", avant les annonces — uniquement les siennes, jamais celles des autres.</p>
@@ -337,6 +338,7 @@
       <ul>
         <li><strong>Création</strong> — un nouveau tournoi devient automatiquement le tournoi actif ; bloquée si un tournoi est déjà actif. Ne touche jamais aux données des tournois précédents (aucune suppression croisée) : chaque tournoi garde ses propres équipes, matchs, scores.</li>
         <li><strong>Clôture</strong> — un tournoi actif peut être clôturé une fois terminé. Ses données restent en base, mais deviennent non modifiables : le bouton "Modifier" (nom, cotisation, terrains, liste des compétitions) disparaît tant que le tournoi reste clôturé.</li>
+        <li><strong>Modification</strong> — changer le nom, la cotisation, le nombre de terrains, la date ou les poules d'une compétition conserve toutes les équipes inscrites, les matchs et les scores. Seul le fait de <em>décocher</em> une compétition supprime ses équipes et ses matchs : le site affiche alors combien d'équipes et de matchs seront supprimés et demande une confirmation ; en cas de refus, rien n'est modifié.</li>
         <li><strong>Réactivation</strong> — possible si aucun autre tournoi n'est actif ; redonne accès à la modification.</li>
         <li><strong>Consultation d'un tournoi clôturé</strong> — des liens "Consulter les poules" et "Consulter la finale" apparaissent sur chaque tournoi clôturé, ouvrant poules.html/phase-finale.html sur ce tournoi précis (au lieu du tournoi actif par défaut) — ces deux pages étant déjà uniquement consultables, aucune donnée n'y est modifiable. Le titre de la page précise "(tournoi clôturé)" pour éviter toute confusion avec le tournoi en cours. Les autres données (équipes, émargement, courses, bénévoles) d'un tournoi clôturé restent en base mais ne sont pas consultables depuis le site une fois clôturé.</li>
       </ul>
@@ -648,7 +650,8 @@
       <ul>
         <li>L'ordre des tables est toujours respecté (indépendamment de l'ordre de sélection), pour éviter les problèmes de contraintes entre tables liées (ex. profils avant utilisateurs, tournois avant équipes).</li>
         <li>Le fichier neutralise temporairement les contraintes pendant la réinjection, en filet de sécurité supplémentaire.</li>
-        <li>Restauration : ouvrir Supabase → SQL Editor, coller ou importer le contenu du fichier, exécuter.</li>
+        <li>Restauration : ouvrir Supabase → SQL Editor, coller ou importer le contenu du fichier, exécuter. Les comptes utilisateurs (table <code>profiles</code>) ne se restaurent que si les comptes de connexion correspondants existent encore dans Supabase (Authentication → Users).</li>
+        <li>Toutes les tables sont proposées, y compris celles de l'UFOLEP, des cartes « Le club », des modèles d'emails d'inscription et de la saisie des scores par les joueurs. Les fichiers déposés (photos, certificats, images, classements) restent dans le stockage Supabase et ne sont pas inclus : seules leurs références le sont.</li>
       </ul>
       <p>À utiliser régulièrement (par exemple avant/après la période d'inscriptions ou un tournoi) — les fichiers générés contiennent des données personnelles de membres, à conserver dans un endroit sûr.</p>
     </section>
@@ -839,12 +842,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260928d"></script>
-<script src="js/tableaux-mobile.js?v=20260928d"></script>
-<script src="js/supabase-config.js?v=20260928d"></script>
-<script src="js/auth.js?v=20260928d"></script>
-<script src="js/theme.js?v=20260928d"></script>
-<script src="js/main.js?v=20260928d"></script>
-<script src="js/documentation.js?v=20260928d"></script>
+<script src="js/menu-mobile.js?v=20261011a"></script>
+<script src="js/tableaux-mobile.js?v=20261011a"></script>
+<script src="js/supabase-config.js?v=20261011a"></script>
+<script src="js/auth.js?v=20261011a"></script>
+<script src="js/theme.js?v=20261011a"></script>
+<script src="js/main.js?v=20261011a"></script>
+<script src="js/documentation.js?v=20261011a"></script>
 </body>
 </html>

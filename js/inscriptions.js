@@ -1065,7 +1065,7 @@ function bindRelierComptesBtn() {
 
     hint.textContent = `Rattachement en cours (${aTraiter.length} inscription(s))…`;
     for (const i of aTraiter) {
-      await sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: i.id }).catch(() => {});
+      await sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: i.id }).then(() => {}, () => {});
     }
     hint.textContent = 'Rattachement terminé (seules les personnes ayant déjà un compte sur le site ont pu être reliées).';
     await loadInscriptions();
@@ -1362,7 +1362,9 @@ function renderEditActionsPanel(record) {
         valide_le: new Date().toISOString(),
       }).eq('id', record.id);
       if (error) { alert('Erreur : ' + error.message); return; }
-      sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: record.id }).catch(() => {});
+      // Le client Supabase renvoie un objet « thenable » sans .catch() : on attend le
+      // rattachement avant de recharger, pour que la liste affiche le compte relié.
+      await sbClient.rpc('lier_inscription_compte_existant', { p_inscription_id: record.id }).then(() => {}, () => {});
       await loadInscriptions();
       resetForm();
     });

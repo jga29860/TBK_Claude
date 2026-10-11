@@ -336,10 +336,53 @@ function bindForms() {
       let tournoiId = editingTournoiId;
 
       if (editingTournoiId) {
+        // Les compétitions existantes sont mises à jour en place : les
+        // supprimer effacerait en cascade leurs équipes et leurs matchs.
+        const { data: existantes, error: errExist } = await sbClient
+          .from('tournoi_competitions')
+          .select('id, type_competition_id')
+          .eq('tournoi_id', editingTournoiId);
+        if (errExist) { hint.textContent = 'Erreur : ' + errExist.message; return; }
+
+        const typesCoches = new Set(selection.map(s => s.type_competition_id));
+        const aRetirer = (existantes || []).filter(c => !typesCoches.has(c.type_competition_id));
+        if (aRetirer.length > 0) {
+          const ids = aRetirer.map(c => c.id);
+          const [{ count: nbEquipes, error: errEq }, { count: nbMatchs, error: errM }] = await Promise.all([
+            sbClient.from('equipes').select('id', { count: 'exact', head: true }).in('tournoi_competition_id', ids),
+            sbClient.from('matchs').select('id', { count: 'exact', head: true }).in('tournoi_competition_id', ids),
+          ]);
+          if (errEq || errM) { hint.textContent = 'Erreur : ' + (errEq || errM).message; return; }
+          const noms = aRetirer.map(c => (typesCache.find(t => t.id === c.type_competition_id) || {}).nom || '?').join(', ');
+          if ((nbEquipes || 0) + (nbMatchs || 0) > 0 && !confirm(
+            `Vous avez décoché : ${noms}.\n\nCela supprimera DÉFINITIVEMENT ${nbEquipes || 0} équipe(s) et ${nbMatchs || 0} match(s) de ce tournoi (scores compris).\n\nContinuer ?`
+          )) {
+            hint.textContent = 'Modification annulée : rien n\'a été changé.';
+            return;
+          }
+        }
+
         const { error } = await sbClient.from('tournois').update(payload).eq('id', editingTournoiId);
         if (error) { hint.textContent = 'Erreur : ' + error.message; return; }
-        // Remplace entièrement la config des compétitions
-        await sbClient.from('tournoi_competitions').delete().eq('tournoi_id', editingTournoiId);
+
+        for (const s of selection) {
+          const existante = (existantes || []).find(c => c.type_competition_id === s.type_competition_id);
+          const { error: errComp } = existante
+            ? await sbClient.from('tournoi_competitions')
+              .update({ nb_poules: s.nb_poules, taille_poule: s.taille_poule })
+              .eq('id', existante.id)
+            : await sbClient.from('tournoi_competitions').insert({ ...s, tournoi_id: editingTournoiId });
+          if (errComp) { hint.textContent = 'Erreur (compétitions) : ' + errComp.message; return; }
+        }
+        if (aRetirer.length > 0) {
+          const { error: errSuppr } = await sbClient.from('tournoi_competitions').delete().in('id', aRetirer.map(c => c.id));
+          if (errSuppr) { hint.textContent = 'Erreur (compétitions) : ' + errSuppr.message; return; }
+        }
+
+        hint.textContent = 'Tournoi mis à jour.';
+        resetTournoiForm();
+        await loadTournois();
+        return;
       } else {
         const { data: { session } } = await sbClient.auth.getSession();
         const { data, error } = await sbClient
@@ -355,7 +398,7 @@ function bindForms() {
       const { error: compError } = await sbClient.from('tournoi_competitions').insert(rows);
       if (compError) { hint.textContent = 'Erreur (compétitions) : ' + compError.message; return; }
 
-      hint.textContent = editingTournoiId ? 'Tournoi mis à jour.' : 'Tournoi créé.';
+      hint.textContent = 'Tournoi créé.';
       resetTournoiForm();
       await loadTournois();
     });
