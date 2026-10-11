@@ -1,0 +1,56 @@
+name: Keepalive Supabase (anti-pause)
+
+# Vérifie tous les jours si un "ping" est nécessaire, selon la fréquence
+# réglée depuis la page Administration du site (paramètre
+# "keepalive_frequence_jours", par défaut 5 jours). Le ping lui-même
+# est un appel très léger, sans aucun coût, qui suffit à empêcher
+# Supabase de mettre le projet en pause après 7 jours d'inactivité.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # tous les jours à 6h00 UTC (7h/8h heure française)
+  workflow_dispatch: {}    # permet aussi un déclenchement manuel depuis l'onglet "Actions" de GitHub
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier la fréquence puis pinguer Supabase si nécessaire
+        env:
+          # Valeurs identiques à celles de js/supabase-config.js
+          # (Project Settings → API dans Supabase).
+          # La clé "anon public" n'est pas un secret : elle est déjà
+          # visible par n'importe qui dans le code du site.
+          SUPABASE_URL: "https://cuwxfqltruqvtoqqcejw.supabase.co"
+          SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1d3hmcWx0cnVxdnRvcXFjZWp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5Nzg4NTIsImV4cCI6MjEwMjU1NDg1Mn0.ynd6v8c2Sy1-q7u_Mfe94Lk8qNLKrF-YE-TtqWDCaJI"
+        run: |
+          set -e
+
+          REPONSE=$(curl -s "$SUPABASE_URL/rest/v1/parametres_site?cle=eq.keepalive_frequence_jours&select=valeur,updated_at" \
+            -H "apikey: $SUPABASE_ANON_KEY")
+
+          FREQUENCE=$(echo "$REPONSE" | jq -r '.[0].valeur // empty')
+          DERNIER_PING=$(echo "$REPONSE" | jq -r '.[0].updated_at // empty')
+
+          if [ -z "$FREQUENCE" ] || [ -z "$DERNIER_PING" ]; then
+            echo "Impossible de lire le paramètre keepalive_frequence_jours (migration exécutée ? clé/URL correctes dans ce fichier ?). Ping quand même par sécurité."
+            FREQUENCE=5
+            DERNIER_PING="1970-01-01T00:00:00Z"
+          fi
+
+          MAINTENANT=$(date -u +%s)
+          DERNIER=$(date -u -d "$DERNIER_PING" +%s)
+          JOURS_ECOULES=$(( (MAINTENANT - DERNIER) / 86400 ))
+
+          echo "Fréquence réglée : $FREQUENCE jour(s). Dernier ping il y a $JOURS_ECOULES jour(s)."
+
+          if [ "$JOURS_ECOULES" -ge "$FREQUENCE" ]; then
+            echo "Ping nécessaire — envoi en cours…"
+            curl -s -X POST "$SUPABASE_URL/rest/v1/rpc/enregistrer_keepalive_ping" \
+              -H "apikey: $SUPABASE_ANON_KEY" \
+              -H "Content-Type: application/json" \
+              -o /dev/null -w "Statut HTTP : %{http_code}\n"
+            echo "Ping envoyé avec succès."
+          else
+            echo "Pas encore nécessaire (prochain ping dans $((FREQUENCE - JOURS_ECOULES)) jour(s)) — rien à faire aujourd'hui."
+          fi
