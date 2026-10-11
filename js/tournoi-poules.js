@@ -211,6 +211,10 @@ function tpRendre() {
 
   html += Array.from({ length: nb }, (_, i) => tpHtmlPoule(i + 1, editable, moi)).join('');
   html += tpHtmlOrdre(editable, moi);
+  // Téléphone : accès direct aux matchs à jouer (la liste est en bas de page)
+  if (editable && sd.matchs.some(m => !sdScoreSaisi(m))) {
+    html += '<a href="#tpOrdre" class="tp-aller-scores">✏️ Scores</a>';
+  }
   zone.innerHTML = html;
 }
 
@@ -223,7 +227,7 @@ function tpHtmlOrdre(editable, moi) {
   const o = tpOrdreCourant();
   const t = sd.tournoi.nb_terrains || 4;
   const restants = o.maintenant.length + o.groupes.reduce((n, g) => n + g.matchs.length, 0);
-  return `<section class="admin-section tp-ordre">
+  return `<section class="admin-section tp-ordre" id="tpOrdre">
     <h2>Ordre des matchs <span class="count-badge">(${restants} à jouer)</span></h2>
     <p class="form-hint">Toutes poules confondues, ${t} terrain${t > 1 ? 's' : ''} : ${o.nbCreneaux} créneau${o.nbCreneaux > 1 ? 'x' : ''} au total. L'ordre se met à jour après chaque score : un match plus loin dans la liste remonte dès que ses deux joueurs sont libres, pour occuper tous les terrains.</p>
     ${o.maintenant.length ? `<div class="tp-maintenant">

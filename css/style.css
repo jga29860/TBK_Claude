@@ -2072,3 +2072,12 @@ html.td-sombre .td-puce.actif{ color:#fff; }
 .tp-tout-joue{ font-weight:700; color: var(--c-vert-statut); }
 .tp-prochain{ padding:10px 12px; border-radius:10px; background: var(--c-fond-attente); margin:8px 0; }
 .tp-prochain-maintenant{ background: var(--c-fond-valide); }
+/* Tournoi TBK : accès à la saisie des scores depuis la vue publique / téléphone */
+.sd-bandeau-orga{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:6px 0 14px; padding:12px 14px; border-radius:12px; background: var(--c-fond-attente); border:1px solid var(--c-bordure-attente); color: var(--c-texte-attente); font-weight:600; }
+.sd-bandeau-orga .btn{ min-height:44px; display:inline-flex; align-items:center; }
+.sd-bandeau-orga-discret{ background: var(--pale); border-color: var(--border); color: var(--ink-soft); font-weight:400; font-size:0.9rem; }
+.tp-aller-scores{ display:none; }
+.tp-ordre{ scroll-margin-top:80px; }
+@media (max-width: 760px){
+  .tp-aller-scores{ display:flex; align-items:center; justify-content:center; position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom)); z-index:50; min-height:52px; padding:0 18px; border-radius:999px; background: var(--green); color:#fff; font-weight:700; text-decoration:none; box-shadow:0 6px 18px rgba(0,0,0,0.25); }
+}

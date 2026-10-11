@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20260928c"></script>
-<link rel="stylesheet" href="css/style.css?v=20260928c">
+<script src="js/theme-init.js?v=20260928d"></script>
+<link rel="stylesheet" href="css/style.css?v=20260928d">
 </head>
 <body>
 
@@ -512,6 +512,7 @@
           </ul></li>
         <li><strong>Scores</strong> : un score par match (en N points, comme réglé), saisi directement sous la poule (touche Entrée ou bouton OK, « Corriger » ensuite) ; match nul refusé ; effacer les deux cases pour annuler un score.</li>
         <li><strong>Classement par poule</strong> : matchs joués, victoires, défaites, points marqués / encaissés, différence ; tri par victoires, puis différence de points, puis points marqués. Médailles 🥇🥈🥉 quand tous les matchs de la poule sont joués. Sur téléphone, tableau compact.</li>
+        <li><strong>Saisie des scores sur téléphone</strong> : il faut être connecté avec un profil organisateur et être en mode gestion. Le QR code et le lien « Ouvrir la page publique » ouvrent la <em>vue des joueurs</em> (lecture seule) : un organisateur connecté y voit un bandeau « ✏️ Saisir les scores » qui le ramène en mode gestion ; un visiteur non connecté voit « Organisateur ? Connectez-vous pour saisir les scores ». En mode gestion sur téléphone, le bouton flottant « ✏️ Scores » mène directement à « À jouer maintenant ». (Même fonctionnement pour le Tournoi Salade.)</li>
         <li><strong>Page publique</strong> (QR code du bandeau, sans connexion) : classements et matchs de chaque poule, rafraîchis toutes les 20 secondes, l'ordre des matchs, et <strong>« Mes matchs »</strong> : chacun choisit son prénom pour voir sa poule, son rang, « ▶ À jouer maintenant (terrain n) » ou « Prochain match — environ n matchs avant le vôtre », et ses matchs dans l'ordre de passage ; son prénom est surligné partout.</li>
         <li><strong>Mise en place</strong> : exécuter une fois <code>supabase/migration_tournoi_tbk_poules.sql</code> (type de tournoi et colonnes de poule), puis <code>supabase/migration_tournoi_poules_forfait.sql</code> (mention forfait) ; aucune donnée existante modifiée.</li>
       </ul>
@@ -838,12 +839,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20260928c"></script>
-<script src="js/tableaux-mobile.js?v=20260928c"></script>
-<script src="js/supabase-config.js?v=20260928c"></script>
-<script src="js/auth.js?v=20260928c"></script>
-<script src="js/theme.js?v=20260928c"></script>
-<script src="js/main.js?v=20260928c"></script>
-<script src="js/documentation.js?v=20260928c"></script>
+<script src="js/menu-mobile.js?v=20260928d"></script>
+<script src="js/tableaux-mobile.js?v=20260928d"></script>
+<script src="js/supabase-config.js?v=20260928d"></script>
+<script src="js/auth.js?v=20260928d"></script>
+<script src="js/theme.js?v=20260928d"></script>
+<script src="js/main.js?v=20260928d"></script>
+<script src="js/documentation.js?v=20260928d"></script>
 </body>
 </html>

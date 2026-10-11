@@ -79,12 +79,21 @@ async function initSalade() {
   sd.tournois = data || [];
 
   bindSalade();
-  if (droit && sd.publicForce) {
-    const lien = document.createElement('p');
-    lien.className = 'form-hint';
-    const url = new URL(window.location.href); url.searchParams.delete('public');
-    lien.innerHTML = `Vue publique (celle des joueurs). <a href="${escapeHtml(url.pathname + url.search)}">Revenir à la gestion</a>`;
-    document.getElementById('pageTitle').after(lien);
+  // Vue publique : un organisateur (QR code scanné avec son téléphone, par
+  // exemple) doit pouvoir passer facilement en saisie des scores.
+  if (sd.publicForce || !access) {
+    const bandeau = document.createElement('div');
+    bandeau.className = 'sd-bandeau-orga';
+    if (droit) {
+      const url = new URL(window.location.href); url.searchParams.delete('public');
+      bandeau.innerHTML = `<span>Vous êtes organisateur : cette page est la vue des joueurs (lecture seule).</span>
+        <a class="btn btn-primary btn-small" href="${escapeHtml(url.pathname + url.search)}">✏️ Saisir les scores</a>`;
+    } else if (!access) {
+      bandeau.classList.add('sd-bandeau-orga-discret');
+      bandeau.innerHTML = `<span>Organisateur ? Connectez-vous pour saisir les scores, puis revenez sur cette page.</span>
+        <a class="btn btn-ghost btn-small" href="membres.html">Se connecter</a>`;
+    }
+    if (bandeau.innerHTML) document.getElementById('pageTitle').after(bandeau);
   }
 
   const idDemande = p.get('id');
