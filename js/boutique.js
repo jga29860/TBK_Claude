@@ -47,6 +47,7 @@ async function initPage() {
     document.getElementById('gestionSection').hidden = false;
     document.getElementById('syntheseSection').hidden = false;
     bindArticleForm();
+    bindCommandeFournisseur();
     await chargerNomsMembres();
   }
 
@@ -483,6 +484,113 @@ function renderSynthese() {
       <td>${l.quantite}</td>
       <td>${l.floques > 0 ? l.floques : '—'}</td>
     </tr>`).join('');
+}
+
+// ============================================================
+// Commande au fournisseur (bureau) : email récapitulatif de tous
+// les articles commandés, envoyé via la messagerie de l'utilisateur
+// (mailto), avec l'adresse du club (email de contact) en copie.
+// ============================================================
+const MAILTO_LONGUEUR_MAX_BOUTIQUE = 1900;
+const EMAIL_VALIDE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function bindCommandeFournisseur() {
+  const form = document.getElementById('fournisseurForm');
+  const input = document.getElementById('fournisseurEmailInput');
+  const hint = document.getElementById('fournisseurHint');
+
+  sbClient.from('parametres_site').select('valeur').eq('cle', 'boutique_email_fournisseur').maybeSingle()
+    .then(({ data }) => { if (data && data.valeur && !input.value) input.value = data.valeur; }, () => {});
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = input.value.trim();
+    if (email && !EMAIL_VALIDE.test(email)) { hint.textContent = 'Adresse email du fournisseur invalide.'; return; }
+    const { error } = await sbClient.from('parametres_site')
+      .upsert({ cle: 'boutique_email_fournisseur', valeur: email, updated_at: new Date().toISOString() }, { onConflict: 'cle' });
+    hint.textContent = error ? 'Erreur : ' + error.message : (email ? 'Adresse du fournisseur enregistrée.' : 'Adresse du fournisseur effacée.');
+  });
+
+  document.getElementById('fournisseurMailBtn').addEventListener('click', preparerMailFournisseur);
+}
+
+/** Commandes à transmettre au fournisseur : toutes sauf les annulées,
+ *  et sauf les déjà récupérées (sauf demande contraire). */
+function commandesPourFournisseur(commandes, inclureRecuperees) {
+  return commandes.filter(c => c.statut !== 'annulee' && (inclureRecuperees || c.statut !== 'recuperee'));
+}
+
+/** Texte de la commande : un bloc par article, une ligne par taille
+ *  (quantité, dont floqués), puis la liste des noms à floquer. */
+function texteCommandeFournisseur(commandes) {
+  const articles = {};
+  commandes.forEach(c => {
+    const a = articles[c.article_nom] || (articles[c.article_nom] = { tailles: {}, flocages: [], total: 0 });
+    const t = a.tailles[c.taille] || (a.tailles[c.taille] = { quantite: 0, floques: 0 });
+    t.quantite++;
+    a.total++;
+    if (c.flocage) {
+      t.floques++;
+      a.flocages.push({ taille: c.taille, nom: (c.flocage_nom || '').trim() });
+    }
+  });
+  const nomsArticles = Object.keys(articles).sort((x, y) => x.localeCompare(y, 'fr'));
+  const blocs = nomsArticles.map(nom => {
+    const a = articles[nom];
+    const lignes = Object.keys(a.tailles)
+      .sort((x, y) => x.localeCompare(y, 'fr', { numeric: true }))
+      .map(taille => {
+        const t = a.tailles[taille];
+        return `  - Taille ${taille} : ${t.quantite}${t.floques ? ` (dont ${t.floques} floqué${t.floques > 1 ? 's' : ''})` : ''}`;
+      });
+    const flocages = a.flocages
+      .sort((x, y) => x.taille.localeCompare(y.taille, 'fr', { numeric: true }) || x.nom.localeCompare(y.nom, 'fr'))
+      .map(f => `      · Taille ${f.taille} : « ${f.nom || 'nom à préciser'} »`);
+    return [`${nom} — ${a.total} pièce${a.total > 1 ? 's' : ''}`, ...lignes,
+      ...(flocages.length ? ['    Flocages :', ...flocages] : [])].join('\n');
+  });
+  return { texte: blocs.join('\n\n'), totalPieces: commandes.length, nbArticles: nomsArticles.length };
+}
+
+async function preparerMailFournisseur() {
+  const hint = document.getElementById('fournisseurHint');
+  const destinataire = document.getElementById('fournisseurEmailInput').value.trim();
+  if (!EMAIL_VALIDE.test(destinataire)) {
+    hint.textContent = 'Renseignez d\'abord l\'adresse email du fournisseur (puis « Enregistrer l\'adresse » pour la conserver).';
+    return;
+  }
+  const inclureRecuperees = document.getElementById('fournisseurInclureRecupereesInput').checked;
+  const commandes = commandesPourFournisseur(commandesCache, inclureRecuperees);
+  if (commandes.length === 0) { hint.textContent = 'Aucun article commandé à transmettre.'; return; }
+
+  // Adresse du club (email de contact, Administration → Paramètres) en copie
+  let copie = '';
+  try {
+    const { data } = await sbClient.from('parametres_site').select('valeur').eq('cle', 'email_contact').maybeSingle();
+    copie = (data && data.valeur || '').trim();
+  } catch (e) { /* sans copie : le bureau l'ajoutera dans sa messagerie */ }
+
+  const { texte, totalPieces, nbArticles } = texteCommandeFournisseur(commandes);
+  const dateJour = new Date().toLocaleDateString('fr-FR');
+  const sujet = `Commande du club TBK — ${dateJour}`;
+  const entete = `Bonjour,\n\nVoici la commande du club TBK : ${totalPieces} pièce${totalPieces > 1 ? 's' : ''}, ${nbArticles} article${nbArticles > 1 ? 's' : ''}.\n\n`;
+  const pied = `\n\nMerci de nous confirmer la commande, le prix et le délai de livraison.\n\nCordialement,\nLe bureau du TBK${copie ? `\n${copie}` : ''}`;
+  const lienMail = (corps) => `mailto:${destinataire}?${copie ? `cc=${encodeURIComponent(copie)}&` : ''}subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+
+  let lien = lienMail(entete + texte + pied);
+  let copiee = false;
+  if (lien.length > MAILTO_LONGUEUR_MAX_BOUTIQUE) {
+    try { await navigator.clipboard.writeText(texte); copiee = true; } catch (e) { copiee = false; }
+    lien = lienMail(entete + (copiee
+      ? '[Le détail de la commande a été copié : collez-le ici avec Ctrl+V (ou appui long → Coller).]'
+      : '[Détail trop long pour être inséré automatiquement : reprenez-le depuis la page Boutique du site.]') + pied);
+  }
+
+  window.location.href = lien;
+  hint.textContent = (copiee
+    ? `${totalPieces} pièce(s) : le détail étant long, il a été copié — collez-le dans l'email qui vient de s'ouvrir.`
+    : `${totalPieces} pièce(s) — email pré-rempli ouvert dans votre messagerie.`)
+    + (copie ? '' : ' Attention : aucune adresse du club n\'est renseignée (Administration → Paramètres), ajoutez-la en copie à la main.');
 }
 
 /** Nom du demandeur : priorité au nom + prénom de son inscription

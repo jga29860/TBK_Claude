@@ -102,7 +102,11 @@ begin
     execute format('create policy %I on public.%I for select using (true)', t || '_lecture', t);
 
     execute format('drop policy if exists %I on public.%I', t || '_gestion', t);
-    execute format('create policy %I on public.%I for all to authenticated using (public.peut_gerer_salade()) with check (public.peut_gerer_salade())', t || '_gestion', t);
+    -- salade_tournois : règles par action (suppression réservée au
+    -- créateur et à l'admin), voir migration_tbk_suppression_et_email_fournisseur.sql.
+    if t <> 'salade_tournois' then
+      execute format('create policy %I on public.%I for all to authenticated using (public.peut_gerer_salade()) with check (public.peut_gerer_salade())', t || '_gestion', t);
+    end if;
   end loop;
 end $$;
 

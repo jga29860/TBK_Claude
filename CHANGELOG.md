@@ -1253,3 +1253,14 @@ Exécutez `supabase/migration_rattachement_par_bureau.sql` : le déclencheur `pr
 - **Migrations ré-exécutables** : `migration_roles.sql` (supprime `profiles_role_fkey` avant de la recréer) et `migration_gestion_annonces.sql` (supprime `annonces_gerees_par_droit` avant de la recréer). Déjà appliquées en production : rien à relancer.
 - **Ordre des migrations sur une base neuve** : `migration_helloasso_suivi.sql` doit être exécutée **avant** `migration_cotisation_payee_helloasso.sql` (qui utilise la table `paiements_en_ligne_journal`), bien que les entrées du journal ci-dessus les citent dans l'ordre inverse.
 Version des fichiers : `?v=20261011a`.
+
+## Tournoi TBK — suppression réservée au créateur ; Boutique — commande au fournisseur
+
+Exécutez `supabase/migration_tbk_suppression_et_email_fournisseur.sql` :
+- `salade_tournois` : la règle `salade_tournois_gestion` est remplacée par `salade_tournois_creation` (créateur = compte connecté), `salade_tournois_modification` et `salade_tournois_suppression` (créateur du tournoi s'il est toujours organisateur, ou admin) ; déclencheur `trg_salade_tournois_proteger_createur` (le créateur ne peut être changé que par l'admin). Un tournoi sans créateur connu ne peut être supprimé que par l'admin. `migration_tournoi_salade.sql` ne recrée plus la règle globale sur `salade_tournois` en cas de ré-exécution.
+- `parametres_site` : clé `boutique_email_fournisseur` et règle `parametres_email_fournisseur` (lecture/écriture de cette seule clé par les droits `boutique_gestion` et `administration`).
+
+Pages :
+- `salade.js` : bouton « Supprimer » affiché seulement au créateur du tournoi et à l'administrateur (`sdPeutSupprimer`) ; suppression vérifiée (`.select()`) avec message si la base la refuse.
+- `boutique.html` / `boutique.js` : bloc « Commande au fournisseur » dans la synthèse (bureau) : email du fournisseur enregistrable, bouton « 📧 Préparer l'email au fournisseur » (mailto, adresse `email_contact` du club en copie) avec le récapitulatif des commandes non annulées par article / taille / flocage (`texteCommandeFournisseur`), commandes récupérées exclues sauf case cochée ; récapitulatif copié dans le presse-papiers si le lien est trop long.
+Version des fichiers : `?v=20261012a`.
