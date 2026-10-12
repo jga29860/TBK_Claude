@@ -263,6 +263,7 @@ function rendreJournees() {
       <h2 style="margin:0;">Calendrier et résultats <span class="count-badge">(${l.length})</span></h2>
       ${ufEtat.gestion ? '<button type="button" class="btn btn-primary btn-small" id="ufAjouterJourneeBtn">+ Ajouter une journée</button>' : ''}
     </div>
+    ${htmlTableur()}
     <div class="uf-form-zone" id="ufJourneeFormZone"></div>
     ${l.length ? `<div class="uf-journees">${l.map(j => {
       const url = ufEtat.urlsImages[j.image_chemin];
@@ -281,6 +282,7 @@ function rendreJournees() {
         </figure>`;
     }).join('')}</div>` : '<p class="form-hint">Aucune journée publiée pour l\'instant.</p>'}`;
 
+  lierTableur(section);
   const ajouter = document.getElementById('ufAjouterJourneeBtn');
   if (ajouter) ajouter.addEventListener('click', () => ouvrirFormulaireJournee(null));
   section.querySelectorAll('[data-modifier-journee]').forEach(b => b.addEventListener('click', () =>
@@ -288,6 +290,112 @@ function rendreJournees() {
   section.querySelectorAll('[data-supprimer-journee]').forEach(b => b.addEventListener('click', () =>
     supprimerJournee(ufEtat.journees.find(x => x.id === b.dataset.supprimerJournee))));
   section.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => ouvrirZoom(b.dataset.zoom, b.dataset.titre)));
+}
+
+// ------------------------------------------------------------
+// Tableur Google Sheets de l'équipe (calendrier et résultats),
+// affiché dans la page. Seules les adresses docs.google.com sont
+// acceptées, et l'adresse affichée est reconstruite à partir de
+// l'identifiant du tableur (jamais l'adresse saisie telle quelle).
+// ------------------------------------------------------------
+
+/** Analyse un lien Google Sheets : renvoie l'adresse à afficher dans
+ *  la page et celle pour ouvrir le tableur, ou null si le lien n'est
+ *  pas un tableur Google. Gère le lien de partage (…/d/<id>/edit…)
+ *  et le lien « Publier sur le web » (…/d/e/<id>/pubhtml…). */
+function lienTableurGoogle(url) {
+  let u;
+  try { u = new URL(String(url || '').trim()); } catch (e) { return null; }
+  if (u.protocol !== 'https:' || u.hostname !== 'docs.google.com' || !u.pathname.startsWith('/spreadsheets/')) return null;
+  const gidBrut = u.searchParams.get('gid') || (u.hash.match(/gid=(\d+)/) || [])[1] || '';
+  const gid = /^\d+$/.test(gidBrut) ? gidBrut : '';
+  const publie = u.pathname.match(/^\/spreadsheets\/d\/e\/([A-Za-z0-9_-]+)/);
+  if (publie) {
+    const base = `https://docs.google.com/spreadsheets/d/e/${publie[1]}`;
+    return {
+      affichage: `${base}/pubhtml?widget=true&headers=false${gid ? `&gid=${gid}&single=true` : ''}`,
+      ouverture: `${base}/pubhtml${gid ? `?gid=${gid}&single=true` : ''}`,
+    };
+  }
+  const partage = u.pathname.match(/^\/spreadsheets\/d\/([A-Za-z0-9_-]+)/);
+  if (!partage) return null;
+  const base = `https://docs.google.com/spreadsheets/d/${partage[1]}`;
+  return {
+    affichage: `${base}/preview${gid ? `?gid=${gid}` : ''}`,
+    ouverture: `${base}/edit${gid ? `#gid=${gid}` : ''}`,
+  };
+}
+
+function htmlTableur() {
+  const lien = lienTableurGoogle(ufEtat.equipe.lien_tableur);
+  const actionsGestion = ufEtat.gestion ? `
+      <button type="button" class="btn btn-ghost btn-small" id="ufTableurModifierBtn">${lien ? 'Changer le lien' : '+ Lier un tableur Google Sheets'}</button>
+      ${lien ? '<button type="button" class="btn btn-danger btn-small" id="ufTableurRetirerBtn">Retirer le tableur</button>' : ''}` : '';
+  if (!lien && !ufEtat.gestion) return '';
+  return `
+    <div class="uf-tableur">
+      <div class="uf-tableur-entete">
+        ${lien ? '<strong>📊 Tableur du calendrier et des résultats</strong>' : ''}
+        <div class="inscriptions-actions">
+          ${lien ? `<a class="btn btn-ghost btn-small" href="${escapeHtml(lien.ouverture)}" target="_blank" rel="noopener">Ouvrir dans Google Sheets ↗</a>` : ''}
+          ${actionsGestion}
+        </div>
+      </div>
+      <div class="uf-form-zone" id="ufTableurFormZone"></div>
+      ${lien ? `<iframe class="uf-tableur-cadre" src="${escapeHtml(lien.affichage)}" title="Tableur du calendrier et des résultats — ${escapeHtml(ufEtat.equipe.code)}" loading="lazy"></iframe>
+      <p class="form-hint">Le tableau ne s'affiche pas ? Le tableur doit être partagé en lecture (« Tous les utilisateurs disposant du lien ») ou publié sur le web — sinon, utilisez « Ouvrir dans Google Sheets ».</p>` : ''}
+    </div>`;
+}
+
+function lierTableur(section) {
+  const modifier = section.querySelector('#ufTableurModifierBtn');
+  if (modifier) modifier.addEventListener('click', ouvrirFormulaireTableur);
+  const retirer = section.querySelector('#ufTableurRetirerBtn');
+  if (retirer) retirer.addEventListener('click', async () => {
+    if (!confirm('Retirer le tableur Google Sheets de cette équipe ? (le tableur lui-même n\'est pas supprimé)')) return;
+    await enregistrerLienTableur(null);
+  });
+}
+
+function ouvrirFormulaireTableur() {
+  const zone = document.getElementById('ufTableurFormZone');
+  zone.innerHTML = `
+    <form class="uf-form">
+      <h3>Tableur Google Sheets de l'équipe</h3>
+      <label class="uf-large">Lien du tableur
+        <input type="url" name="lien" required value="${escapeHtml(ufEtat.equipe.lien_tableur || '')}" placeholder="https://docs.google.com/spreadsheets/d/…">
+      </label>
+      <p class="form-hint">Dans Google Sheets : « Partager » → accès général « Tous les utilisateurs disposant du lien » (lecteur), puis « Copier le lien ». Un lien « Fichier → Partager → Publier sur le web » fonctionne aussi. Pour afficher un onglet précis, copiez le lien depuis cet onglet.</p>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-small">Enregistrer</button>
+        <button type="button" class="btn btn-ghost btn-small" data-annuler>Annuler</button>
+      </div>
+      <p class="form-hint" data-hint></p>
+    </form>`;
+  const form = zone.querySelector('form');
+  form.querySelector('[data-annuler]').addEventListener('click', () => { zone.innerHTML = ''; });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const valeur = form.lien.value.trim();
+    if (!lienTableurGoogle(valeur)) {
+      form.querySelector('[data-hint]').textContent = 'Ce lien n\'est pas un tableur Google Sheets (il doit commencer par https://docs.google.com/spreadsheets/).';
+      return;
+    }
+    await enregistrerLienTableur(valeur, form.querySelector('[data-hint]'));
+  });
+}
+
+async function enregistrerLienTableur(valeur, hint) {
+  const { error } = await sbClient.from('ufolep_equipes').update({ lien_tableur: valeur }).eq('id', ufEtat.equipe.id);
+  if (error) {
+    const texte = 'Erreur : ' + error.message + (/lien_tableur/.test(error.message) ? ' — migration migration_ufolep_tableur_google.sql exécutée ?' : '');
+    if (hint) hint.textContent = texte; else message(texte);
+    return;
+  }
+  ufEtat.equipe.lien_tableur = valeur;
+  const e = ufEtat.equipes.find(x => x.id === ufEtat.equipe.id);
+  if (e) e.lien_tableur = valeur;
+  rendreJournees();
 }
 
 function ouvrirFormulaireJournee(journee) {
