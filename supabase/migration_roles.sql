@@ -38,6 +38,7 @@ begin
   end loop;
 end $$;
 
+alter table public.profiles drop constraint if exists profiles_role_fkey;
 alter table public.profiles
   add constraint profiles_role_fkey foreign key (role) references public.roles(key);
 

@@ -4,6 +4,7 @@
 
 -- 1. Élargit l'écriture sur les annonces à qui a le droit de page "annonces"
 drop policy if exists "annonces_gerees_par_admin" on public.annonces_membres;
+drop policy if exists "annonces_gerees_par_droit" on public.annonces_membres;
 create policy "annonces_gerees_par_droit"
   on public.annonces_membres for all
   using (public.current_user_has_access('annonces'))

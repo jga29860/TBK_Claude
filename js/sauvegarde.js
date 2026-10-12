@@ -36,6 +36,17 @@ const TABLES = [
   { key: 'salade_joueurs', label: 'Joueurs des tournois salade', description: 'Joueurs inscrits aux tournois salade (nom, genre, niveau, présence).' },
   { key: 'salade_tours', label: 'Tours des tournois salade', description: 'Tours tirés et joueurs au repos.' },
   { key: 'salade_matchs', label: 'Matchs des tournois salade', description: 'Doubles tirés, terrains et scores.' },
+  { key: 'tournoi_arbitrage', label: 'Saisie des scores par les joueurs', description: 'Activation et codes de terrain de la saisie des scores depuis « Tournoi en direct ».' },
+  { key: 'matchs_scores_proposes', label: 'Scores proposés par les joueurs', description: 'Scores envoyés depuis « Tournoi en direct », en attente de validation ou traités.' },
+  { key: 'inscriptions_email_templates', label: 'Modèles d\'emails (inscriptions)', description: 'Sujets et textes des emails envoyés depuis la page Inscriptions saison.' },
+  { key: 'club_cartes', label: 'Cartes « Le club »', description: 'Cartes de présentation affichées sur la page d\'accueil.' },
+  { key: 'ufolep_saisons', label: 'UFOLEP — saisons', description: 'Saisons du championnat UFOLEP.' },
+  { key: 'ufolep_equipes', label: 'UFOLEP — équipes', description: 'Équipes engagées par saison.' },
+  { key: 'ufolep_joueurs', label: 'UFOLEP — joueurs', description: 'Composition des équipes.' },
+  { key: 'ufolep_journees', label: 'UFOLEP — journées', description: 'Journées de championnat (images associées).' },
+  { key: 'ufolep_rencontres', label: 'UFOLEP — rencontres', description: 'Rencontres et résultats.' },
+  { key: 'ufolep_classement', label: 'UFOLEP — classement', description: 'Classement saisi par équipe.' },
+  { key: 'ufolep_classement_fichiers', label: 'UFOLEP — fichiers de classement', description: 'Références des fichiers de classement déposés (les fichiers eux-mêmes restent dans le stockage).' },
 ];
 
 let rowCounts = {};
@@ -150,7 +161,12 @@ function sqlValue(v) {
   if (typeof v === 'boolean') return v ? 'true' : 'false';
   if (typeof v === 'number') return String(v);
   if (Array.isArray(v)) {
-    return 'ARRAY[' + v.map(x => sqlString(String(x))).join(', ') + ']';
+    // Littéral de tableau Postgres ('{"a","b"}') : son type est déduit de la
+    // colonne, ce qui fonctionne aussi pour un tableau vide (ARRAY[] serait refusé).
+    const elements = v.map(x => (x === null || x === undefined)
+      ? 'NULL'
+      : '"' + String(x).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"');
+    return sqlString('{' + elements.join(',') + '}');
   }
   if (typeof v === 'object') {
     return sqlString(JSON.stringify(v)) + '::jsonb';
