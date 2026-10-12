@@ -1271,3 +1271,11 @@ Exécutez `supabase/migration_ufolep_tableur_google.sql` : colonne `ufolep_equip
 - `ufolep.js` : bloc tableur en tête de « Calendrier et résultats » (`htmlTableur`, `lierTableur`, `ouvrirFormulaireTableur`, `enregistrerLienTableur`) : lier / changer / retirer le lien (gestion), affichage du tableur dans la page (iframe) et bouton « Ouvrir dans Google Sheets ». `lienTableurGoogle` n'accepte que docs.google.com et reconstruit les adresses à partir de l'identifiant : lien de partage → `/d/<id>/preview` (onglet `gid` conservé), lien « Publier sur le web » → `/d/e/<id>/pubhtml?widget=true&headers=false`.
 - `style.css` : `.uf-tableur`, `.uf-tableur-entete`, `.uf-tableur-cadre` (70 % de la hauteur d'écran sur PC, 60 % sur téléphone).
 Version des fichiers : `?v=20261012b`.
+
+## Menu Organisation — pages du tournoi en retrait ; UFOLEP — saisons pliables
+
+Aucune migration SQL.
+- `auth.js` : `TOOL_LINKS` — Inscriptions tournoi, Émargement, Courses du tournoi, Bénévoles, Phase Poule, Phase finale, Planning et Tournoi en direct ont `parent: 'tournois.html'` et s'affichent en retrait (`nav-lien-sous`) sous « Tournois » quand ce lien est présent pour le profil (sinon au premier niveau). Menu UFOLEP : chaque saison est un bouton (`nav-saison-bascule`) qui plie / déplie ses équipes (`nav-saison-equipes`) sans refermer le menu ; par défaut seule la saison la plus récente est dépliée ; choix mémorisé (localStorage `tbk_menu_ufolep_saisons`).
+- `ufolep.js` : vue d'ensemble — titre de saison cliquable (`uf-saison-bascule`, flèche ▸ / ▾, nombre d'équipes), contenu `uf-saison-contenu` ; par défaut seule la saison la plus récente est dépliée ; choix mémorisé (localStorage `tbk_ufolep_saisons`).
+- `style.css` : retrait des sous-rubriques du menu (bordure décalée sur PC, 64 px sur téléphone), styles `.nav-saison-*` et `.uf-saison-*`.
+Version des fichiers : `?v=20261012c`.

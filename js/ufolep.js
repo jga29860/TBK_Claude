@@ -111,30 +111,57 @@ function afficherVueEnsemble() {
   rendreArbre();
 }
 
+// Saisons pliées / dépliées : choix mémorisé dans le navigateur ; par
+// défaut seule la saison la plus récente est dépliée.
+const CLE_SAISONS_OUVERTES = 'tbk_ufolep_saisons';
+function lireSaisonsOuvertes() {
+  try { return JSON.parse(localStorage.getItem(CLE_SAISONS_OUVERTES) || '{}') || {}; } catch (e) { return {}; }
+}
+function memoriserSaisonOuverte(id, ouverte) {
+  const etat = lireSaisonsOuvertes();
+  etat[id] = ouverte;
+  try { localStorage.setItem(CLE_SAISONS_OUVERTES, JSON.stringify(etat)); } catch (e) { /* sans mémorisation */ }
+}
+
 function rendreArbre() {
   const zone = document.getElementById('ufArbre');
   if (!ufEtat.saisons.length) {
     zone.innerHTML = `<p class="section-lead">Aucune saison pour l'instant.${ufEtat.gestion ? ' Créez-en une avec « + Saison », puis ajoutez ses équipes.' : ''}</p>`;
     return;
   }
-  zone.innerHTML = ufEtat.saisons.map(s => {
+  const memo = lireSaisonsOuvertes();
+  zone.innerHTML = ufEtat.saisons.map((s, i) => {
     const equipes = ufEtat.equipes.filter(e => e.saison_id === s.id);
+    const ouverte = s.id in memo ? !!memo[s.id] : i === 0;
     return `
       <div class="uf-saison">
         <div class="uf-saison-entete">
-          <h3>Saison ${escapeHtml(s.libelle)} ${s.actif ? '' : '<span class="statut-badge ha-etat--autre">masquée du menu</span>'}</h3>
+          <h3><button type="button" class="uf-saison-bascule" data-saison="${s.id}" aria-expanded="${ouverte}" title="Plier / déplier la saison">
+            <span class="uf-saison-fleche" aria-hidden="true">${ouverte ? '▾' : '▸'}</span>
+            <span>Saison ${escapeHtml(s.libelle)} <span class="uf-saison-resume">· ${equipes.length} équipe${equipes.length > 1 ? 's' : ''}</span></span>
+          </button> ${s.actif ? '' : '<span class="statut-badge ha-etat--autre">masquée du menu</span>'}</h3>
           ${ufEtat.gestion ? `<span class="inscriptions-actions">
             <button type="button" class="btn btn-ghost btn-small" data-modifier-saison="${s.id}">Modifier</button>
             <button type="button" class="btn btn-danger btn-small" data-supprimer-saison="${s.id}">Supprimer</button></span>` : ''}
         </div>
+        <div class="uf-saison-contenu"${ouverte ? '' : ' hidden'}>
         ${equipes.length ? `<div class="uf-equipes">${equipes.map(e => `
           <a class="uf-equipe-carte" href="ufolep.html?equipe=${encodeURIComponent(e.id)}">
             <span class="uf-equipe-code">${escapeHtml(e.code)}</span>
             <span class="uf-equipe-nom">${escapeHtml(e.nom)}</span>
             ${e.division ? `<span class="uf-equipe-division">${escapeHtml(e.division)}</span>` : ''}
           </a>`).join('')}</div>` : '<p class="form-hint">Aucune équipe pour cette saison.</p>'}
+        </div>
       </div>`;
   }).join('');
+
+  zone.querySelectorAll('.uf-saison-bascule').forEach(b => b.addEventListener('click', () => {
+    const ouverte = b.getAttribute('aria-expanded') !== 'true';
+    b.setAttribute('aria-expanded', String(ouverte));
+    b.querySelector('.uf-saison-fleche').textContent = ouverte ? '▾' : '▸';
+    b.closest('.uf-saison').querySelector('.uf-saison-contenu').hidden = !ouverte;
+    memoriserSaisonOuverte(b.dataset.saison, ouverte);
+  }));
 
   zone.querySelectorAll('[data-modifier-saison]').forEach(b => b.addEventListener('click', () =>
     ouvrirFormulaire('saison', document.getElementById('ufFormsSaisonEquipe'), ufEtat.saisons.find(x => x.id === b.dataset.modifierSaison), apresModifArbre)));
