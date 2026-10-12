@@ -15,6 +15,10 @@ let commentairesCache = [];
 let reactionsCache = [];
 let editingAnnonceId = null;
 const annoncesDepliees = new Set();
+// Date de la visite précédente du fil (nouveautés marquées « Nouveau »),
+// lue une seule fois par affichage de la page, puis la visite est enregistrée.
+let vuLePrecedent;  // undefined = pas encore lue ; null = fonction indisponible
+let visiteEnregistree = false;
 const signedUrlCache = new Map();
 
 const REACTIONS = [
@@ -261,7 +265,31 @@ async function chargerAnnonces() {
   commentairesCache = commentaires || [];
   reactionsCache = reactions || [];
 
+  // Au premier affichage, les annonces ayant de nouveaux commentaires s'ouvrent d'elles-mêmes
+  if (await lireDerniereVisite()) commentairesCache.filter(estNouveau).forEach(c => annoncesDepliees.add(c.annonce_id));
+
   await rendreFeed();
+  await enregistrerVisite();
+}
+
+/** Lit la date de la visite précédente (une seule fois) ; vrai au premier appel. */
+async function lireDerniereVisite() {
+  if (vuLePrecedent !== undefined) return false;
+  const { data, error } = await sbClient.rpc('annonces_nouveautes');
+  vuLePrecedent = (!error && data && data.vu_le) ? new Date(data.vu_le) : null;
+  return true;
+}
+
+/** Annonce ou commentaire publié par quelqu'un d'autre depuis la visite précédente. */
+function estNouveau(element) {
+  return !!vuLePrecedent && element.created_by !== currentUserId && new Date(element.created_at) > vuLePrecedent;
+}
+
+async function enregistrerVisite() {
+  if (visiteEnregistree || vuLePrecedent === null) return;
+  visiteEnregistree = true;
+  const { error } = await sbClient.rpc('annonces_marquer_vues');
+  if (!error && typeof afficherNouveautesAnnonces === 'function') afficherNouveautesAnnonces(0, 0);
 }
 
 async function chargerUrlSignee(chemin) {
@@ -363,15 +391,16 @@ function linkifierTexte(texteEchappe) {
 
 function rendreAnnonceCard(a) {
   const nbCommentaires = commentairesCache.filter(c => c.annonce_id === a.id).length;
+  const nbNouveaux = commentairesCache.filter(c => c.annonce_id === a.id && estNouveau(c)).length;
   const deplie = annoncesDepliees.has(a.id);
 
   return `
-    <article class="annonce-card" id="annonce-${a.id}" data-annonce-id="${a.id}">
+    <article class="annonce-card${estNouveau(a) ? ' annonce-card--nouvelle' : ''}" id="annonce-${a.id}" data-annonce-id="${a.id}">
       <div class="annonce-entete">
         <div class="annonce-auteur-avatar">${initiales(a.auteur_nom)}</div>
         <div class="annonce-auteur-infos">
           <div class="annonce-auteur-nom">${escapeHtml(a.auteur_nom || 'Le bureau')}</div>
-          <div class="annonce-date">${formatDate(a.created_at)}</div>
+          <div class="annonce-date">${formatDate(a.created_at)}${estNouveau(a) ? ' <span class="badge-nouveau">Nouveau</span>' : ''}</div>
         </div>
         ${isGestionnaireAnnonces ? `
           <div class="annonce-actions-admin">
@@ -385,7 +414,7 @@ function rendreAnnonceCard(a) {
       ${rendrePieceJointe(a.fichier_url)}
       ${rendreBarreReactions('annonce', a.id)}
       <button type="button" class="annonce-toggle-commentaires" data-annonce-id="${a.id}">
-        💬 ${nbCommentaires} commentaire${nbCommentaires !== 1 ? 's' : ''} ${deplie ? '▲' : '▼'}
+        💬 ${nbCommentaires} commentaire${nbCommentaires !== 1 ? 's' : ''}${nbNouveaux ? ` <span class="badge-nouveau">${nbNouveaux} nouveau${nbNouveaux > 1 ? 'x' : ''}</span>` : ''} ${deplie ? '▲' : '▼'}
       </button>
       <div class="annonce-commentaires" ${deplie ? '' : 'hidden'}>
         ${rendreCommentaires(a.id, null, 0)}
@@ -403,10 +432,10 @@ function rendreCommentaires(annonceId, parentId, profondeur) {
   return enfants.map(c => {
     const peutSupprimer = isGestionnaireAnnonces || c.created_by === currentUserId;
     return `
-      <div class="commentaire" style="margin-left:${indent}px;" data-commentaire-id="${c.id}">
+      <div class="commentaire${estNouveau(c) ? ' commentaire--nouveau' : ''}" style="margin-left:${indent}px;" data-commentaire-id="${c.id}">
         <div class="commentaire-entete">
           <span class="commentaire-auteur">${escapeHtml(c.auteur_nom || '?')}</span>
-          <span class="commentaire-date">${formatDate(c.created_at)}</span>
+          <span class="commentaire-date">${formatDate(c.created_at)}</span>${estNouveau(c) ? ' <span class="badge-nouveau">Nouveau</span>' : ''}
           ${peutSupprimer ? `<button type="button" class="icon-btn annonce-supprimer-btn" data-type="commentaire" data-id="${c.id}" title="Supprimer">🗑️</button>` : ''}
         </div>
         <p class="commentaire-contenu">${linkifierTexte(escapeHtml(c.contenu)).replace(/\n/g, '<br>')}</p>

@@ -1279,3 +1279,11 @@ Aucune migration SQL.
 - `ufolep.js` : vue d'ensemble — titre de saison cliquable (`uf-saison-bascule`, flèche ▸ / ▾, nombre d'équipes), contenu `uf-saison-contenu` ; par défaut seule la saison la plus récente est dépliée ; choix mémorisé (localStorage `tbk_ufolep_saisons`).
 - `style.css` : retrait des sous-rubriques du menu (bordure décalée sur PC, 64 px sur téléphone), styles `.nav-saison-*` et `.uf-saison-*`.
 Version des fichiers : `?v=20261012c`.
+
+## Espace membres — pastille des nouvelles annonces et des nouveaux commentaires
+
+Exécutez `supabase/migration_annonces_nouveautes.sql` : table `annonces_lectures` (une ligne par compte : `vu_le`, RLS « chacun sa ligne » + lecture admin pour la sauvegarde), fonctions `annonces_nouveautes()` (annonces et commentaires d'autrui publiés depuis `vu_le`, ou depuis 14 jours sans visite enregistrée ; règles de lecture des annonces appliquées) et `annonces_marquer_vues()`.
+- `auth.js` : `refreshNouveautesAnnonces` / `afficherNouveautesAnnonces` — pastille « 📣 N nouveautés » dans le bandeau (`#nouveautesBadgeContainer`, lien vers les annonces, détail en infobulle ; « 📣 N » sur téléphone ; masquée sur membres.html) et compteur `.nav-pastille` sur le lien « Espace membres » du menu (`decorerLienEspaceMembres`).
+- `membres.js` : lecture de la visite précédente (`lireDerniereVisite`), badges « Nouveau » sur les annonces et commentaires concernés (`estNouveau`), « N nouveaux » sur le bouton des commentaires, ouverture automatique des annonces ayant de nouveaux commentaires au premier affichage, puis enregistrement de la visite (`enregistrerVisite`) et effacement des pastilles.
+- `sauvegarde.js` : table `annonces_lectures` ajoutée. `style.css` : `.nouveautes-badge`, `.nav-pastille`, `.badge-nouveau`, `.annonce-card--nouvelle`, `.commentaire--nouveau`.
+Version des fichiers : `?v=20261012d`.

@@ -21,6 +21,7 @@ const TABLES = [
   { key: 'annonces_membres', label: 'Annonces du club', description: 'Annonces affichées dans l\'espace membres.' },
   { key: 'annonces_commentaires', label: 'Commentaires des annonces', description: 'Fil de discussion sous chaque annonce du club.' },
   { key: 'annonces_reactions', label: 'Réactions (likes)', description: 'Réactions (like/dislike/coup de cœur) sur les annonces, commentaires et messages de tournoi.' },
+  { key: 'annonces_lectures', label: 'Dernières visites des annonces', description: 'Date de dernière consultation du fil d\'annonces par chaque compte (pastille « nouveautés »).' },
   { key: 'inscription_champs', label: 'Champs personnalisés (inscriptions)', description: 'Configuration du formulaire d\'inscription saison.' },
   { key: 'bareme_cotisations', label: 'Barème des cotisations', description: 'Montants utilisés pour le calcul de la cotisation.' },
   { key: 'inscriptions_affichage', label: 'Colonnes affichées (inscriptions)', description: 'Préférence d\'affichage du tableau des inscriptions.' },
