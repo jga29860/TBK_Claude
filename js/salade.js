@@ -17,6 +17,8 @@
 
 const sd = {
   gestion: false,
+  userId: null,      // compte connecté (suppression réservée au créateur…)
+  admin: false,      // … et à l'administrateur
   publicForce: false,
   tournois: [],
   tournoi: null,
@@ -67,6 +69,8 @@ async function initSalade() {
     || aLeProfil(access, 'admin')
   );
   sd.gestion = droit && !sd.publicForce;
+  sd.userId = access ? access.id : null;
+  sd.admin = !!access && aLeProfil(access, 'admin');
 
   const { data, error } = await sbClient.from('salade_tournois').select('*').order('created_at', { ascending: false });
   if (error) {
@@ -205,6 +209,7 @@ function renderBandeau() {
   ].filter(Boolean).join(' · ');
 
   document.getElementById('sdActionsTournoi').hidden = !sd.gestion;
+  document.getElementById('sdSupprimerBtn').hidden = !sdPeutSupprimer(t);
   document.getElementById('sdStatutBtn').textContent = t.statut === 'termine' ? 'Rouvrir le tournoi' : 'Terminer le tournoi';
 
   const qr = document.getElementById('sdQr');
@@ -513,11 +518,22 @@ async function basculerStatut() {
   renderTout();
 }
 
+/** Seuls le créateur du tournoi et l'administrateur peuvent le supprimer
+ *  (règle également appliquée par la base). */
+function sdPeutSupprimer(t) {
+  return !!t && sd.gestion && (sd.admin || (!!sd.userId && t.created_by === sd.userId));
+}
+
 async function supprimerTournoi() {
   const t = sd.tournoi;
+  if (!sdPeutSupprimer(t)) { alert('Seuls le créateur de ce tournoi et l\'administrateur peuvent le supprimer.'); return; }
   if (!confirm(`Supprimer définitivement le tournoi « ${t.nom} », ses joueurs, ses matchs et ses scores ?`)) return;
-  const { error } = await sbClient.from('salade_tournois').delete().eq('id', t.id);
+  const { data: supprimes, error } = await sbClient.from('salade_tournois').delete().eq('id', t.id).select('id');
   if (error) { alert('Erreur : ' + error.message); return; }
+  if (!supprimes || supprimes.length === 0) {
+    alert('Suppression refusée : seuls le créateur de ce tournoi et l\'administrateur peuvent le supprimer.');
+    return;
+  }
   sd.tournois = sd.tournois.filter(x => x.id !== t.id);
   const suivant = sd.tournois[0] || null;
   renderChoixTournoi(sd.tournois, suivant);

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Boutique — TBK</title>
-<script src="js/theme-init.js?v=20261011a"></script>
-<link rel="stylesheet" href="css/style.css?v=20261011a">
+<script src="js/theme-init.js?v=20261012a"></script>
+<link rel="stylesheet" href="css/style.css?v=20261012a">
 </head>
 <body>
 
@@ -53,6 +53,21 @@
     <!-- ===== Synthèse des demandes : réservé au bureau ===== -->
     <section class="admin-section" data-repliable-mobile id="syntheseSection" hidden>
       <h2>Synthèse des demandes</h2>
+
+      <h3 class="admin-subheading">Commande au fournisseur</h3>
+      <p class="section-lead">Prépare un email récapitulant tous les articles commandés (par article, taille et flocage), adressé au fournisseur avec l'adresse du club en copie.</p>
+      <form id="fournisseurForm" class="inline-form">
+        <label>Email du fournisseur
+          <input type="email" id="fournisseurEmailInput" placeholder="commandes@fournisseur.fr" autocomplete="off">
+        </label>
+        <button type="submit" class="btn btn-ghost btn-small" id="fournisseurEnregistrerBtn">Enregistrer l'adresse</button>
+        <label class="checkbox-item">
+          <input type="checkbox" id="fournisseurInclureRecupereesInput">
+          Inclure les commandes déjà récupérées
+        </label>
+        <button type="button" class="btn btn-primary btn-small" id="fournisseurMailBtn">📧 Préparer l'email au fournisseur</button>
+        <p class="form-hint" id="fournisseurHint"></p>
+      </form>
 
       <h3 class="admin-subheading">Quantités par article et taille</h3>
       <div class="table-wrap">
@@ -134,15 +149,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-<script src="js/menu-mobile.js?v=20261011a"></script>
-<script src="js/tableaux-mobile.js?v=20261011a"></script>
-<script src="js/sections-repliables.js?v=20261011a"></script>
-<script src="js/supabase-config.js?v=20261011a"></script>
-<script src="js/auth.js?v=20261011a"></script>
-<script src="js/theme.js?v=20261011a"></script>
-<script src="js/paiement-helloasso.js?v=20261011a"></script>
-<script src="js/main.js?v=20261011a"></script>
-<script src="js/saison.js?v=20261011a"></script>
-<script src="js/boutique.js?v=20261011a"></script>
+<script src="js/menu-mobile.js?v=20261012a"></script>
+<script src="js/tableaux-mobile.js?v=20261012a"></script>
+<script src="js/sections-repliables.js?v=20261012a"></script>
+<script src="js/supabase-config.js?v=20261012a"></script>
+<script src="js/auth.js?v=20261012a"></script>
+<script src="js/theme.js?v=20261012a"></script>
+<script src="js/paiement-helloasso.js?v=20261012a"></script>
+<script src="js/main.js?v=20261012a"></script>
+<script src="js/saison.js?v=20261012a"></script>
+<script src="js/boutique.js?v=20261012a"></script>
 </body>
 </html>

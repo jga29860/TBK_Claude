@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20261011a"></script>
-<link rel="stylesheet" href="css/style.css?v=20261011a">
+<script src="js/theme-init.js?v=20261012a"></script>
+<link rel="stylesheet" href="css/style.css?v=20261012a">
 </head>
 <body>
 
@@ -466,6 +466,7 @@
       <p>Tournoi à la mêlée, idéal pour les soirées et animations du club : chaque joueur s'inscrit seul et, à chaque tour, le site forme de nouveaux doubles au hasard, les place sur les terrains et tient un classement individuel. Ce module est <strong>totalement indépendant du tournoi classique</strong> (ses propres tables <code>salade_*</code>) : il peut se dérouler en même temps qu'un tournoi en cours, sans interaction.</p>
       <ul>
         <li><strong>Droits</strong> : gestion réservée au droit « Tournoi salade (mêlée) — gestion » (<code>tournoi_salade</code>), aux droits Tournois - Administration / Gestion et à l'administrateur. Consultation ouverte à tous, sans connexion.</li>
+        <li><strong>Suppression d'un tournoi</strong> : réservée à la personne qui a créé le tournoi et à l'administrateur (règle appliquée par la base de données). Pour les autres organisateurs, le bouton « Supprimer » n'apparaît pas ; ils peuvent toujours modifier, terminer ou rouvrir le tournoi. Un tournoi créé avant la mise en place de cette règle sans créateur connu ne peut être supprimé que par l'administrateur.</li>
         <li><strong>Créer un tournoi</strong> : nom, date, nombre de terrains, points par match (indicatif, affiché aux joueurs), formation des doubles (au hasard ou mixte : une femme et un homme par paire dès que possible), équilibrage des niveaux entre les deux paires (case à cocher), matchs en simple (case à cocher, voir ci-dessous). Plusieurs tournois salade peuvent exister ; on choisit celui à afficher dans la liste. Boutons Modifier, Terminer / Rouvrir, Supprimer.</li>
         <li><strong>Joueurs</strong> : ajout un par un (nom, genre et niveau facultatifs) ou ajout rapide de plusieurs joueurs, un par ligne (« Camille Martin ; F ; Confirmé »). Les doublons de nom sont refusés. La case « Présent » retire un joueur des prochains tirages (départ, pause) sans toucher à ses scores ; un retardataire peut être ajouté à tout moment. </li>
         <li><strong>Ajouter ou supprimer un joueur en cours de tournoi</strong> : un joueur ajouté est tiré dès le tour suivant, en priorité puisqu'il a le moins joué. Un joueur supprimé alors qu'il a déjà joué est <strong>retiré</strong> et non effacé : il n'est plus tiré au sort et passe en bas de la liste des joueurs (mention « Retiré »), mais <strong>il reste dans le classement avec tout son historique</strong> (mention « (retiré) ») ; le bouton « Réintégrer » le fait revenir dans les tirages avec ses résultats. Un joueur qui n'a encore aucun score est réellement supprimé. S'il était attendu sur un terrain du tour en cours (match sans score), il est remplacé automatiquement par le joueur au repos ayant le moins joué ; si personne n'est au repos, le tirage du tour est refait (tant qu'aucun score n'y est saisi), sinon le site prévient que le match reste incomplet. La fenêtre de confirmation indique à l'avance ce qui va se passer.</li>
@@ -696,6 +697,7 @@
       <ul>
         <li><strong>Quantités par article et taille</strong> : tableau agrégé, pratique pour savoir combien commander de chaque taille en gros (ex. "5 × Taille M"). Ne mentionne plus les paiements (visibles au statut, dans le détail des demandes) — reste centré sur les quantités à commander.</li>
         <li><strong>Détail des demandes</strong> : liste complète, filtrable par colonne (nom, article, description, taille, statut, payée). Le demandeur est affiché avec son nom et prénom tels que renseignés sur son inscription saison en cours (plus fiable que le nom librement choisi sur son compte, utilisé en repli si aucune inscription n'est reliée). Les demandes strictement identiques (même personne, même article, même taille, même flocage, même statut, même paiement) sont regroupées en une seule ligne avec une quantité, plutôt que répétées — dès qu'une de ces demandes change de statut ou de paiement individuellement, elle se détache naturellement du groupe. Changement de statut (En attente / Payée / Récupérée / Annulée), case à cocher "Payée" et suppression s'appliquent à toutes les demandes du groupe à la fois — mise à jour immédiate en base à chaque changement. Choisir "Payée" coche automatiquement la case payée ; les autres statuts (dont "Récupérée") ne la décochent pas — une commande payée puis récupérée reste payée.</li>
+        <li><strong>Commande au fournisseur</strong> : en haut de la synthèse, saisir l'email du fournisseur et cliquer « Enregistrer l'adresse » (elle est conservée pour les fois suivantes). Le bouton « 📧 Préparer l'email au fournisseur » ouvre la messagerie de l'utilisateur avec un email pré-rempli : destinataire le fournisseur, <strong>adresse du club en copie</strong> (l'email de contact défini dans Administration → Paramètres), et le récapitulatif de toutes les commandes non annulées — par article, taille et nombre de pièces, avec la liste des noms à floquer. Les commandes déjà récupérées sont exclues, sauf si la case « Inclure les commandes déjà récupérées » est cochée. Rien n'est envoyé automatiquement : l'email reste à relire et envoyer depuis la messagerie. Si le récapitulatif est trop long pour un lien email, il est copié et il suffit de le coller dans le message.</li>
       </ul>
     </section>
 
@@ -842,12 +844,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20261011a"></script>
-<script src="js/tableaux-mobile.js?v=20261011a"></script>
-<script src="js/supabase-config.js?v=20261011a"></script>
-<script src="js/auth.js?v=20261011a"></script>
-<script src="js/theme.js?v=20261011a"></script>
-<script src="js/main.js?v=20261011a"></script>
-<script src="js/documentation.js?v=20261011a"></script>
+<script src="js/menu-mobile.js?v=20261012a"></script>
+<script src="js/tableaux-mobile.js?v=20261012a"></script>
+<script src="js/supabase-config.js?v=20261012a"></script>
+<script src="js/auth.js?v=20261012a"></script>
+<script src="js/theme.js?v=20261012a"></script>
+<script src="js/main.js?v=20261012a"></script>
+<script src="js/documentation.js?v=20261012a"></script>
 </body>
 </html>
