@@ -1264,3 +1264,10 @@ Pages :
 - `salade.js` : bouton « Supprimer » affiché seulement au créateur du tournoi et à l'administrateur (`sdPeutSupprimer`) ; suppression vérifiée (`.select()`) avec message si la base la refuse.
 - `boutique.html` / `boutique.js` : bloc « Commande au fournisseur » dans la synthèse (bureau) : email du fournisseur enregistrable, bouton « 📧 Préparer l'email au fournisseur » (mailto, adresse `email_contact` du club en copie) avec le récapitulatif des commandes non annulées par article / taille / flocage (`texteCommandeFournisseur`), commandes récupérées exclues sauf case cochée ; récapitulatif copié dans le presse-papiers si le lien est trop long.
 Version des fichiers : `?v=20261012a`.
+
+## UFOLEP — tableur Google Sheets par équipe dans « Calendrier et résultats »
+
+Exécutez `supabase/migration_ufolep_tableur_google.sql` : colonne `ufolep_equipes.lien_tableur` (texte, facultatif) avec contrainte `ufolep_equipes_lien_tableur_google` (adresse `https://docs.google.com/spreadsheets/…` uniquement). Droits de modification inchangés (`ufolep_gestion` / admin).
+- `ufolep.js` : bloc tableur en tête de « Calendrier et résultats » (`htmlTableur`, `lierTableur`, `ouvrirFormulaireTableur`, `enregistrerLienTableur`) : lier / changer / retirer le lien (gestion), affichage du tableur dans la page (iframe) et bouton « Ouvrir dans Google Sheets ». `lienTableurGoogle` n'accepte que docs.google.com et reconstruit les adresses à partir de l'identifiant : lien de partage → `/d/<id>/preview` (onglet `gid` conservé), lien « Publier sur le web » → `/d/e/<id>/pubhtml?widget=true&headers=false`.
+- `style.css` : `.uf-tableur`, `.uf-tableur-entete`, `.uf-tableur-cadre` (70 % de la hauteur d'écran sur PC, 60 % sur téléphone).
+Version des fichiers : `?v=20261012b`.
