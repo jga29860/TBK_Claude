@@ -331,10 +331,12 @@ async function renderAuthState() {
   }
 
   let html = `<a href="membres.html" class="nav-auth-name" title="Mon compte">${escapeHtml(access.display_name || afficherIdentifiant(access.email))} <small>(${escapeHtml(access.roleLabel)})</small></a>`;
+  html += ' <span id="nouveautesBadgeContainer"></span>';
   html += ' <span id="pendingBadgeContainer"></span>';
   html += ' <button id="logoutBtn" class="nav-auth-link nav-auth-btn" type="button">Se déconnecter</button>';
   el.innerHTML = html;
 
+  refreshNouveautesAnnonces(access);
   await refreshPendingInscriptionsBadge(access);
   subscribeToPendingInscriptionsBadge(access);
 
@@ -374,6 +376,50 @@ async function refreshPendingInscriptionsBadge(access) {
   }
 
   container.innerHTML = `<a href="inscriptions.html" class="pending-badge">${count} demande${count > 1 ? 's' : ''} en attente</a>`;
+}
+
+// ============================================================
+// Nouveautés de l'espace membres : nombre d'annonces et de
+// commentaires publiés par d'autres depuis la dernière visite du fil
+// d'annonces (membres.html). Pastille dans le bandeau (toutes les
+// pages) et sur le lien « Espace membres » du menu Organisation.
+// ============================================================
+let nouveautesAnnonces = { annonces: 0, commentaires: 0 };
+
+async function refreshNouveautesAnnonces(access) {
+  if (!access || !(access.pages || []).includes('espace_membres')) { afficherNouveautesAnnonces(0, 0); return; }
+  const { data, error } = await sbClient.rpc('annonces_nouveautes');
+  if (error || !data) { afficherNouveautesAnnonces(0, 0); return; } // migration non exécutée : rien à signaler
+  afficherNouveautesAnnonces(Number(data.annonces) || 0, Number(data.commentaires) || 0);
+}
+
+/** Met à jour la pastille du bandeau et celle du menu (0, 0 = efface). */
+function afficherNouveautesAnnonces(nbAnnonces, nbCommentaires) {
+  nouveautesAnnonces = { annonces: nbAnnonces, commentaires: nbCommentaires };
+  const total = nbAnnonces + nbCommentaires;
+  const container = document.getElementById('nouveautesBadgeContainer');
+  if (container) {
+    const detail = [
+      nbAnnonces ? `${nbAnnonces} annonce${nbAnnonces > 1 ? 's' : ''}` : '',
+      nbCommentaires ? `${nbCommentaires} commentaire${nbCommentaires > 1 ? 's' : ''}` : '',
+    ].filter(Boolean).join(' et ');
+    const surLaPage = /(^|\/)membres\.html$/.test(window.location.pathname);
+    container.innerHTML = total && !surLaPage
+      ? `<a href="membres.html#annoncesFeed" class="nouveautes-badge" title="${escapeHtml(detail)} depuis votre dernière visite" aria-label="${total} nouveauté${total > 1 ? 's' : ''} dans l'espace membres">📣 ${total}<span class="nouveautes-libelle"> nouveauté${total > 1 ? 's' : ''}</span></a>`
+      : '';
+  }
+  decorerLienEspaceMembres();
+}
+
+function decorerLienEspaceMembres() {
+  const total = nouveautesAnnonces.annonces + nouveautesAnnonces.commentaires;
+  document.querySelectorAll('.nav-dropdown-menu a[href="membres.html"]').forEach(a => {
+    let pastille = a.querySelector('.nav-pastille');
+    if (!total) { if (pastille) pastille.remove(); return; }
+    if (!pastille) { pastille = document.createElement('span'); pastille.className = 'nav-pastille'; a.appendChild(pastille); }
+    pastille.textContent = String(total);
+    pastille.title = 'Nouveautés depuis votre dernière visite';
+  });
 }
 
 let pendingBadgeChannel = null;
@@ -510,6 +556,7 @@ function ensurePageNavLinks(access) {
     }
     dropdown.querySelector('.nav-dropdown-menu').innerHTML = menuHtml;
   });
+  decorerLienEspaceMembres();
 }
 
 function buildToolsMenuHtml(access) {

@@ -350,6 +350,23 @@ table.schedule tbody tr:hover{ background: var(--pale); }
   padding:5px 12px; border-radius:6px; font-size:0.8rem; text-decoration:none; margin-left:4px;
 }
 .pending-badge:hover{ background:var(--c-rouge-survol); }
+/* Nouveautés de l'espace membres (annonces, commentaires) */
+.nouveautes-badge{
+  display:inline-block; background:var(--white); color:var(--dark) !important; font-weight:700;
+  padding:5px 12px; border-radius:6px; font-size:0.8rem; text-decoration:none; margin-left:4px;
+  box-shadow:0 0 0 2px var(--gold);
+}
+.nouveautes-badge:hover{ background:var(--pale); }
+.nav-pastille{
+  display:inline-block; min-width:1.5em; margin-left:8px; padding:1px 6px; border-radius:999px;
+  background:var(--c-rouge); color:var(--c-texte-sur-couleur); font-size:0.72rem; font-weight:700; text-align:center; line-height:1.4;
+}
+.badge-nouveau{
+  display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; background:var(--gold);
+  color:var(--ink); font-family:var(--font-body); font-size:0.7rem; font-weight:700; letter-spacing:0.02em; vertical-align:middle;
+}
+.annonce-card--nouvelle{ border-color:var(--gold); box-shadow:0 0 0 2px var(--gold), 0 4px 14px rgba(0,0,0,0.05); }
+.commentaire--nouveau{ border-color:var(--gold); }
 .nav-auth-link{
   text-decoration:none; color: rgba(255,255,255,0.9); font-weight:600; font-size:0.9rem;
   background:none; border:none; cursor:pointer; font-family: var(--font-body);
@@ -1580,7 +1597,9 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
   .nav-auth-name{ padding:4px 10px; min-height:36px; min-width:0; max-width:38vw; }
   .nav-auth-name small{ display:none; }
   .nav-auth-name{ overflow:hidden; white-space:nowrap; text-overflow:ellipsis; display:inline-block; line-height:28px; }
-  .pending-badge{ padding:4px 8px; font-size:0.72rem; white-space:nowrap; min-height:36px; display:inline-flex; align-items:center; margin-left:0; }
+  .pending-badge, .nouveautes-badge{ padding:4px 8px; font-size:0.72rem; white-space:nowrap; min-height:36px; display:inline-flex; align-items:center; margin-left:0; }
+  .nouveautes-libelle{ display:none; }
+  #nouveautesBadgeContainer{ flex:none; }
   .nav-auth-link{ white-space:nowrap; min-height:36px; padding:0 4px; }
 }
 
@@ -1601,8 +1620,8 @@ a:focus-visible, button:focus-visible{ outline: 2px solid var(--green); outline-
 @media (max-width: 760px){
   .auth-state{ gap:5px; }
   .nav-auth-name{ flex:0 1 auto; min-width:72px; }
-  #pendingBadgeContainer{ display:flex; min-width:0; flex:0 1 auto; }
-  .pending-badge{ display:block; overflow:hidden; text-overflow:ellipsis; min-width:0; line-height:28px; }
+  #pendingBadgeContainer, #nouveautesBadgeContainer{ display:flex; min-width:0; flex:0 1 auto; }
+  .pending-badge, .nouveautes-badge{ display:block; overflow:hidden; text-overflow:ellipsis; min-width:0; line-height:28px; }
   .nav-auth-link{ flex:none; font-size:0.8rem; }
 }
 
