@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20261012b"></script>
-<link rel="stylesheet" href="css/style.css?v=20261012b">
+<script src="js/theme-init.js?v=20261012c"></script>
+<link rel="stylesheet" href="css/style.css?v=20261012c">
 </head>
 <body>
 
@@ -97,6 +97,8 @@
         <li>L'agenda du club, relié à Google Calendar (avec les anniversaires des membres en option), et la boîte mail du club, reliée à Gmail.</li>
         <li>La boutique du club et le paiement en ligne HelloAsso (boutique, cotisation), avec suivi et rapprochement des paiements.</li>
       </ul>
+
+      <p><strong>Menu Organisation</strong> : les rubriques sont regroupées (Club, Tournoi, UFOLEP, Administration). Dans le groupe Tournoi, les pages du tournoi en cours — Inscriptions tournoi, Émargement, Courses du tournoi, Bénévoles, Phase Poule, Phase finale, Planning, Tournoi en direct — apparaissent en retrait sous « Tournois » (quand ce lien est proposé au profil) ; le Tournoi TBK reste au premier niveau.</p>
 
       <h3 class="admin-subheading">1.5 Utilisation sur téléphone</h3>
       <p>Toutes les pages s'adaptent à l'écran du téléphone. Le menu du bandeau (dont le menu Organisation donnant accès aux outils selon le profil) s'ouvre avec le bouton ☰ en haut à droite, présent sur toutes les pages, et se referme en choisissant une page, en touchant de nouveau ☰ ou en touchant ailleurs. Les champs de saisie sont affichés en taille 16 px sur téléphone, pour éviter le zoom automatique des iPhone à chaque saisie, et les formulaires passent à un champ par ligne.</p>
@@ -606,9 +608,10 @@
       <p><strong>Fonctionnement</strong> : les couleurs de référence sont celles de <code>css/style.css</code> (variables CSS, dont 57 couleurs d'interface regroupées lors de cette évolution sans aucun changement visuel). Seules les différences avec la référence sont enregistrées (<code>parametres_site.theme_couleurs</code>) ; le logo personnalisé est stocké dans l'espace public "apparence" de Supabase (<code>theme_logo_url</code>). Chaque page applique le thème dès son ouverture (dernière version gardée en mémoire par le navigateur), puis vérifie la version enregistrée. Les ombres et transparences (blanc ou noir semi-transparents) et le fond blanc des QR codes ne sont pas modifiables, pour rester lisibles.</p>
     
       <h3 class="admin-subheading">7.7 Section UFOLEP (ufolep.html)</h3>
-      <p>Suivi des équipes du club engagées dans le championnat UFOLEP. Dans le menu Organisation, groupe <strong>UFOLEP</strong> : "Vue d'ensemble", puis l'arborescence <strong>Saison → équipes</strong> (ex. Saison 2026-2027 → DM1 — Double Mixte 1), mise à jour automatiquement. Accès paramétrable par profil : "UFOLEP — consultation" (lecture) et "UFOLEP — gestion" (création et modification), tous deux accordés à l'administrateur.</p>
+      <p>Suivi des équipes du club engagées dans le championnat UFOLEP. Dans le menu Organisation, groupe <strong>UFOLEP</strong> : "Vue d'ensemble", puis l'arborescence <strong>Saison → équipes</strong> (ex. Saison 2026-2027 → DM1 — Double Mixte 1), mise à jour automatiquement. Un clic sur une saison du menu plie ou déplie la liste de ses équipes sans refermer le menu ; par défaut, seule la saison la plus récente est dépliée, et le choix est mémorisé dans le navigateur. Accès paramétrable par profil : "UFOLEP — consultation" (lecture) et "UFOLEP — gestion" (création et modification), tous deux accordés à l'administrateur.</p>
       <ul>
         <li><strong>Vue d'ensemble</strong> : saisons (de la plus récente à la plus ancienne) et leurs équipes. Gestion : "+ Saison" (ex. 2026-2027 ; case "Affichée dans le menu" pour masquer une saison terminée), "+ Équipe" (saison, code ex. DM1, nom ex. Double Mixte 1, division / poule, informations : salle, créneau, contact, ordre d'affichage). Supprimer une saison ou une équipe supprime aussi ses données.</li>
+        <li><strong>Plier / déplier les saisons</strong> : sur la vue d'ensemble, un clic sur le titre d'une saison (flèche ▸ / ▾, avec le nombre d'équipes) masque ou affiche ses équipes. Par défaut, seule la saison la plus récente est dépliée ; le choix est mémorisé dans le navigateur.</li>
         <li><strong>Page d'une équipe</strong> : informations de l'équipe (division, salle, créneau…), puis :
           <ul>
             <li><strong>Composition</strong> : joueurs, n° de licence UFOLEP, capitaine (saisie avec suggestions des noms des inscrits du club).</li>
@@ -845,12 +848,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20261012b"></script>
-<script src="js/tableaux-mobile.js?v=20261012b"></script>
-<script src="js/supabase-config.js?v=20261012b"></script>
-<script src="js/auth.js?v=20261012b"></script>
-<script src="js/theme.js?v=20261012b"></script>
-<script src="js/main.js?v=20261012b"></script>
-<script src="js/documentation.js?v=20261012b"></script>
+<script src="js/menu-mobile.js?v=20261012c"></script>
+<script src="js/tableaux-mobile.js?v=20261012c"></script>
+<script src="js/supabase-config.js?v=20261012c"></script>
+<script src="js/auth.js?v=20261012c"></script>
+<script src="js/theme.js?v=20261012c"></script>
+<script src="js/main.js?v=20261012c"></script>
+<script src="js/documentation.js?v=20261012c"></script>
 </body>
 </html>

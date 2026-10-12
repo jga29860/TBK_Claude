@@ -407,14 +407,14 @@ const TOOL_LINKS = [
   { pageKeys: ['espace_membres'], href: 'membres.html', label: 'Espace membres', group: 'Club' },
   { pageKeys: ['inscriptions'], href: 'inscriptions.html', label: 'Inscriptions saison', group: 'Club' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'tournois.html', label: 'Tournois', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_emargement'], href: 'emargement.html', label: 'Émargement', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_courses'], href: 'courses.html', label: 'Courses du tournoi', group: 'Tournoi' },
-  { pageKeys: ['benevoles', 'tournois_admin', 'tournois_gestion'], href: 'tournoi-benevoles.html', label: 'Bénévoles', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'poules.html', label: 'Phase Poule', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'phase-finale.html', label: 'Phase finale', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'planning.html', label: 'Planning', group: 'Tournoi' },
-  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions', 'tournois_emargement', 'benevoles'], href: 'tournoi-direct.html', label: 'Tournoi en direct (joueurs)', group: 'Tournoi' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions'], href: 'tournoi-inscriptions.html', label: 'Inscriptions tournoi', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_emargement'], href: 'emargement.html', label: 'Émargement', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_courses'], href: 'courses.html', label: 'Courses du tournoi', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['benevoles', 'tournois_admin', 'tournois_gestion'], href: 'tournoi-benevoles.html', label: 'Bénévoles', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'poules.html', label: 'Phase Poule', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'phase-finale.html', label: 'Phase finale', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'planning.html', label: 'Planning', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions', 'tournois_emargement', 'benevoles'], href: 'tournoi-direct.html', label: 'Tournoi en direct (joueurs)', group: 'Tournoi', parent: 'tournois.html' },
   { pageKeys: ['tournoi_salade', 'tournois_admin', 'tournois_gestion'], href: 'salade.html', label: 'Tournoi TBK (salade, simple / poules)', group: 'Tournoi' },
   { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },
   { pageKeys: ['documentation'], href: 'documentation.html', label: 'Documentation', group: 'Administration' },
@@ -428,6 +428,20 @@ const TOOL_LINKS = [
   { pageKeys: ['ufolep', 'ufolep_gestion'], href: 'ufolep.html', label: 'Vue d\'ensemble', group: 'UFOLEP' },
 ];
 const TOOL_GROUPS_ORDER = ['Club', 'Tournoi', 'UFOLEP', 'Administration'];
+// Les liens ayant un "parent" sont présentés en retrait sous ce parent
+// (ex. pages du tournoi sous « Tournois »), quand le parent est affiché.
+
+// Saisons UFOLEP pliées / dépliées dans le menu : choix mémorisé dans
+// le navigateur ; par défaut seule la saison la plus récente est dépliée.
+const CLE_MENU_SAISONS_UFOLEP = 'tbk_menu_ufolep_saisons';
+function lireSaisonsMenuUfolep() {
+  try { return JSON.parse(localStorage.getItem(CLE_MENU_SAISONS_UFOLEP) || '{}') || {}; } catch (e) { return {}; }
+}
+function memoriserSaisonMenuUfolep(id, ouverte) {
+  const etat = lireSaisonsMenuUfolep();
+  etat[id] = ouverte;
+  try { localStorage.setItem(CLE_MENU_SAISONS_UFOLEP, JSON.stringify(etat)); } catch (e) { /* sans mémorisation */ }
+}
 
 // Arborescence UFOLEP du menu (saison → équipes), chargée depuis la base
 let menuUfolepHtml = '';
@@ -442,10 +456,15 @@ async function chargerMenuUfolep(access) {
       sbClient.from('ufolep_saisons').select('id, libelle, actif').eq('actif', true).order('libelle', { ascending: false }),
       sbClient.from('ufolep_equipes').select('id, saison_id, code, nom, ordre').order('ordre').order('code'),
     ]);
-    menuUfolepHtml = (saisons || []).map(s => {
+    const memo = lireSaisonsMenuUfolep();
+    menuUfolepHtml = (saisons || []).map((s, i) => {
       const eqs = (equipes || []).filter(e => e.saison_id === s.id);
-      return `<div class="nav-dropdown-sous-label">Saison ${escapeHtml(s.libelle)}</div>`
-        + eqs.map(e => `<a href="ufolep.html?equipe=${encodeURIComponent(e.id)}" class="nav-lien-sous">${escapeHtml(e.code)} — ${escapeHtml(e.nom)}</a>`).join('');
+      const ouverte = s.id in memo ? !!memo[s.id] : i === 0;
+      return `<button type="button" class="nav-dropdown-sous-label nav-saison-bascule" data-saison="${escapeHtml(s.id)}" aria-expanded="${ouverte}">`
+        + `<span class="nav-saison-fleche" aria-hidden="true">${ouverte ? '▾' : '▸'}</span> Saison ${escapeHtml(s.libelle)}</button>`
+        + `<div class="nav-saison-equipes"${ouverte ? '' : ' hidden'}>`
+        + eqs.map(e => `<a href="ufolep.html?equipe=${encodeURIComponent(e.id)}" class="nav-lien-sous">${escapeHtml(e.code)} — ${escapeHtml(e.nom)}</a>`).join('')
+        + '</div>';
     }).join('');
     if (menuUfolepHtml) ensurePageNavLinks(access);
   } catch (e) {
@@ -476,6 +495,18 @@ function ensurePageNavLinks(access) {
         document.querySelectorAll('.nav-dropdown.open').forEach(d => { if (d !== dropdown) d.classList.remove('open'); });
         dropdown.classList.toggle('open');
       });
+      // Plier / déplier une saison UFOLEP sans refermer le menu
+      dropdown.querySelector('.nav-dropdown-menu').addEventListener('click', (e) => {
+        const bascule = e.target.closest('.nav-saison-bascule');
+        if (!bascule) return;
+        e.stopPropagation();
+        const ouverte = bascule.getAttribute('aria-expanded') !== 'true';
+        bascule.setAttribute('aria-expanded', String(ouverte));
+        bascule.querySelector('.nav-saison-fleche').textContent = ouverte ? '▾' : '▸';
+        const liste = bascule.nextElementSibling;
+        if (liste && liste.classList.contains('nav-saison-equipes')) liste.hidden = !ouverte;
+        memoriserSaisonMenuUfolep(bascule.dataset.saison, ouverte);
+      });
     }
     dropdown.querySelector('.nav-dropdown-menu').innerHTML = menuHtml;
   });
@@ -490,7 +521,8 @@ function buildToolsMenuHtml(access) {
   return TOOL_GROUPS_ORDER.map(group => {
     const items = applicable.filter(l => l.group === group);
     if (items.length === 0) return '';
-    const links = items.map(l => `<a href="${l.href}">${l.label}</a>`).join('');
+    const hrefs = new Set(items.map(l => l.href));
+    const links = items.map(l => `<a href="${l.href}"${l.parent && hrefs.has(l.parent) ? ' class="nav-lien-sous"' : ''}>${l.label}</a>`).join('');
     const extra = group === 'UFOLEP' ? menuUfolepHtml : '';
     return `<div class="nav-dropdown-group-label">${group}</div>${links}${extra}`;
   }).join('');
