@@ -2115,3 +2115,41 @@ html.td-sombre .td-puce.actif{ color:#fff; }
 @media (max-width: 760px){
   .tp-aller-scores{ display:flex; align-items:center; justify-content:center; position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom)); z-index:50; min-height:52px; padding:0 18px; border-radius:999px; background: var(--green); color:#fff; font-weight:700; text-decoration:none; box-shadow:0 6px 18px rgba(0,0,0,0.25); }
 }
+
+
+/* ===== Saisie des scores par terrain (saisie-scores.html) ===== */
+.ss-terrain-form{ display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin:12px 0; }
+.ss-terrain-form label{ display:flex; flex-direction:column; gap:4px; font-weight:700; }
+.ss-terrain-form input{ width:120px; padding:12px; font-size:1.3rem; text-align:center; border-radius:8px; border:1px solid var(--c-bordure-champ); }
+.ss-message-ok, .ss-message-erreur{ padding:10px 14px; border-radius:8px; font-weight:600; }
+.ss-message-ok{ background: var(--c-fond-valide); color: var(--c-vert-statut); }
+.ss-message-erreur{ background: var(--c-fond-terrain-occupe); color: var(--c-rouge-brique); }
+.ss-terrains-liste{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:12px; margin-top:12px; }
+.ss-terrain-card{
+  display:flex; flex-direction:column; gap:4px; text-align:left; padding:14px; min-height:44px;
+  background: var(--pale); border:2px solid var(--border); border-radius:12px; cursor:pointer;
+  font-family: var(--font-body); color: inherit;
+}
+.ss-terrain-card:hover, .ss-terrain-card:focus-visible{ border-color: var(--green); }
+.ss-terrain-num{ font-size:1.2rem; font-weight:900; color: var(--dark); }
+.ss-terrain-comp{ font-size:0.8rem; color: var(--ink-soft); font-weight:600; }
+.ss-terrain-equipes{ font-weight:700; }
+.ss-terrain-equipes em{ font-weight:400; color: var(--ink-soft); }
+.ss-terrain-duree{ font-size:0.75rem; color: var(--ink-soft); }
+.ss-score-table{ border-collapse:collapse; margin:12px 0; width:100%; max-width:560px; table-layout:fixed; }
+.ss-score-table th, .ss-score-table td{ padding:8px; text-align:center; vertical-align:middle; }
+.ss-score-table thead th{ font-weight:800; overflow-wrap:anywhere; }
+.ss-score-table tbody th{ width:28%; }
+.ss-score-table tbody th{ text-align:left; white-space:nowrap; }
+.ss-score-table .ss-input{ width:100%; max-width:72px; padding:12px 6px; font-size:1.3rem; box-sizing:border-box; }
+.ss-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+.ss-sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+@media (max-width: 760px){
+  .ss-terrains-liste{ grid-template-columns: 1fr; }
+  .ss-terrain-form input{ width:100%; }
+  .ss-terrain-form label{ flex:1 1 140px; }
+  .ss-actions .btn{ flex:1 1 100%; }
+  .ss-score-table th, .ss-score-table td{ padding:6px 3px; }
+  .ss-score-table thead th{ font-size:0.8rem; }
+  .ss-score-table tbody th{ white-space:normal; }
+}

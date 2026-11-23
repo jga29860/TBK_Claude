@@ -448,6 +448,7 @@ const TOOL_LINKS = [
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'poules.html', label: 'Phase Poule', group: 'Tournoi', parent: 'tournois.html' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'phase-finale.html', label: 'Phase finale', group: 'Tournoi', parent: 'tournois.html' },
   { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'planning.html', label: 'Planning', group: 'Tournoi', parent: 'tournois.html' },
+  { pageKeys: ['tournois_admin', 'tournois_gestion'], href: 'saisie-scores.html', label: 'Saisie des scores', group: 'Tournoi', parent: 'tournois.html' },
   { pageKeys: ['tournois_admin', 'tournois_gestion', 'tournois_inscriptions', 'tournois_emargement', 'benevoles'], href: 'tournoi-direct.html', label: 'Tournoi en direct (joueurs)', group: 'Tournoi', parent: 'tournois.html' },
   { pageKeys: ['tournoi_salade', 'tournois_admin', 'tournois_gestion'], href: 'salade.html', label: 'Tournoi TBK (salade, simple / poules)', group: 'Tournoi' },
   { pageKeys: ['administration'], href: 'admin.html', label: 'Administration', group: 'Administration' },

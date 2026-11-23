@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20261012e"></script>
-<link rel="stylesheet" href="css/style.css?v=20261012e">
+<script src="js/theme-init.js?v=20261012f"></script>
+<link rel="stylesheet" href="css/style.css?v=20261012f">
 </head>
 <body>
 
@@ -411,6 +411,15 @@
       <p><strong>Largeur des colonnes réglable (PC)</strong> : chaque colonne a une largeur fixe par défaut (le texte trop long est tronqué avec "…" plutôt que d'élargir la colonne indéfiniment). Une petite poignée sur le bord droit de chaque en-tête permet de faire glisser pour ajuster la largeur ; un double-clic dessus revient à la largeur par défaut. Les largeurs choisies sont mémorisées dans le navigateur (pas partagées entre appareils).</p>
 
       <p><strong>Saisie rapide des scores</strong> : chaque case enregistrée est aussitôt prise en compte, même si plusieurs cases sont enchaînées très vite au clavier ; la fin du match (terrain libéré) et le passage du vainqueur au tour suivant sont toujours détectés sur le score complet.</p>
+
+      <h3 class="admin-subheading">6.7bis Saisie des scores par terrain (saisie-scores.html)</h3>
+      <p>Page réservée aux profils <strong>Tournois - Administration</strong> et <strong>Tournois - Gestion</strong> (menu Tournoi → « Saisie des scores »), pensée pour enregistrer vite le score d'un match terminé, par exemple depuis un téléphone au bord des terrains. Elle concerne le <strong>tournoi en cours</strong>.</p>
+      <ol>
+        <li><strong>Choix du terrain</strong> : saisir le numéro du terrain, ou toucher le terrain dans la liste. Seuls les terrains où un match est <strong>en cours</strong> (lancé depuis le planning, pas encore terminé) sont proposés ; la liste indique la compétition, la poule ou le tour, les équipes et la durée écoulée. Si le numéro saisi n'a pas de match en cours, un message rappelle les terrains disponibles.</li>
+        <li><strong>Saisie du score</strong> : le match s'affiche avec le nom des équipes et trois lignes de sets. Règle du site : match gagné en <strong>2 sets</strong> ; le 3e set n'est à saisir que si chaque équipe a gagné un set ; pas d'égalité possible dans un set. Un récapitulatif (score et vainqueur) est demandé en confirmation.</li>
+        <li><strong>Enregistrement</strong> : les scores sont enregistrés, le match passe à « Terminé » (heure de fin) et, en phase finale, le vainqueur rejoint automatiquement le match suivant. La page revient alors à la liste des terrains avec un match en cours, mise à jour.</li>
+      </ol>
+      <p>Si le match a déjà été terminé depuis un autre poste (planning, autre téléphone), l'enregistrement est refusé et aucun score existant n'est écrasé. La liste se rafraîchit toute seule toutes les 20 secondes. Pour corriger un score déjà enregistré, utiliser le planning.</p>
 
       <h3 class="admin-subheading">6.8 Phases finales (Principale / Consolante)</h3>
       <p>Générées <strong>automatiquement</strong> dès que tous les matchs de poule d'une compétition sont terminés.</p>
@@ -845,12 +854,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20261012e"></script>
-<script src="js/tableaux-mobile.js?v=20261012e"></script>
-<script src="js/supabase-config.js?v=20261012e"></script>
-<script src="js/auth.js?v=20261012e"></script>
-<script src="js/theme.js?v=20261012e"></script>
-<script src="js/main.js?v=20261012e"></script>
-<script src="js/documentation.js?v=20261012e"></script>
+<script src="js/menu-mobile.js?v=20261012f"></script>
+<script src="js/tableaux-mobile.js?v=20261012f"></script>
+<script src="js/supabase-config.js?v=20261012f"></script>
+<script src="js/auth.js?v=20261012f"></script>
+<script src="js/theme.js?v=20261012f"></script>
+<script src="js/main.js?v=20261012f"></script>
+<script src="js/documentation.js?v=20261012f"></script>
 </body>
 </html>

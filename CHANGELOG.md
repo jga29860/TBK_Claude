@@ -1302,3 +1302,15 @@ Aucune migration SQL à exécuter. La requête de contrôle `supabase/requete_in
 ⚠️ Un certificat d'adulte de plus d'un an n'est plus accepté seul (il fallait avant un QS Sport en complément jusqu'à 40 mois) ; il l'est toujours avec un QS Sport de moins d'un an. Les inscriptions déjà validées ne sont pas modifiées automatiquement.
 
 Version des fichiers : `?v=20261012e`.
+## Saisie des scores par terrain (nouvelle page `saisie-scores.html`)
+
+Aucun script SQL à exécuter : la page utilise les tables et droits existants (`matchs`, `equipes`, `tournoi_competitions`).
+
+Nouvelle page **`saisie-scores.html`** / `js/saisie-scores.js`, réservée aux profils `tournois_admin` / `tournois_gestion` (comme le planning), pour le tournoi en cours :
+- **Écran 1** : saisie du n° de terrain (ou clic dans la liste) parmi les terrains qui ont un match en cours (lancé, non terminé) ; message explicite si le terrain n'a pas de match en cours ; liste rafraîchie toutes les 20 s (jamais pendant une saisie).
+- **Écran 2** : le match s'affiche (compétition, poule ou tour, équipes) avec 3 lignes de sets. Règle commune au site : 2 sets gagnants, set 3 seulement si 1 set partout, pas d'égalité (fonction `analyserScore`). Confirmation avec récapitulatif et vainqueur.
+- **Enregistrement** : scores + `heure_fin` (même effet que la saisie du planning), uniquement si le match n'est pas déjà terminé (garde `heure_fin is null`, aucun score existant écrasé) ; en phase finale, le vainqueur est placé dans le match suivant (`match_suivant_id` / `slot_suivant`). Retour ensuite à la liste des terrains avec un match en cours.
+- Menu Tournoi → « Saisie des scores » (`TOOL_LINKS`, `auth.js`) ; styles `.ss-*` (`style.css`, variables existantes) ; documentation 6.7bis.
+- Limite connue : la rotation du match suivant en phase finale est attribuée à la prochaine ouverture du planning (comportement de rattrapage existant), pas immédiatement.
+
+Version des fichiers : `?v=20261012f`.
