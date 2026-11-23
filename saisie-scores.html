@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saisie des scores — TBK</title>
+<link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
+<script src="js/theme-init.js?v=20261012f"></script>
+<link rel="stylesheet" href="css/style.css?v=20261012f">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="index.html" class="logo">
+      <img src="images/logo-tbk-rond-128.webp" alt="" class="logo-mark-img" width="40" height="40">
+      TBK
+    </a>
+    <nav class="main-nav">
+      <a href="index.html#club">Le club</a>
+    </nav>
+    <a href="#" id="headerContactMail" class="header-icon-btn" title="Contacter le club par email" aria-label="Contacter le club par email" hidden>✉️</a>
+    <span class="auth-state" id="authState"></span>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page-section">
+  <p class="section-eyebrow">Réservé à l'organisation des tournois</p>
+  <h1 id="pageTitle">Saisie des scores</h1>
+
+  <div id="deniedPanel" class="status-panel" hidden>
+    <h2>Accès refusé</h2>
+    <p>Cette page est réservée aux profils "Tournois - Administration" ou "Tournois - Gestion".</p>
+  </div>
+
+  <div id="mainPanel" hidden>
+
+    <div id="pasDeTournoiMessage" class="status-panel" hidden>
+      <h2>Aucun tournoi en cours</h2>
+      <p>Créez ou réactivez un tournoi depuis <a href="tournois.html">la page Tournois</a>.</p>
+    </div>
+
+    <!-- ===== Écran 1 : choix du terrain ===== -->
+    <section class="admin-section" id="ecranTerrains" hidden>
+      <h2>Quel terrain ?</h2>
+      <p class="section-lead">Saisissez le numéro du terrain, ou touchez-le dans la liste ci-dessous. Seuls les terrains avec un match en cours sont proposés.</p>
+
+      <form id="terrainForm" class="ss-terrain-form" autocomplete="off">
+        <label for="terrainInput">N° de terrain
+          <input type="number" id="terrainInput" inputmode="numeric" min="1" step="1" placeholder="ex. 3" required>
+        </label>
+        <button type="submit" class="btn btn-primary">Afficher le match</button>
+      </form>
+      <p class="form-hint" id="terrainMessage" role="alert" hidden></p>
+
+      <h3 class="admin-subheading">Terrains avec un match en cours</h3>
+      <p class="form-hint" id="aucunMatchMessage" hidden>Aucun match en cours pour le moment. Lancez un match depuis <a href="planning.html">le planning</a>.</p>
+      <div id="terrainsListe" class="ss-terrains-liste"></div>
+    </section>
+
+    <!-- ===== Écran 2 : saisie du score ===== -->
+    <section class="admin-section" id="ecranScore" hidden>
+      <p><button type="button" class="btn btn-ghost btn-small" id="retourBtn">← Retour aux terrains</button></p>
+      <h2 id="scoreTitre">Terrain</h2>
+      <p class="form-hint" id="scoreSousTitre"></p>
+
+      <form id="scoreForm" class="ss-score-form" autocomplete="off" novalidate>
+        <table class="ss-score-table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="ss-sr">Set</span></th>
+              <th scope="col" id="nomEquipe1"></th>
+              <th scope="col" id="nomEquipe2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Set 1</th>
+              <td><input type="number" class="score-input ss-input" id="s1e1" inputmode="numeric" min="0" max="99" step="1" aria-label="Set 1, équipe 1"></td>
+              <td><input type="number" class="score-input ss-input" id="s1e2" inputmode="numeric" min="0" max="99" step="1" aria-label="Set 1, équipe 2"></td>
+            </tr>
+            <tr>
+              <th scope="row">Set 2</th>
+              <td><input type="number" class="score-input ss-input" id="s2e1" inputmode="numeric" min="0" max="99" step="1" aria-label="Set 2, équipe 1"></td>
+              <td><input type="number" class="score-input ss-input" id="s2e2" inputmode="numeric" min="0" max="99" step="1" aria-label="Set 2, équipe 2"></td>
+            </tr>
+            <tr>
+              <th scope="row">Set 3 <span class="form-hint">(si 1 set partout)</span></th>
+              <td><input type="number" class="score-input ss-input" id="s3e1" inputmode="numeric" min="0" max="99" step="1" aria-label="Set 3, équipe 1"></td>
+              <td><input type="number" class="score-input ss-input" id="s3e2" inputmode="numeric" min="0" max="99" step="1" aria-label="Set 3, équipe 2"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="form-hint" id="scoreMessage" role="alert" hidden></p>
+        <div class="ss-actions">
+          <button type="submit" class="btn btn-primary" id="enregistrerBtn">Enregistrer le score</button>
+          <button type="button" class="btn btn-ghost" id="annulerBtn">Annuler</button>
+        </div>
+      </form>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <span>TBK — Club de Badminton &amp; Tennis de Table de Kersaint-Plabennec</span>
+    <a href="index.html">Retour à l'accueil</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="js/menu-mobile.js?v=20261012f"></script>
+<script src="js/tableaux-mobile.js?v=20261012f"></script>
+<script src="js/supabase-config.js?v=20261012f"></script>
+<script src="js/auth.js?v=20261012f"></script>
+<script src="js/theme.js?v=20261012f"></script>
+<script src="js/main.js?v=20261012f"></script>
+<script src="js/saisie-scores.js?v=20261012f"></script>
+</body>
+</html>
