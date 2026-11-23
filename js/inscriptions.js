@@ -802,37 +802,34 @@ function conditionsValidationOk(record) {
   const motifs = [];
   if (!estValeurAffirmative(champs.cotisation_payee)) motifs.push('cotisation non payée');
 
-  if (!champs.date_certif) {
-    motifs.push('date de certificat non renseignée');
-  } else if (!certificatEstValide(champs.date_certif, record.categorie)) {
-    const duree = record.categorie === 'Jeune' ? '1 an' : '40 mois';
-    motifs.push(`certificat médical expiré (valable ${duree} pour la catégorie ${record.categorie || '?'})`);
-  } else if (record.categorie !== 'Jeune' && !certificatEstRecent(champs.date_certif) && !qsSportEstValide(champs.date_qs_sport)) {
-    motifs.push('certificat médical valable mais ancien (plus d\'un an) : QS Sport à jour requis en complément');
+  // Règle commune (jeunes et adultes) : certificat médical OU QS Sport
+  // de moins d'un an — une seule des deux pièces suffit.
+  if (!dossierSanteComplet(champs, record.categorie)) {
+    if (!champs.date_certif && !champs.date_qs_sport) {
+      motifs.push('certificat médical ou QS Sport de moins d\'un an non renseigné');
+    } else {
+      motifs.push('certificat médical et/ou QS Sport expiré (plus d\'un an) : un document de moins d\'un an est requis');
+    }
   }
 
   return { ok: motifs.length === 0, motifs };
 }
 
 /**
- * Détermine quel document de santé demander pour cette inscription,
- * selon les règles du club :
- * - Catégorie Jeune : un certificat médical est exigé chaque année
- *   (12 mois de validité, jamais de QS Sport pour les mineurs).
- * - Catégorie Adulte : certificat exigé si aucun certificat n'a
- *   jamais été renseigné (date vide), ou si le certificat existant a
- *   plus de 40 mois (expiré). Si le certificat est valable mais date
- *   de plus d'un an, un QS Sport à jour est exigé en complément.
+ * Détermine quel document de santé demander pour cette inscription.
+ * Règle commune (jeunes et adultes) : un certificat médical OU un QS
+ * Sport de moins d'un an suffit. On redemande le type de document que
+ * la personne a déjà fourni (QS Sport s'il est le plus récent des deux),
+ * et par défaut un certificat médical.
  * Retourne 'certificat' ou 'qs_sport'.
  */
 function typeDocumentSanteRequis(record) {
   const champs = record.champs || {};
-  const dateCertif = champs.date_certif;
+  const dCertif = champs.date_certif ? new Date(champs.date_certif).getTime() : null;
+  const dQs = champs.date_qs_sport ? new Date(champs.date_qs_sport).getTime() : null;
 
-  if (record.categorie === 'Jeune') return 'certificat';
-  if (!dateCertif) return 'certificat';
-  if (!certificatEstValide(dateCertif, record.categorie)) return 'certificat';
-  return 'qs_sport';
+  if (dQs !== null && (dCertif === null || dQs > dCertif)) return 'qs_sport';
+  return 'certificat';
 }
 
 function templateRecommande(record) {
@@ -1128,8 +1125,8 @@ async function voirQsSportPhoto(id) {
 }
 
 /** Statut de validité du certificat, basé sur la vraie date du
- *  certificat (champs.date_certif) et la catégorie — 40 mois pour un
- *  adulte, 1 an pour un jeune (voir finValiditeCertificat, auth.js). */
+ *  certificat (champs.date_certif) — 1 an pour tout le monde
+ *  (voir finValiditeCertificat, auth.js). */
 function dateCertificat(record) {
   const champs = record.champs || {};
   if (!champs.date_certif) return '';
@@ -1142,17 +1139,16 @@ function dateCertificat(record) {
   return texte;
 }
 
-/** Statut du QS Sport, pertinent uniquement pour un adulte dont le
- *  certificat est valable mais n'est plus "récent" (plus d'un an) —
- *  voir dossierSanteComplet, auth.js. Renvoie une chaîne vide si le
- *  QS Sport n'est pas (encore) pertinent pour cette inscription. */
+/** Statut du QS Sport (jeunes et adultes) : il remplace le certificat
+ *  médical s'il date de moins d'un an — voir dossierSanteComplet,
+ *  auth.js. Renvoie une chaîne vide s'il n'y a rien à signaler. */
 function statutQsSport(record) {
   const champs = record.champs || {};
-  if (record.categorie === 'Jeune') return '';
-  if (!certificatEstValide(champs.date_certif, record.categorie)) return '';
-  if (certificatEstRecent(champs.date_certif)) return 'Certificat récent : QS Sport non nécessaire cette saison.';
-
-  if (!champs.date_qs_sport) return '⚠️ QS Sport requis en complément (non renseigné).';
+  if (!champs.date_qs_sport) {
+    return certificatEstValide(champs.date_certif, record.categorie)
+      ? 'Certificat à jour : QS Sport non nécessaire.'
+      : '⚠️ Ni certificat ni QS Sport de moins d\'un an (l\'un des deux est requis).';
+  }
   const dateTexte = new Date(champs.date_qs_sport).toLocaleDateString('fr-FR');
   return qsSportEstValide(champs.date_qs_sport)
     ? `QS Sport du ${dateTexte} — à jour.`
@@ -1336,12 +1332,10 @@ function renderEditActionsPanel(record) {
       <button type="button" class="btn btn-danger btn-small supprimer-certificat-btn" data-id="${record.id}">Supprimer le certificat</button>
       <span class="certificat-date">${escapeHtml(dateCertificat(record))}</span>
     ` : ''}
-    ${record.categorie !== 'Jeune' ? `
-      <button type="button" class="btn btn-ghost btn-small qs-sport-btn" data-id="${record.id}">${record.qs_sport_photo_url ? '📷 QS Sport ✓' : '📷 QS Sport'}</button>
-      ${record.qs_sport_photo_url ? `
-        <button type="button" class="btn btn-ghost btn-small voir-qs-sport-btn" data-id="${record.id}">Voir le QS Sport</button>
-        <button type="button" class="btn btn-danger btn-small supprimer-qs-sport-btn" data-id="${record.id}">Supprimer le QS Sport</button>
-      ` : ''}
+    <button type="button" class="btn btn-ghost btn-small qs-sport-btn" data-id="${record.id}">${record.qs_sport_photo_url ? '📷 QS Sport ✓' : '📷 QS Sport'}</button>
+    ${record.qs_sport_photo_url ? `
+      <button type="button" class="btn btn-ghost btn-small voir-qs-sport-btn" data-id="${record.id}">Voir le QS Sport</button>
+      <button type="button" class="btn btn-danger btn-small supprimer-qs-sport-btn" data-id="${record.id}">Supprimer le QS Sport</button>
     ` : ''}
     ${statutQsSport(record) ? `<span class="certificat-date">${escapeHtml(statutQsSport(record))}</span>` : ''}
     ${renderRattachementWidget(record)}

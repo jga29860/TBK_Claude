@@ -1287,3 +1287,18 @@ Exécutez `supabase/migration_annonces_nouveautes.sql` : table `annonces_lecture
 - `membres.js` : lecture de la visite précédente (`lireDerniereVisite`), badges « Nouveau » sur les annonces et commentaires concernés (`estNouveau`), « N nouveaux » sur le bouton des commentaires, ouverture automatique des annonces ayant de nouveaux commentaires au premier affichage, puis enregistrement de la visite (`enregistrerVisite`) et effacement des pastilles.
 - `sauvegarde.js` : table `annonces_lectures` ajoutée. `style.css` : `.nouveautes-badge`, `.nav-pastille`, `.badge-nouveau`, `.annonce-card--nouvelle`, `.commentaire--nouveau`.
 Version des fichiers : `?v=20261012d`.
+
+## Règle de validation d'une inscription : certificat OU QS Sport (jeunes et adultes)
+
+Aucune migration SQL à exécuter. La requête de contrôle `supabase/requete_inscriptions_non_finalisees.sql` est alignée sur la nouvelle règle (à ré-exécuter si elle est utilisée).
+
+**Nouvelle règle, commune à toutes les catégories** : une inscription ne peut être validée que si (1) la **cotisation est payée** et (2) **un certificat médical OU un QS Sport de moins d'un an** est enregistré (une seule des deux pièces suffit). Remplace les anciennes règles par catégorie (Jeune : certificat de 12 mois, jamais de QS Sport ; Adulte : certificat de 40 mois complété d'un QS Sport si plus d'un an).
+
+- `js/auth.js` : règle centralisée (`DUREE_VALIDITE_SANTE_MOIS = 12`, `finValiditeCertificat`, `certificatEstValide`, `qsSportEstValide`, `dossierSanteComplet`) ; `certificatEstRecent` conservé comme alias pour compatibilité.
+- `js/inscriptions.js` : `conditionsValidationOk` (nouveaux motifs d'info-bulle), `typeDocumentSanteRequis` (redemande le type de document le plus récent, certificat par défaut), `statutQsSport`, bouton « 📷 QS Sport » désormais visible aussi pour les jeunes.
+- `js/membres.js` : section « Mes informations » alignée. Le filtre « Santé non à jour » et les listes par email suivent la même règle.
+- `documentation.html` (sections 5.9 et relances) mise à jour.
+
+⚠️ Un certificat d'adulte de plus d'un an n'est plus accepté seul (il fallait avant un QS Sport en complément jusqu'à 40 mois) ; il l'est toujours avec un QS Sport de moins d'un an. Les inscriptions déjà validées ne sont pas modifiées automatiquement.
+
+Version des fichiers : `?v=20261012e`.

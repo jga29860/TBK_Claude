@@ -8,11 +8,9 @@
 -- 1. Cotisation payée : "Oui", "Hello Asso" ou case cochée.
 --    Non payée : vide, "Non" ou case décochée.
 --
--- 2. Dossier santé à jour :
---    - Jeune  : certificat médical de moins de 12 mois.
---    - Adulte : certificat médical de moins de 40 mois ET,
---               si ce certificat a plus d'un an, un QS Sport
---               de moins de 12 mois en complément.
+-- 2. Dossier santé à jour (règle commune, jeunes et adultes) :
+--    un certificat médical de moins de 12 mois OU un QS Sport
+--    de moins de 12 mois (un seul des deux suffit).
 --
 -- Saison : celle de Administration → Paramètres du site
 -- (défaut 2026-2027). Toutes les inscriptions de la saison sont
@@ -56,15 +54,12 @@ regles as (
         then lower(trim(b.cotisation_payee_brut #>> '{}')) not in ('', 'non')
       else true
     end as cotisation_payee,
-    -- 2. Validité du certificat (12 mois jeune, 40 mois adulte)
-    (b.date_certif + case when b.est_jeune then interval '12 months' else interval '40 months' end)::date
+    -- 2. Validité du certificat (12 mois pour tout le monde)
+    (b.date_certif + interval '12 months')::date
       as certif_valable_jusqu_au,
     b.date_certif is not null
-      and (b.date_certif + case when b.est_jeune then interval '12 months' else interval '40 months' end)::date >= current_date
-      as certif_valide,
-    b.date_certif is not null
       and (b.date_certif + interval '12 months')::date >= current_date
-      as certif_recent,
+      as certif_valide,
     b.date_qs_sport is not null
       and (b.date_qs_sport + interval '12 months')::date >= current_date
       as qs_sport_valide
@@ -74,16 +69,13 @@ regles as (
 controle as (
   select
     r.*,
-    r.certif_valide and (r.est_jeune or r.certif_recent or r.qs_sport_valide) as sante_a_jour,
+    (r.certif_valide or r.qs_sport_valide) as sante_a_jour,
     case when not r.cotisation_payee then 'cotisation non payée' end as motif_cotisation,
     case
-      when r.date_certif is null
-        then 'date de certificat non renseignée'
-      when not r.certif_valide
-        then 'certificat médical expiré (valable ' || case when r.est_jeune then '1 an' else '40 mois' end
-             || ' pour la catégorie ' || coalesce(r.categorie, '?') || ')'
-      when not r.est_jeune and not r.certif_recent and not r.qs_sport_valide
-        then 'certificat médical valable mais ancien (plus d''un an) : QS Sport à jour requis en complément'
+      when not r.certif_valide and not r.qs_sport_valide and r.date_certif is null and r.date_qs_sport is null
+        then 'certificat médical ou QS Sport de moins d''un an non renseigné'
+      when not r.certif_valide and not r.qs_sport_valide
+        then 'certificat médical et/ou QS Sport expiré (plus d''un an) : un document de moins d''un an est requis'
     end as motif_sante
   from regles r
 )
@@ -100,8 +92,8 @@ select
   date_qs_sport,
   case
     when sante_a_jour then '—'
-    when est_jeune or date_certif is null or not certif_valide then 'Certificat médical'
-    else 'QS Sport'
+    when date_qs_sport is not null and (date_certif is null or date_qs_sport > date_certif) then 'QS Sport'
+    else 'Certificat médical'
   end                                     as document_sante_a_fournir,
   concat_ws(' ; ', motif_cotisation, motif_sante) as motifs,
   email,
