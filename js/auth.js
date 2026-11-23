@@ -152,63 +152,51 @@ async function convertirHeicSiBesoin(fichier) {
 }
 
 /**
- * Date de fin de validité d'un certificat médical, selon la catégorie :
- * 40 mois pour un adulte, 1 an pour un jeune (renouvellement annuel
- * obligatoire). Centralisé ici pour que inscriptions.html et
- * membres.html appliquent toujours exactement la même règle.
+ * RÈGLE DE VALIDATION SANTÉ (commune à toutes les catégories, jeunes et
+ * adultes) : le dossier santé est à jour si
+ *   - le certificat médical date de moins d'un an, OU
+ *   - le QS Sport date de moins d'un an.
+ * Une seule des deux pièces suffit. Centralisé ici pour que
+ * inscriptions.html et membres.html appliquent toujours la même règle.
  */
+const DUREE_VALIDITE_SANTE_MOIS = 12;
+
+/** Date de fin de validité (date du document + 12 mois). Le paramètre
+ *  "categorie" est conservé pour compatibilité mais n'est plus utilisé :
+ *  la durée est la même pour tout le monde. */
 function finValiditeCertificat(dateCertif, categorie) {
   const fin = new Date(dateCertif);
-  // 40 mois pour un adulte ; 1 an (12 mois) pour un jeune.
-  const dureeMois = categorie === 'Jeune' ? 12 : 40;
-  fin.setMonth(fin.getMonth() + dureeMois);
+  fin.setMonth(fin.getMonth() + DUREE_VALIDITE_SANTE_MOIS);
   return fin;
 }
 
-/** Un certificat est "valable" si sa date de fin de validité (calculée
- *  selon la catégorie) n'est pas encore dépassée. */
+/** Un certificat est "à jour" s'il date de moins d'un an. */
 function certificatEstValide(dateCertif, categorie) {
   if (!dateCertif) return false;
   return finValiditeCertificat(dateCertif, categorie).getTime() >= Date.now();
 }
 
-/** Un certificat est "récent" (moins de 12 mois) s'il suffit seul,
- *  sans avoir besoin d'un QS Sport en complément cette saison — au-delà
- *  de 12 mois (mais tant qu'il reste valable, voir certificatEstValide),
- *  un QS Sport à jour devient nécessaire en complément. */
+/** Conservé pour compatibilité : même règle que certificatEstValide
+ *  (plus de distinction "récent" / "valable" depuis la règle unique). */
 function certificatEstRecent(dateCertif) {
-  if (!dateCertif) return false;
-  const unAnApres = new Date(dateCertif);
-  unAnApres.setMonth(unAnApres.getMonth() + 12);
-  return unAnApres.getTime() >= Date.now();
+  return certificatEstValide(dateCertif);
 }
 
-/** Un QS Sport est "valable" pour la saison en cours s'il date de
- *  moins de 12 mois — comme le certificat pour un jeune, renouvelé
- *  chaque année. */
+/** Un QS Sport est "à jour" s'il date de moins d'un an. */
 function qsSportEstValide(dateQsSport) {
   if (!dateQsSport) return false;
-  const unAnApres = new Date(dateQsSport);
-  unAnApres.setMonth(unAnApres.getMonth() + 12);
-  return unAnApres.getTime() >= Date.now();
+  return finValiditeCertificat(dateQsSport).getTime() >= Date.now();
 }
 
 /**
- * Détermine si le dossier santé d'une inscription est complet, selon
- * la catégorie :
- * - Jeune : certificat médical valable (12 mois) suffit, toujours.
- * - Adulte : certificat médical valable (40 mois) ET, si ce
- *   certificat n'est plus "récent" (plus d'un an), un QS Sport
- *   valable (moins de 12 mois) enregistré en complément.
+ * Dossier santé complet : certificat médical OU QS Sport à jour
+ * (moins d'un an), quelle que soit la catégorie.
  */
 function dossierSanteComplet(champs, categorie) {
-  const dateCertif = champs.date_certif;
-  if (!certificatEstValide(dateCertif, categorie)) return false;
-  if (categorie === 'Jeune') return true;
-  if (certificatEstRecent(dateCertif)) return true;
-  return qsSportEstValide(champs.date_qs_sport);
+  champs = champs || {};
+  return certificatEstValide(champs.date_certif, categorie)
+    || qsSportEstValide(champs.date_qs_sport);
 }
-
 function afficherIdentifiant(email) {
   if (estIdentifiantTechnique(email)) return email.split('@')[0];
   return email;

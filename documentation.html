@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="images/logo-tbk-rond-64.png">
 <title>Documentation fonctionnelle — TBK</title>
-<script src="js/theme-init.js?v=20261012d"></script>
-<link rel="stylesheet" href="css/style.css?v=20261012d">
+<script src="js/theme-init.js?v=20261012e"></script>
+<link rel="stylesheet" href="css/style.css?v=20261012e">
 </head>
 <body>
 
@@ -217,7 +217,7 @@
       <h2>5. Inscriptions à la saison (inscriptions.html)</h2>
 
       <p><strong>Total des cotisations</strong> : sous l'intitulé de la colonne Cotisation (quand elle est affichée), le total des cotisations des inscriptions affichées et, entre parenthèses, la part déjà payée ; le même total, avec le reste à encaisser, est rappelé sous les boutons de la liste (visible aussi sur téléphone). Il suit les filtres de colonnes.</p>
-      <p><strong>Listes par email (administrateur)</strong> : à côté de "+ Nouvelle inscription", deux boutons ouvrent la messagerie avec un email pré-rempli (destinataire proposé : l'email de contact du club, modifiable) contenant la liste des membres de la saison concernés — nom, prénom, catégorie, Bad / Ping, par ordre alphabétique : <strong>✉️ Cotisation non payée</strong> (champ Cotisation payée à Non ou vide) et <strong>✉️ Santé non à jour</strong> (mêmes règles que le contrôle à la validation : Jeune, certificat de moins de 12 mois ; Adulte, certificat de moins de 40 mois et, s'il a plus d'un an, QS Sport de moins de 12 mois). Toutes les inscriptions de la saison sont prises en compte, validées ou en attente. Si la liste est trop longue pour un lien email (limite de certaines messageries), elle est copiée automatiquement : il suffit de la coller dans l'email.</p>
+      <p><strong>Listes par email (administrateur)</strong> : à côté de "+ Nouvelle inscription", deux boutons ouvrent la messagerie avec un email pré-rempli (destinataire proposé : l'email de contact du club, modifiable) contenant la liste des membres de la saison concernés — nom, prénom, catégorie, Bad / Ping, par ordre alphabétique : <strong>✉️ Cotisation non payée</strong> (champ Cotisation payée à Non ou vide) et <strong>✉️ Santé non à jour</strong> (même règle que le contrôle à la validation : certificat médical OU QS Sport de moins de 12 mois, pour les jeunes comme pour les adultes). Toutes les inscriptions de la saison sont prises en compte, validées ou en attente. Si la liste est trop longue pour un lien email (limite de certaines messageries), elle est copiée automatiquement : il suffit de la coller dans l'email.</p>
       <p><strong>Organisation de la page</strong> : la liste des inscrits est affichée en premier ; le bouton "+ Nouvelle inscription" mène au formulaire de saisie, placé juste en dessous (sur téléphone, les formulaires sont repliés et s'ouvrent au toucher, ou automatiquement avec "Modifier").</p>
 
       <h3 class="admin-subheading">5.1 Principe général</h3>
@@ -250,7 +250,7 @@
       <p><strong>Couleurs de ligne</strong> : bleu clair pour la catégorie Jeune, orange clair pour Adulte, vert dès que l'inscription est validée (prioritaire sur la couleur de catégorie). Légende rappelée au-dessus du tableau.</p>
 
       <h3 class="admin-subheading">5.6 Conditions requises pour valider une demande</h3>
-      <p>Le bouton "Valider" n'est activable que si les conditions sont réunies : le champ Cotisation payée est renseigné et différent de "Non" (peu importe la casse — utile si ce champ liste un mode de paiement plutôt qu'un simple Oui/Non), et le dossier santé est complet (voir 5.8 — certificat médical valable, complété d'un QS Sport à jour si nécessaire). Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée" ou "certificat médical expiré (valable 40 mois pour la catégorie Adulte)"). Le bouton "Valider" reste accessible aussi bien sur une inscription "En attente" que "Éléments demandés" — seule une inscription déjà validée ne le propose plus.</p>
+      <p>Le bouton "Valider" n'est activable que si les conditions sont réunies : le champ Cotisation payée est renseigné et différent de "Non" (peu importe la casse — utile si ce champ liste un mode de paiement plutôt qu'un simple Oui/Non), et le dossier santé est à jour (voir 5.9 — certificat médical OU QS Sport de moins d'un an, pour les jeunes comme pour les adultes). Sinon, le bouton reste visible mais grisé, avec le motif précis affiché au survol (ex. "cotisation non payée" ou "certificat médical et/ou QS Sport expiré (plus d'un an) : un document de moins d'un an est requis"). Le bouton "Valider" reste accessible aussi bien sur une inscription "En attente" que "Éléments demandés" — seule une inscription déjà validée ne le propose plus.</p>
 
       <h3 class="admin-subheading">5.7 Notification des demandes en attente</h3>
       <p>Pour les profils "bureau" et "admin", un badge "X demande(s) en attente" apparaît automatiquement dans le bandeau du site, sur <strong>toutes les pages</strong>, dès qu'au moins une inscription a le statut "En attente" ou "Éléments demandés". Un clic dessus mène directement à la page Inscriptions.</p>
@@ -261,14 +261,10 @@
 
       <h3 class="admin-subheading">5.9 Photo et durée de validité du certificat médical, QS Sport en complément</h3>
       <p>Sur chaque demande, un bouton "📷 Certificat" ouvre l'appareil photo du téléphone (ou la galerie sur ordinateur) et envoie la photo dans un espace de stockage privé et sécurisé, lié automatiquement à cette inscription. Un bouton "Voir le certificat" génère un lien de consultation temporaire (2 minutes) à chaque demande — le fichier n'est jamais rendu public. Un bouton "Supprimer le certificat" permet de le retirer définitivement si besoin.</p>
-      <p><strong>Photo du QS Sport</strong> : même mécanisme, entièrement indépendant — un bouton "📷 QS Sport" (visible uniquement pour la catégorie Adulte, jamais pour un Jeune) permet de photographier le QS Sport séparément du certificat, avec son propre espace de stockage privé, son propre bouton "Voir le QS Sport" et son propre bouton "Supprimer le QS Sport". La photo est indépendante de la date : la date pilote la logique de validité (voir ci-dessous), la photo n'est qu'une pièce justificative complémentaire, comme pour le certificat.</p>
-      <p><strong>Durée de validité, selon la catégorie</strong> (calculée à partir de la date réelle du certificat, saisie dans le champ dédié — pas la date d'envoi de la photo) :</p>
-      <ul>
-        <li><strong>Catégorie Adulte</strong> — certificat valable 40 mois.</li>
-        <li><strong>Catégorie Jeune</strong> — certificat valable 1 an (renouvellement annuel obligatoire). Jamais de QS Sport pour un mineur.</li>
-      </ul>
-      <p><strong>QS Sport en complément (catégorie Adulte uniquement)</strong> : tant que le certificat médical reste valable (moins de 40 mois) mais n'est plus "récent" (plus d'un an), un QS Sport à jour est exigé en complément — saisi avec sa propre date, dans un champ dédié ("Date QS Sport"), indépendant du certificat. Le QS Sport est lui-même considéré à jour s'il date de moins d'un an, comme un certificat pour un jeune. En pratique : la première année suivant l'obtention du certificat, celui-ci suffit seul ; les années suivantes (tant qu'il reste valable), un QS Sport renouvelé chaque année vient le compléter. Le statut du QS Sport (à jour, à renouveler, requis mais non renseigné, ou non applicable) s'affiche automatiquement dans le panneau d'actions, sous les informations du certificat.</p>
-      <p>Le statut affiché à côté de la photo ("valable jusqu'au…") tient compte de cette règle, avec un avertissement dès que l'échéance approche (30 jours) ou est dépassée. Cette même règle s'applique sur membres.html (section "Mes informations"), où le statut du QS Sport est lui aussi affiché quand il est pertinent.</p>
+      <p><strong>Photo du QS Sport</strong> : même mécanisme, entièrement indépendant — un bouton "📷 QS Sport" (visible pour toutes les catégories) permet de photographier le QS Sport séparément du certificat, avec son propre espace de stockage privé, son propre bouton "Voir le QS Sport" et son propre bouton "Supprimer le QS Sport". La photo est indépendante de la date : la date pilote la logique de validité (voir ci-dessous), la photo n'est qu'une pièce justificative complémentaire, comme pour le certificat.</p>
+      <p><strong>Règle de validation santé (commune à tous : jeunes et adultes)</strong> : le dossier santé est à jour si <strong>un certificat médical OU un QS Sport de moins d'un an</strong> a été fourni. Une seule des deux pièces suffit. La durée est calculée à partir de la date réelle du document (champs "Date certificat" et "Date QS Sport"), pas de la date d'envoi de la photo ; au-delà de 12 mois, le document n'est plus considéré à jour et la validation est bloquée tant qu'un nouveau document n'est pas fourni.</p>
+<p>Le statut du QS Sport (à jour, à renouveler, ou "QS Sport non nécessaire" quand un certificat est à jour) s'affiche automatiquement dans le panneau d'actions, sous les informations du certificat.</p>
+<p>Le statut affiché à côté de la photo ("valable jusqu'au…") tient compte de cette règle, avec un avertissement dès que l'échéance approche (30 jours) ou est dépassée. Cette même règle s'applique sur membres.html (section "Mes informations"), où le statut du QS Sport est lui aussi affiché quand il est pertinent.</p>
       <p><strong>Ancien champ "Santé"</strong> (menu déroulant Certificat Médical / QS Sport / En Attente) : n'est plus utilisé par aucune logique du site depuis l'introduction du système à deux dates ci-dessus — laissé en place par prudence (pour ne perdre aucune donnée déjà saisie), mais peut être retiré depuis Administration → Champs personnalisés si le club ne souhaite plus le renseigner.</p>
       <p><strong>Ouverture de l'onglet de consultation</strong> : le lien signé s'ouvre dans un nouvel onglet créé dès le clic (avant même la récupération du lien), plutôt qu'après — sur certains navigateurs, notamment mobiles, ouvrir un onglet après un appel réseau est traité comme un pop-up et bloqué silencieusement, sans aucun message d'erreur visible. Si "Voir le certificat" ne semble rien faire pour une personne en particulier, vérifiez en second lieu, dans Administration → Profils, que son rôle dispose bien du droit de page "Inscriptions".</p>
       <p><strong>Photos au format HEIC (iPhone)</strong> : par défaut, un iPhone enregistre ses photos au format HEIC — or ce format ne s'affiche correctement que dans Safari, et apparaît cassé dans tous les autres navigateurs (Chrome, Firefox, la plupart des navigateurs Android). Le site convertit désormais automatiquement toute photo HEIC en JPEG dans le navigateur, juste avant l'envoi — que ce soit pour le certificat médical ou pour une photo d'article boutique — pour que la photo reste consultable par tout le monde, quel que soit son navigateur. Cette conversion ne s'applique qu'aux nouveaux envois : une photo déjà envoyée au format HEIC avant cette mise à jour resterait cassée pour les autres et devrait être renvoyée pour être corrigée.</p>
@@ -300,7 +296,7 @@
         <li><strong>L'adresse email de contact du club</strong> (Administration → Paramètres du site) est automatiquement mise en copie (Cc) de chaque relance envoyée, pour que le bureau garde une trace de l'échange.</li>
         <li>5 modèles disponibles : Cotisation manquante, Certificat médical attendu, QS Sport attendu, Cotisation + document santé manquants (relance combinée quand les deux manquent à la fois), Inscription validée (bienvenue).</li>
         <li><strong>Important sur le mot de passe</strong> : le modèle "Inscription validée" ne peut pas "rappeler" un mot de passe — c'est techniquement impossible pour n'importe quel système, les mots de passe n'étant jamais stockés en clair. Il invite donc la personne à créer son compte (si elle n'en a pas) ou à utiliser "Mot de passe oublié" (si elle l'a perdu).</li>
-        <li><strong>Quel document de santé demander ?</strong> déterminé automatiquement : catégorie Jeune → toujours un certificat médical neuf (exigé chaque année, jamais de QS Sport pour un mineur) ; catégorie Adulte → certificat neuf si aucun certificat n'a jamais été renseigné, ou si le certificat existant a plus de 40 mois (expiré) ; dans les autres cas (certificat valable mais datant de plus d'un an), un QS Sport à jour est demandé en complément (voir 5.9). Le modèle combiné utilise la variable <code>{document_sante}</code> pour préciser automatiquement lequel des deux est concerné.</li>
+        <li><strong>Quel document de santé demander ?</strong> règle commune aux jeunes et aux adultes : un certificat médical OU un QS Sport de moins d'un an suffit (voir 5.9). Le document redemandé est de même nature que celui déjà fourni (QS Sport s'il est le plus récent des deux), et par défaut un certificat médical. Le modèle combiné utilise la variable <code>{document_sante}</code> pour préciser automatiquement lequel des deux est concerné.</li>
         <li><strong>Inscription pleinement finalisée ("Validée_")</strong> : dès que le mail "Inscription validée (bienvenue)" a été envoyé ET que l'inscription est reliée à un compte (voir 5.11), le badge de statut affiche "Validée_" (avec un tiret bas) plutôt que "Validée" — une façon de repérer en un coup d'œil les dossiers réellement clos, par opposition à une validation "à sec" pas encore suivie d'effet. Annuler la validation réinitialise ce marqueur.</li>
       </ul>
 
@@ -849,12 +845,12 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
-<script src="js/menu-mobile.js?v=20261012d"></script>
-<script src="js/tableaux-mobile.js?v=20261012d"></script>
-<script src="js/supabase-config.js?v=20261012d"></script>
-<script src="js/auth.js?v=20261012d"></script>
-<script src="js/theme.js?v=20261012d"></script>
-<script src="js/main.js?v=20261012d"></script>
-<script src="js/documentation.js?v=20261012d"></script>
+<script src="js/menu-mobile.js?v=20261012e"></script>
+<script src="js/tableaux-mobile.js?v=20261012e"></script>
+<script src="js/supabase-config.js?v=20261012e"></script>
+<script src="js/auth.js?v=20261012e"></script>
+<script src="js/theme.js?v=20261012e"></script>
+<script src="js/main.js?v=20261012e"></script>
+<script src="js/documentation.js?v=20261012e"></script>
 </body>
 </html>

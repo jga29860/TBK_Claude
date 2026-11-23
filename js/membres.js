@@ -197,14 +197,13 @@ function rendreMesInformations(insc) {
   }
 
   let qsSportLigne = '';
-  if (insc.categorie !== 'Jeune' && certificatEstValide(champs.date_certif, insc.categorie) && !certificatEstRecent(champs.date_certif)) {
-    if (champs.date_qs_sport) {
-      const valide = qsSportEstValide(champs.date_qs_sport);
-      const dateTexte = new Date(champs.date_qs_sport).toLocaleDateString('fr-FR');
-      qsSportLigne = `<div class="info-ligne"><span class="info-label">QS Sport</span><span class="info-valeur">${valide ? '✅ À jour' : '⚠️ À renouveler'} — du ${dateTexte}</span></div>`;
-    } else {
-      qsSportLigne = `<div class="info-ligne"><span class="info-label">QS Sport</span><span class="info-valeur">⚠️ Requis en complément du certificat, non renseigné</span></div>`;
-    }
+  // Règle commune : certificat OU QS Sport de moins d'un an suffit.
+  if (champs.date_qs_sport) {
+    const valide = qsSportEstValide(champs.date_qs_sport);
+    const dateTexte = new Date(champs.date_qs_sport).toLocaleDateString('fr-FR');
+    qsSportLigne = `<div class="info-ligne"><span class="info-label">QS Sport</span><span class="info-valeur">${valide ? '✅ À jour' : '⚠️ À renouveler'} — du ${dateTexte}</span></div>`;
+  } else if (!certificatEstValide(champs.date_certif, insc.categorie)) {
+    qsSportLigne = `<div class="info-ligne"><span class="info-label">QS Sport</span><span class="info-valeur">⚠️ Un certificat médical ou un QS Sport de moins d'un an est requis</span></div>`;
   }
 
   return `
